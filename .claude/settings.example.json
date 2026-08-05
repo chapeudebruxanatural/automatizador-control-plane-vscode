@@ -1,0 +1,51 @@
+{
+  "$comment": [
+    "Exemplo de configuracao do Claude Code para este repositorio.",
+    "Copie para .claude/settings.local.json e ajuste. O arquivo local NAO e versionado.",
+    "A lista de permissoes abaixo cobre apenas operacoes reversiveis e de leitura.",
+    "Nada que altere VPS, DNS, Cloudflare, n8n, bancos ou campanhas deve entrar em 'allow'."
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix)",
+      "Bash(npm run typecheck)",
+      "Bash(npm test)",
+      "Bash(npm run build)",
+      "Bash(npm run dev)",
+      "Bash(npm run verify)",
+      "Bash(npm run scan:secrets)",
+      "Bash(npm run scan:secrets:all)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh repo list:*)",
+      "Bash(gh api repos/:*)",
+      "Bash(curl -s http://localhost:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(//Users/**/.ssh/**)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(rm -rf:*)",
+      "Bash(docker system prune:*)",
+      "Bash(ssh nvvps *docker rm*)",
+      "Bash(ssh nvvps *docker stop*)",
+      "Bash(ssh nvvps *docker restart*)",
+      "Bash(ssh nvvps *systemctl restart*)",
+      "Bash(ssh nvvps *apt install*)",
+      "Bash(ssh nvvps *cat*.env*)",
+      "Bash(ssh nvvps *printenv*)"
+    ]
+  },
+  "env": {
+    "CONTROL_PLANE_KILL_SWITCH": "true",
+    "EXECUTION_MODE": "dry-run"
+  }
+}
