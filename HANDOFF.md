@@ -107,7 +107,26 @@ Campanha do Cássio `24066140634`, autorizado pelo dono:
 | Orçamento total | R$ 203,20 → **R$ 472,94** | `DxGYRwSfTPNL-a6e1duZ9w` |
 | Data final | 08/08 → **20/08** | `N7aI1EH774GQZDYEoVr-Ng` |
 | Status | PAUSED → **ENABLED** | `ajgCun7HloI0XhndrUpo5g` |
-| `WHATSAPP - CÁSSIO` `primary_for_goal` | false → **true** | `xMbYjE0H2R9w7f6h9evw8A` |
+| `WHATSAPP - CÁSSIO` `primary_for_goal` | false → true | `xMbYjE0H2R9w7f6h9evw8A` |
+| ↳ **REVERTIDA** (era desnecessária e afeta conta compartilhada) | true → **false** | `J2oEmOcK-ehjc17EP6TRQw` |
+
+Estado pós-operação: **`ENABLED` / `ELIGIBLE`**, sem bloqueio.
+
+### Falhas de processo registradas
+
+- A alteração da conversão foi a **única sem `validateOnly` prévio**.
+- `primary_for_goal` é propriedade da **ação na conta**, não da campanha. Numa
+  conta compartilhada isso muda a linha de base de relatório de todos. Afirmei
+  que afetava só o Cássio sem testar. **Revertida.**
+- **Landing page, botão do WhatsApp e tag: NÃO VERIFICADOS** antes de liberar
+  os R$ 300. Falha de sequência — o teste deveria ter vindo antes.
+- **`MONITOR_NOT_DEPLOYED`** — o agendamento era de sessão, sem processo
+  persistente.
+
+### Correção estatística
+
+"300 cliques sem contato prova defeito" está **errado**. Com p=0,9%,
+P(zero em 300) = **6,6%**. É alerta forte, não prova.
 
 Estado pós-operação: **`ENABLED` / `ELIGIBLE`**, sem bloqueio.
 
@@ -153,11 +172,11 @@ Tornar a conversão primária melhorou a **medição**, não o leilão.
 **Não trocar para lance por conversão agora** — precisa de ~30 conversões/mês
 para calibrar, e há 5. O caminho é acumular volume com clique barato primeiro.
 
-### Limiar de alerta definido
+### Limiar de alerta (corrigido)
 
-**Se chegarem ~300 cliques sem nenhum contato novo, tem algo quebrado depois do
-clique** (botão do WhatsApp, landing ou tag). A 0,9%, 300 cliques deveriam dar
-~3 contatos.
+~300 cliques sem contato novo é **sinal de investigação**, não prova de
+defeito: com p=0,9%, a chance de zero em 300 é de 6,6%. Prova só a partir de
+~600 cliques (P ≈ 0,4%).
 
 ### Restrição financeira
 
@@ -198,8 +217,11 @@ node --import tsx scripts/google-ads-monitor.mts
 Somente leitura. Alerta em: CPC > R$ 1,00 · gasto acumulado > R$ 400 · mais de
 R$ 100 num dia sem contato novo. Grava em `audit/google-ads-monitor.jsonl`.
 
-**Estava agendado a cada 12h numa sessão do Claude — isso morre ao fechar.**
-Para tornar permanente: `launchd` no Mac ou cron na VPS.
+**`MONITOR_NOT_DEPLOYED`.** Não existe processo persistente: o agendamento era
+`CronCreate` de sessão do Claude, sem PID, sem serviço, morto ao fechar a
+conversa. O script funciona, mas **nada o chama sozinho**.
+
+Para tornar real: `launchd` no Mac, cron na VPS, ou GitHub Actions agendado.
 
 ---
 
@@ -279,8 +301,12 @@ Leituras essenciais: `CLAUDE.md`, `STATUS.md`, `DECISIONS.md`,
 
 ## 10. PRÓXIMOS PASSOS
 
-**Imediato (24–48h):** acompanhar o CPC do Cássio. Se ~300 cliques vierem sem
-contato, investigar landing e botão do WhatsApp.
+**Imediato, nesta ordem:**
+1. **Testar landing page, botão do WhatsApp e disparo da tag** — deveria ter
+   sido feito antes de liberar a verba, e não foi.
+2. **Tornar o monitor persistente** (`MONITOR_NOT_DEPLOYED` hoje).
+3. Acompanhar o CPC. Investigar a partir de ~300 cliques sem contato; concluir
+   defeito só a partir de ~600.
 
 **Curto prazo:** tornar o monitor permanente · resolver R-002 (confirmar as
 montagens do `novacena-motion`) · rotacionar o TOTP · gerar API key do n8n e
