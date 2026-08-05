@@ -1,0 +1,131 @@
+slug: automatizadoria
+name: AutomatizadorIA
+kind: interno
+owner: Dado Cruz
+segment: Automacao e IA aplicada a operacao de negocios
+status: ativo
+
+description: >-
+  Operacao propria. Presta servicos de automacao, sites e trafego para os demais
+  clientes deste catalogo. E tambem a entidade que opera este Control Plane.
+
+projects:
+  - slug: control-plane
+    name: Control Plane
+    description: Este repositorio. Inventario, contexto e automacao da operacao.
+    status: em-desenvolvimento
+    verificationStatus: verified
+
+  - slug: site-de-conformidade
+    name: Site de conformidade e branding
+    description: >-
+      Site exigido para verificacao do Google OAuth e da Google Ads API.
+      Necessario para publicar integracoes Google fora do modo de teste.
+    status: ativo
+    verificationStatus: discovered
+
+confirmedRepositories:
+  - automatizador-control-plane
+
+likelyRepositories:
+  - name: automatizadoria-compliance-site
+    reason: >-
+      A descricao do proprio repositorio cita "Automatizador IA" e o proposito
+      (Google OAuth / Google Ads API).
+    verificationStatus: discovered
+
+domains:
+  - domain: automatizadoria.cloud
+    purpose: unknown
+    registrar: unknown
+    dns: unknown
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    note: >-
+      Observado como aba aberta no navegador durante o diagnostico de acessos
+      em 2026-08-04, com o titulo "Automatizador IA". E um indicio, nao uma
+      confirmacao: nao foi checado contra registrador, DNS nem Cloudflare.
+      Confirmar antes de tratar como dominio de producao.
+
+accounts:
+  - platform: google
+    identifier: contato.automatizadoria@gmail.com
+    role: conta administrativa canonica
+    verificationStatus: owner_reported
+    note: >-
+      Conta canonica da AutomatizadorIA por instrucao do dono em 2026-08-04.
+      NAO misturar com estudionovacena@gmail.com (Novacena).
+
+  - platform: github
+    identifier: dadocruz
+    role: proprietario de todos os repositorios
+    verificationStatus: verified
+
+  - platform: hostinger
+    identifier: VPS "automatizadoria" (alias SSH nvvps)
+    role: infraestrutura de producao
+    verificationStatus: verified
+
+  - platform: cloudflare
+    identifier: unknown
+    role: DNS e/ou hospedagem de sites estaticos
+    verificationStatus: discovered
+    note: >-
+      Existe um dashboard da Cloudflare acessivel na sessao do navegador, e
+      varios repositorios usam wrangler/_headers. A conta em si nao foi
+      inventariada por falta de token de leitura.
+
+  - platform: meta-ads
+    identifier: "1217584809532823 (ADM 01, business: Dado Cruz)"
+    role: conta de anuncios ativa e consultavel
+    verificationStatus: verified
+    note: ID numerico de conta de anuncios nao e segredo.
+
+integrations:
+  - name: Google OAuth / Google Ads API
+    status: em-verificacao
+    note: Site de conformidade existe; verificacao junto ao Google nao confirmada.
+  - name: Meta Marketing API
+    status: parcial
+    note: 2 de 8 contas ativas e consultaveis; 6 com restricao.
+  - name: n8n
+    status: ativo
+    note: Detalhes em inventory/services.yaml e docs/discovery/n8n-inventory.md.
+
+environments:
+  - name: producao
+    location: VPS Hostinger (nvvps)
+    verificationStatus: verified
+  - name: desenvolvimento
+    location: Mac local, sem Docker
+    verificationStatus: verified
+
+risks:
+  - severity: alta
+    description: >-
+      Concentracao total de acesso em uma unica pessoa e em uma unica conta
+      GitHub. Nao ha redundancia operacional: indisponibilidade do dono
+      significa indisponibilidade da operacao inteira.
+  - severity: alta
+    description: >-
+      Seis das oito contas de anuncios da Meta estao desabilitadas ou com
+      pendencia financeira, o que limita a operacao de trafego.
+  - severity: media
+    description: >-
+      Ausencia de inventario previo de producao. Este documento e a primeira
+      tentativa de mapear o que existe.
+  - severity: media
+    description: >-
+      Repositorios publicos com artefatos de deploy para producao
+      (ver findings F-001 e F-003 em inventory/repositories.yaml).
+
+nextSteps:
+  - Confirmar propriedade e uso de automatizadoria.cloud
+  - Emitir token somente-leitura da Cloudflare e inventariar zonas e DNS
+  - Configurar OAuth na conta canonica do Google
+  - Regularizar as contas de anuncios restritas na Meta
+  - Resolver os 5 repositorios sem cliente associado
+  - Definir plano de continuidade para o acesso unico
+
+verificationStatus: owner_reported
+lastVerifiedAt: 2026-08-04

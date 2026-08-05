@@ -1,0 +1,60 @@
+slug: cassio-ferraz
+name: Cassio Ferraz
+kind: cliente
+owner: unknown
+segment: Musica / artista (inferido do conteudo do site)
+status: ativo
+
+description: >-
+  Cliente com site de artista. A estrutura do repositorio (contratar-show,
+  media-kit, patrocinadores, editais, downloads) indica um site voltado a
+  contratacao de shows e captacao via editais de incentivo.
+
+projects:
+  - slug: site-do-artista
+    name: Site do artista
+    description: Site estatico com media kit, area de contratacao e editais.
+    status: ativo
+    verificationStatus: discovered
+
+confirmedRepositories: []
+
+likelyRepositories:
+  - name: cassio-ferraz
+    reason: nome do repositorio corresponde exatamente ao slug do cliente
+    verificationStatus: discovered
+
+domains: []
+
+accounts: []
+
+integrations:
+  - name: Cloudflare Pages ou Workers
+    status: discovered
+    note: >-
+      Inferido da presenca de _headers e .assetsignore, artefatos tipicos de
+      deploy na Cloudflare. Nao confirmado contra a conta.
+
+environments:
+  - name: producao
+    location: unknown
+    verificationStatus: unknown
+
+risks:
+  - severity: media
+    description: >-
+      Repositorio privado de 15 MB sem descricao e sem responsavel declarado.
+      Nao se sabe quem aprova alteracoes no site de um artista em atividade.
+  - severity: baixa
+    description: >-
+      Se o site trata de editais e patrocinadores, pode conter documentos com
+      dados pessoais ou financeiros. Nao inspecionado.
+
+nextSteps:
+  - Descobrir o responsavel do lado do cliente
+  - Confirmar o dominio de producao e onde esta hospedado
+  - Verificar se ha dados pessoais versionados em downloads/ ou editais/
+  - Confirmar a associacao repositorio-cliente com o dono
+
+verificationStatus: owner_reported
+lastVerifiedAt: 2026-08-04

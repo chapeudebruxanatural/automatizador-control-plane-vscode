@@ -1,0 +1,74 @@
+slug: gaveta-producoes
+name: Gaveta Producoes
+kind: cliente
+owner: unknown
+segment: Producao (audiovisual ou eventos — nao confirmado)
+status: unknown
+
+description: >-
+  Cliente com dois repositorios provaveis, ambos parados desde abril de 2026.
+  A associacao vem do termo "Gaveta"/"MONITOR GAVETA" nos repositorios, nao de
+  declaracao do dono.
+
+projects:
+  - slug: monitor
+    name: Monitor
+    description: >-
+      Servico Node minimo (package.json + server.js). Funcao exata
+      desconhecida — o nome sugere monitoramento de algo.
+    status: unknown
+    verificationStatus: discovered
+
+confirmedRepositories: []
+
+likelyRepositories:
+  - name: gaveta-monitor
+    reason: prefixo "gaveta" no nome do repositorio
+    verificationStatus: discovered
+  - name: meu-projeto
+    reason: >-
+      A raiz contem um diretorio "MONITOR GAVETA". A evidencia esta no
+      conteudo, nao no nome do repositorio (que e generico).
+    verificationStatus: discovered
+
+domains: []
+
+accounts:
+  - platform: instagram
+    identifier: "@gavetaproducoes"
+    role: perfil publico
+    verificationStatus: discovered
+    note: >-
+      Observado como aba aberta no navegador durante o diagnostico de acessos
+      em 2026-08-04. E um indicio de que a marca existe e esta ativa, nao uma
+      confirmacao de vinculo com este cliente nem de acesso administrativo.
+
+integrations: []
+
+environments:
+  - name: producao
+    location: unknown
+    verificationStatus: unknown
+    note: >-
+      Nao se sabe se gaveta-monitor chegou a rodar em algum lugar. Verificar
+      contra PM2 e containers da VPS em inventory/services.yaml.
+
+risks:
+  - severity: media
+    description: >-
+      Dois repositorios possivelmente redundantes (gaveta-monitor privado e
+      meu-projeto publico) para o mesmo proposito, um deles publico e sem
+      README. Ver F-004 em inventory/repositories.yaml.
+  - severity: baixa
+    description: >-
+      Sem atividade desde 2026-04-12. Pode ser cliente inativo ou projeto
+      abandonado — nao se sabe qual.
+
+nextSteps:
+  - Confirmar com o dono se este cliente esta ativo
+  - Decidir entre gaveta-monitor e meu-projeto; arquivar o redundante
+  - Descobrir o que o monitor monitora e se ainda roda
+  - Verificar exposicao do repositorio publico meu-projeto
+
+verificationStatus: owner_reported
+lastVerifiedAt: 2026-08-04

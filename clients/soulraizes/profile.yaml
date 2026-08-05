@@ -1,0 +1,43 @@
+slug: soulraizes
+name: Soulraizes
+kind: cliente
+owner: unknown
+segment: unknown
+status: unknown
+
+description: >-
+  Cliente informado pelo dono em 2026-08-04. NENHUM recurso foi encontrado a
+  ele associado: nenhum repositorio, dominio, servico ou conta.
+  Este arquivo existe para registrar a lacuna, nao para simular conhecimento.
+
+projects: []
+
+confirmedRepositories: []
+likelyRepositories: []
+domains: []
+accounts: []
+integrations: []
+environments: []
+
+risks:
+  - severity: media
+    description: >-
+      Cliente sem nenhum recurso rastreavel. Se houver trabalho em andamento,
+      ele esta fora de todo inventario — sem backup conhecido, sem
+      versionamento conhecido e sem dono tecnico registrado. Essa e a situacao
+      que o Control Plane existe para eliminar.
+
+openQuestions:
+  - Este cliente esta ativo, em negociacao ou encerrado?
+  - Existe algum trabalho entregue? Onde ele vive?
+  - Algum dos 5 repositorios sem dono pertence a ele? (4cadeiras,
+    malta-sertaneja, gabriel-gadelha-casamentos, chay-portal,
+    encantaria_artesanal)
+  - Ha conta de anuncios, dominio ou caixa de e-mail associada?
+
+nextSteps:
+  - Conversar com o dono para preencher este perfil
+  - Cruzar com os repositorios sem cliente associado antes de criar qualquer coisa
+
+verificationStatus: owner_reported
+lastVerifiedAt: 2026-08-04

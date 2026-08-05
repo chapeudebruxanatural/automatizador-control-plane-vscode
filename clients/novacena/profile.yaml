@@ -1,0 +1,103 @@
+slug: novacena
+name: Novacena
+kind: interno
+owner: Dado Cruz
+segment: Producao audiovisual e musical
+status: ativo
+
+description: >-
+  Operacao propria, separada da AutomatizadorIA. Reune os projetos de video
+  (motion/Remotion) e de musica. Tem conta Google propria, que por instrucao
+  do dono NAO deve se misturar com a conta administrativa da AutomatizadorIA.
+
+projects:
+  - slug: novacena-motion
+    name: Novacena Motion
+    description: >-
+      Geracao de video programatica. Usa Remotion com deploy em AWS Lambda e
+      tambem tem pipeline de deploy para a VPS.
+    status: ativo
+    verificationStatus: discovered
+
+  - slug: novacena-music
+    name: Novacena Music
+    description: >-
+      Stack Python com backend, frontend e worker de GPU sob demanda (RunPod).
+      Empacotado com Docker Compose e Docker Stack (Swarm).
+    status: unknown
+    verificationStatus: discovered
+
+confirmedRepositories: []
+
+likelyRepositories:
+  - name: novacena-motion
+    reason: prefixo do nome corresponde ao slug do cliente
+    verificationStatus: discovered
+  - name: novacena-music
+    reason: prefixo do nome corresponde ao slug do cliente
+    verificationStatus: discovered
+
+domains: []
+
+accounts:
+  - platform: google
+    identifier: estudionovacena@gmail.com
+    role: conta especifica dos projetos Novacena
+    verificationStatus: owner_reported
+    note: >-
+      SEPARACAO OBRIGATORIA. Por instrucao do dono em 2026-08-04, esta conta e
+      exclusiva da Novacena. Nao misturar arquivos, e-mails, agendas, contatos
+      ou recursos com contato.automatizadoria@gmail.com. Nenhuma automacao pode
+      ler de uma conta e escrever na outra.
+
+  - platform: aws
+    identifier: unknown
+    role: hospedagem do site Remotion Lambda
+    verificationStatus: discovered
+    note: >-
+      Inferido do workflow "Deploy Remotion Lambda Site" em novacena-motion.
+      Nenhuma credencial ou conta AWS foi inventariada. Esta e a unica
+      dependencia de nuvem fora Cloudflare/Hostinger identificada ate agora.
+
+  - platform: runpod
+    identifier: unknown
+    role: GPU sob demanda para novacena-music
+    verificationStatus: discovered
+    note: Inferido do arquivo .runpod-trigger no repositorio.
+
+integrations:
+  - name: Remotion / AWS Lambda
+    status: discovered
+  - name: RunPod
+    status: discovered
+
+environments:
+  - name: producao
+    location: >-
+      AWS Lambda (motion) e possivelmente VPS. O workflow "Deploy VPS" existe
+      mas o container de destino ainda nao foi identificado.
+    verificationStatus: discovered
+
+risks:
+  - severity: alta
+    description: >-
+      novacena-motion e PUBLICO e contem environment `production` e pipeline
+      de deploy para a VPS. Ver F-001 em inventory/repositories.yaml.
+  - severity: media
+    description: >-
+      Duas dependencias de nuvem (AWS, RunPod) fora do inventario de acessos,
+      ambas com custo variavel e sem monitoramento de gasto conhecido.
+  - severity: media
+    description: >-
+      Risco de contaminacao entre as contas Google da Novacena e da
+      AutomatizadorIA se alguma automacao for criada sem escopo explicito.
+
+nextSteps:
+  - Revisar a visibilidade publica de novacena-motion
+  - Identificar qual container da VPS recebe o "Deploy VPS"
+  - Inventariar a conta AWS e o custo do Remotion Lambda
+  - Confirmar se novacena-music esta em producao ou parado
+  - Registrar credenciais Google da Novacena em escopo separado
+
+verificationStatus: owner_reported
+lastVerifiedAt: 2026-08-04

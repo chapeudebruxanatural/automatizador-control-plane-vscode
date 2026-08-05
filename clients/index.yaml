@@ -1,0 +1,108 @@
+# =============================================================================
+# clients/index.yaml — indice canonico de clientes
+# =============================================================================
+# O `slug` e a CHAVE CANONICA usada em todo o Control Plane. Inventarios
+# referenciam clientes por slug, nunca por nome livre.
+#
+# A lista de clientes foi informada pelo dono (owner_reported). As associacoes
+# com repositorios, dominios e servicos sao INFERENCIA (discovered) ate serem
+# checadas contra a fonte. Ver docs/adr/0003-procedencia-do-inventario.md.
+# =============================================================================
+
+meta:
+  source: lista informada pelo dono em 2026-08-04
+  collectedAt: 2026-08-04
+  clientCount: 8
+  warning: >-
+    Nenhum cliente esta `verified`. A lista e confiavel na existencia dos
+    clientes, mas os vinculos com recursos concretos (repos, dominios, contas)
+    ainda nao foram confirmados um a um.
+
+clients:
+  - slug: automatizadoria
+    name: AutomatizadorIA
+    kind: interno
+    status: ativo
+    profile: clients/automatizadoria/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: novacena
+    name: Novacena
+    kind: interno
+    status: ativo
+    profile: clients/novacena/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: gaveta-producoes
+    name: Gaveta Producoes
+    kind: cliente
+    status: unknown
+    profile: clients/gaveta-producoes/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: cassio-ferraz
+    name: Cassio Ferraz
+    kind: cliente
+    status: ativo
+    profile: clients/cassio-ferraz/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: garbo-eventos
+    name: Garbo Eventos
+    kind: cliente
+    status: unknown
+    profile: clients/garbo-eventos/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: vivere
+    name: Vivere
+    kind: cliente
+    status: ativo
+    profile: clients/vivere/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: soulraizes
+    name: Soulraizes
+    kind: cliente
+    status: unknown
+    profile: clients/soulraizes/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - slug: chapeu-de-bruxa
+    name: Chapeu de Bruxa
+    kind: cliente
+    status: unknown
+    profile: clients/chapeu-de-bruxa/profile.yaml
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+# =============================================================================
+# LACUNAS CONHECIDAS
+# =============================================================================
+gaps:
+  clientsWithoutAnyResource:
+    - soulraizes
+    - chapeu-de-bruxa
+  note: >-
+    Dois clientes nao tem NENHUM recurso associado no inventario: nenhum
+    repositorio, dominio ou servico. Isso pode significar (a) trabalho ainda
+    nao iniciado, (b) recursos fora do GitHub de dadocruz, ou (c) recursos
+    presentes com nome que nao reconhecemos. Precisa de conversa com o dono.
+
+  resourcesWithoutClient:
+    - 4cadeiras
+    - malta-sertaneja
+    - gabriel-gadelha-casamentos
+    - chay-portal
+    - encantaria_artesanal
+  note2: >-
+    Cinco repositorios nao correspondem a nenhum slug. E possivel que um ou
+    mais pertencam a soulraizes ou chapeu-de-bruxa sob outro nome. NAO
+    presumir: perguntar.

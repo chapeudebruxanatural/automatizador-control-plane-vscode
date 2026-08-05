@@ -1,0 +1,59 @@
+slug: garbo-eventos
+name: Garbo Eventos
+kind: cliente
+owner: unknown
+segment: Eventos
+status: unknown
+
+description: >-
+  Cliente do setor de eventos. O repositorio `garbo` contem um site publico com
+  catalogo de produtos, sitemap e robots.txt — indexavel e voltado a captacao.
+
+projects:
+  - slug: site-institucional
+    name: Site institucional
+    description: Site estatico com catalogo de produtos (produtos.js).
+    status: unknown
+    verificationStatus: discovered
+
+confirmedRepositories: []
+
+likelyRepositories:
+  - name: garbo
+    reason: >-
+      O nome do repositorio corresponde ao prefixo do slug, e a raiz contem o
+      arquivo garbo-eventos.zip, que casa com o slug completo.
+    verificationStatus: discovered
+
+domains: []
+
+accounts: []
+
+integrations:
+  - name: Cloudflare Pages
+    status: discovered
+    note: Inferido da presenca de _redirects.
+
+environments:
+  - name: producao
+    location: unknown
+    verificationStatus: unknown
+
+risks:
+  - severity: media
+    description: >-
+      Repositorio PUBLICO com um arquivo .zip versionado na raiz
+      (garbo-eventos.zip, ~5 MB). Conteudo nao inspecionado. Arquivos
+      compactados versionados costumam carregar material que ninguem revisou.
+      Ver F-003 em inventory/repositories.yaml.
+  - severity: baixa
+    description: Cliente com status operacional desconhecido — ativo ou encerrado.
+
+nextSteps:
+  - Inspecionar o conteudo de garbo-eventos.zip antes de qualquer outra acao
+  - Decidir se o repositorio deveria ser privado
+  - Confirmar se o cliente ainda esta ativo
+  - Descobrir o dominio de producao
+
+verificationStatus: owner_reported
+lastVerifiedAt: 2026-08-04

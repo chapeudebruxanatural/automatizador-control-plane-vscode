@@ -1,0 +1,526 @@
+# =============================================================================
+# inventory/repositories.yaml
+# =============================================================================
+# Inventario dos repositorios GitHub de dadocruz.
+#
+# Origem: `gh` CLI em modo leitura (metadados + listagem de arquivos na raiz do
+# branch padrao). Nenhum repositorio foi clonado. Nenhum secret foi lido.
+# Regeneravel com: scripts/collect-github-inventory.sh dadocruz
+#
+# LEIA docs/adr/0003-procedencia-do-inventario.md antes de alterar este arquivo.
+# Os campos abaixo separam FATO (obtido da API) de INFERENCIA (likelyClient,
+# likelyProject). Inferencia nunca vira `verified` por semelhanca de nome.
+# =============================================================================
+
+meta:
+  source: gh CLI (leitura)
+  owner: dadocruz
+  collectedAt: 2026-08-04
+  repositoryCount: 14
+  method: metadados da API + arvore da raiz do branch padrao
+  notes: >-
+    Os campos de metadados (visibilidade, linguagem, branch, arquivos, workflows,
+    pages, environments) sao FATO verificado contra a API do GitHub.
+    Os campos likelyClient e likelyProject sao INFERENCIA e estao marcados como
+    `discovered` ate que o dono confirme.
+
+repositories:
+  # ---------------------------------------------------------------------------
+  - name: automatizador-control-plane
+    url: https://github.com/dadocruz/automatizador-control-plane
+    visibility: private
+    description: Control Plane privado da AutomatizadorIA
+    primaryLanguage: Shell
+    defaultBranch: main
+    updatedAt: 2026-08-04
+    createdAt: 2026-08-04
+    archived: false
+    hasReadme: true
+    hasPackageJson: true
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: automatizadoria
+    likelyProject: control-plane
+    relationshipStatus: confirmed
+    needsInspection: false
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: Este repositorio. Criado nesta fase por instrucao direta do dono.
+
+  # ---------------------------------------------------------------------------
+  - name: automatizadoria-compliance-site
+    url: https://github.com/dadocruz/automatizadoria-compliance-site
+    visibility: private
+    description: >-
+      Website de conformidade e branding do Automatizador IA para Google OAuth
+      e Google Ads API.
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-07-24
+    createdAt: 2026-07-24
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: automatizadoria
+    likelyProject: site-de-conformidade
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      A descricao do proprio repositorio cita "Automatizador IA", o que torna a
+      associacao muito provavel. Contem nginx.conf e deploy.sh: possivelmente
+      publicado na VPS. Cruzar com inventory/services.yaml para confirmar onde
+      esta servido. Relevante para a verificacao do Google OAuth.
+
+  # ---------------------------------------------------------------------------
+  - name: vivere
+    url: https://github.com/dadocruz/vivere
+    visibility: private
+    description: null
+    primaryLanguage: TypeScript
+    defaultBranch: main
+    updatedAt: 2026-08-03
+    createdAt: 2026-06-19
+    archived: false
+    hasReadme: true
+    hasPackageJson: true
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: true
+    workflows:
+      - Validacao VIVERE 360
+      - Apply VIVERE 360 online bundle
+      - Remover migrations duplicadas do VIVERE 360
+      - Corrigir PostCSS do VIVERE 360
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: vivere
+    likelyProject: vivere-360
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Repositorio mais ativo da conta (ultimo push em 2026-08-03). Stack
+      Next.js com Supabase e open-next.config.ts, o que indica deploy em
+      Cloudflare Workers. Tem diretorio supabase/ com migrations: existe banco
+      gerenciado externamente. Os workflows sugerem manutencao assistida por
+      agente. Prioridade alta de inspecao.
+
+  # ---------------------------------------------------------------------------
+  - name: cassio-ferraz
+    url: https://github.com/dadocruz/cassio-ferraz
+    visibility: private
+    description: null
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-07-24
+    createdAt: 2026-07-16
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: cassio-ferraz
+    likelyProject: site-do-artista
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Estrutura de site de artista: contratar-show/, media-kit/,
+      patrocinadores/, editais/, downloads/. Presenca de _headers e
+      .assetsignore indica deploy em Cloudflare Pages ou Workers.
+      Associacao inferida por coincidencia de nome com o slug do cliente.
+
+  # ---------------------------------------------------------------------------
+  - name: garbo
+    url: https://github.com/dadocruz/garbo
+    visibility: public
+    description: null
+    primaryLanguage: CSS
+    defaultBranch: main
+    updatedAt: 2026-07-03
+    createdAt: 2026-04-24
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: garbo-eventos
+    likelyProject: site-institucional
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Contem o arquivo garbo-eventos.zip na raiz, o que reforca a associacao com
+      o slug garbo-eventos. Tem produtos.js, sitemap.xml e robots.txt: site
+      publico indexavel. E PUBLICO — verificar se ha algo que nao deveria estar
+      exposto. O .zip na raiz merece inspecao especifica.
+
+  # ---------------------------------------------------------------------------
+  - name: novacena-motion
+    url: https://github.com/dadocruz/novacena-motion
+    visibility: public
+    description: null
+    primaryLanguage: TypeScript
+    defaultBranch: main
+    updatedAt: 2026-07-03
+    createdAt: 2026-05-11
+    archived: false
+    hasReadme: true
+    hasPackageJson: true
+    hasDockerfile: true
+    hasCompose: false
+    hasWorkflows: true
+    workflows:
+      - CI
+      - Deploy Remotion Lambda Site
+      - Deploy VPS
+    pagesEnabled: false
+    environments:
+      - production
+    topics: []
+    likelyClient: novacena
+    likelyProject: novacena-motion
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Maior repositorio da conta (~237 MB) e o mais complexo em infraestrutura:
+      Dockerfile, environment `production`, workflow "Deploy VPS" e workflow
+      "Deploy Remotion Lambda Site" (AWS Lambda). E PUBLICO apesar de ter
+      pipeline de deploy para a VPS — merece revisao de exposicao com
+      prioridade. Tem CLAUDE.md e AGENTS.md proprios. Cruzar "Deploy VPS" com
+      inventory/containers.yaml para descobrir qual container ele alimenta.
+
+  # ---------------------------------------------------------------------------
+  - name: novacena-music
+    url: https://github.com/dadocruz/novacena-music
+    visibility: private
+    description: null
+    primaryLanguage: Python
+    defaultBranch: main
+    updatedAt: 2026-06-08
+    createdAt: 2026-06-07
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: true
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: novacena
+    likelyProject: novacena-music
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Tem docker-compose.yml E docker-stack.yml (Docker Swarm), alem de
+      backend/, frontend/, nginx/ e runpod-worker/. O arquivo .runpod-trigger
+      indica uso de GPU sob demanda na RunPod. Candidato a estar rodando na
+      VPS: cruzar com inventory/containers.yaml.
+
+  # ---------------------------------------------------------------------------
+  - name: gaveta-monitor
+    url: https://github.com/dadocruz/gaveta-monitor
+    visibility: private
+    description: null
+    primaryLanguage: JavaScript
+    defaultBranch: main
+    updatedAt: 2026-04-10
+    createdAt: 2026-04-10
+    archived: false
+    hasReadme: false
+    hasPackageJson: true
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: gaveta-producoes
+    likelyProject: monitor
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Apenas package.json e server.js. Servico Node minimo, sem README.
+      Nome sugere associacao com Gaveta Producoes. Verificar se esta rodando
+      em algum lugar (VPS, PM2) ou se foi abandonado apos abril.
+
+  # ---------------------------------------------------------------------------
+  - name: meu-projeto
+    url: https://github.com/dadocruz/meu-projeto
+    visibility: public
+    description: null
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-04-12
+    createdAt: 2026-03-23
+    archived: false
+    hasReadme: false
+    hasPackageJson: true
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: gaveta-producoes
+    likelyProject: monitor
+    relationshipStatus: likely
+    needsInspection: true
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Nome generico, mas a raiz contem um diretorio chamado "MONITOR GAVETA" —
+      e essa, e nao o nome do repositorio, e a evidencia da associacao com
+      gaveta-producoes. Provavel duplicata ou rascunho de gaveta-monitor.
+      Candidato a arquivamento apos confirmacao. E publico: verificar exposicao.
+
+  # ---------------------------------------------------------------------------
+  - name: 4cadeiras
+    url: https://github.com/dadocruz/4cadeiras
+    visibility: public
+    description: null
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-05-06
+    createdAt: 2026-04-14
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: null
+    likelyProject: site-de-evento
+    relationshipStatus: unknown
+    needsInspection: true
+    verificationStatus: unknown
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      ~78 MB, quase tudo em images/. Tem index-links-ingresso-atualizado.html,
+      o que indica evento com venda de ingressos. Nao corresponde a nenhum slug
+      de cliente conhecido. PERGUNTAR AO DONO de quem e.
+
+  # ---------------------------------------------------------------------------
+  - name: malta-sertaneja
+    url: https://github.com/dadocruz/malta-sertaneja
+    visibility: public
+    description: null
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-05-06
+    createdAt: 2026-05-04
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: null
+    likelyProject: site-de-artista
+    relationshipStatus: unknown
+    needsInspection: true
+    verificationStatus: unknown
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Site de pagina unica (index.html + assets). Nao corresponde a nenhum slug
+      conhecido. Pode ser cliente direto ou projeto sob uma produtora.
+      PERGUNTAR AO DONO.
+
+  # ---------------------------------------------------------------------------
+  - name: gabriel-gadelha-casamentos
+    url: https://github.com/dadocruz/gabriel-gadelha-casamentos
+    visibility: public
+    description: Landing page oficial - shows para casamentos
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-05-01
+    createdAt: 2026-04-20
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: null
+    likelyProject: landing-page
+    relationshipStatus: unknown
+    needsInspection: true
+    verificationStatus: unknown
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Tem privacidade.html, _headers, sitemap.xml e documento de otimizacao de
+      PageSpeed. Varios arquivos de instrucao na raiz (COMO_APLICAR*.md,
+      ENTREGA-GPT.md) sugerem entrega assistida por IA. Nao corresponde a
+      nenhum slug conhecido. PERGUNTAR AO DONO.
+
+  # ---------------------------------------------------------------------------
+  - name: chay-portal
+    url: https://github.com/dadocruz/chay-portal
+    visibility: public
+    description: null
+    primaryLanguage: HTML
+    defaultBranch: main
+    updatedAt: 2026-04-11
+    createdAt: 2026-04-11
+    archived: false
+    hasReadme: true
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: null
+    likelyProject: portal
+    relationshipStatus: unknown
+    needsInspection: true
+    verificationStatus: unknown
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Tem wrangler.toml e functions/ (Cloudflare Workers/Pages) e um
+      GOOGLE_APPS_SCRIPT.gs. E o unico repositorio com integracao declarada a
+      Google Apps Script — relevante para o inventario de integracoes Google.
+      Nao corresponde a nenhum slug conhecido. PERGUNTAR AO DONO.
+
+  # ---------------------------------------------------------------------------
+  - name: encantaria_artesanal
+    url: https://github.com/dadocruz/encantaria_artesanal
+    visibility: public
+    description: null
+    primaryLanguage: TypeScript
+    defaultBranch: main
+    updatedAt: 2026-06-20
+    createdAt: 2026-06-20
+    archived: false
+    hasReadme: false
+    hasPackageJson: false
+    hasDockerfile: false
+    hasCompose: false
+    hasWorkflows: false
+    workflows: []
+    pagesEnabled: false
+    environments: []
+    topics: []
+    likelyClient: null
+    likelyProject: null
+    relationshipStatus: unknown
+    needsInspection: true
+    verificationStatus: unknown
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      A raiz contem apenas um diretorio homonimo (encantaria_artesanal/), sem
+      README nem package.json na raiz — provavel commit acidental de uma pasta
+      inteira, com o projeto real um nivel abaixo. Nao corresponde a nenhum
+      slug conhecido. PERGUNTAR AO DONO e avaliar reestruturacao ou remocao.
+
+# =============================================================================
+# LEITURA DOS DADOS
+# =============================================================================
+summary:
+  total: 14
+  private: 6
+  public: 8
+  withoutClientAssociation: 5
+  needingInspection: 13
+  withDeployPipeline: 2         # novacena-motion, vivere
+  withContainerArtifacts: 2     # novacena-motion (Dockerfile), novacena-music (compose)
+  withPagesEnabled: 0
+
+# Achados que merecem atencao do dono, em ordem de risco.
+findings:
+  - id: F-001
+    severity: alta
+    title: novacena-motion e publico e tem pipeline de deploy para a VPS
+    detail: >-
+      Repositorio publico com environment `production` e workflow "Deploy VPS".
+      Repositorio publico com pipeline de producao expoe a topologia de deploy
+      e amplia a superficie de ataque. Os segredos em si ficam em GitHub
+      Secrets (nao inspecionados aqui), mas nomes de host, caminhos e etapas
+      ficam visiveis.
+    action: Revisar se a visibilidade publica e intencional.
+
+  - id: F-002
+    severity: media
+    title: cinco repositorios sem cliente associado
+    detail: >-
+      4cadeiras, malta-sertaneja, gabriel-gadelha-casamentos, chay-portal e
+      encantaria_artesanal nao correspondem a nenhum slug de cliente conhecido.
+      Sao 5 de 14 repositorios sem dono declarado.
+    action: Sessao de triagem com o dono para atribuir ou arquivar.
+
+  - id: F-003
+    severity: media
+    title: garbo e publico e tem um .zip versionado na raiz
+    detail: >-
+      O arquivo garbo-eventos.zip esta versionado em repositorio publico.
+      Arquivos compactados versionados costumam carregar conteudo que ninguem
+      revisou — inclusive credenciais e dados pessoais.
+    action: Inspecionar o conteudo do zip antes de qualquer outra decisao.
+
+  - id: F-004
+    severity: baixa
+    title: meu-projeto parece duplicata de gaveta-monitor
+    detail: >-
+      Nome generico, publico, sem README, com um diretorio "MONITOR GAVETA" na
+      raiz. Provavel rascunho do repositorio privado gaveta-monitor.
+    action: Confirmar e arquivar se for redundante.
+
+  - id: F-005
+    severity: baixa
+    title: encantaria_artesanal tem estrutura aninhada indevida
+    detail: >-
+      A raiz contem apenas uma pasta homonima. Sugere commit acidental de
+      diretorio inteiro.
+    action: Confirmar proposito, reestruturar ou remover.
