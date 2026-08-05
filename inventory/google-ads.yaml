@@ -21,7 +21,9 @@ meta:
   importedAt: 2026-08-05
   source: relato do proprietario
   apiConnected: false
-  changesMade: 0
+  changesMade: 5
+  changesMadeNote: >-
+    4 alteracoes executadas em 2026-08-05 + 1 reversao. Ver executedChanges.
   warning: >-
     Tudo aqui descreve o PASSADO. Orcamento, status de campanha e entrega mudam
     sozinhos na plataforma. Nada neste arquivo deve ser tratado como estado
@@ -90,6 +92,8 @@ liveAccess:
   developerTokenConfigured: true
   loginCustomerIdConfigured: true
   liveReadVerified: true
+  writeExecuted: true
+  writeExecutedAt: 2026-08-05
   liveReadVerifiedAt: 2026-08-05
   apiVersion: v21
   firstCallRequestId: p8kvVJZJoP3rc-5FuD58Jw
@@ -166,9 +170,33 @@ financialControls:
     status: conflicting
     rule: "Nenhuma verba nova deve ser presumida."
 
+# ATUALIZADO 2026-08-05: as regras abaixo foram SUPERADAS por autorizacao
+# explicita do dono para a campanha 24066140634. Ver executedChanges.
 globalRules:
-  - "Nenhuma campanha e criada, ativada, pausada ou editada pelo Control Plane."
-  - "Nenhum orcamento e alterado."
+  - "Alteracoes exigem autorizacao explicita do dono, por campanha."
+  - "Toda alteracao passa por validateOnly antes de executar."
+
+executedChanges:
+  - date: 2026-08-05
+    campaignId: "24066140634"
+    client: cassio-ferraz
+    authorizedBy: proprietario
+    changes:
+      - { field: campaign_budget.total_amount_micros, from: "203200000", to: "472940000", requestId: DxGYRwSfTPNL-a6e1duZ9w }
+      - { field: campaign.end_date,  from: "2026-08-08", to: "2026-08-20", requestId: N7aI1EH774GQZDYEoVr-Ng }
+      - { field: campaign.status,    from: PAUSED, to: ENABLED,            requestId: ajgCun7HloI0XhndrUpo5g }
+      - { field: "conversion_action.primary_for_goal (WHATSAPP - CASSIO, id 7688257882)", from: false, to: true, requestId: xMbYjE0H2R9w7f6h9evw8A, reverted: true }
+      - { field: "conversion_action.primary_for_goal (REVERSAO)", from: true, to: false, requestId: J2oEmOcK-ehjc17EP6TRQw }
+    validateOnlyUsed: >-
+      SIM para orcamento, data, status e para a REVERSAO da conversao.
+      NAO para a alteracao ORIGINAL da conversao (xMbYjE0H2R9w7f6h9evw8A) —
+      registrado como falha de processo.
+    note: >-
+      A alteracao da conversao foi DESNECESSARIA: com TARGET_SPEND o lance nao
+      usa conversoes, entao tornar a acao primaria so mudou relatorio. E
+      primary_for_goal e propriedade de CONTA, nao de campanha — numa conta
+      compartilhada isso altera a linha de base de relatorio de todos.
+      Revertida no mesmo dia.
   - "Verba nova exige autorizacao explicita, por cliente, por lote."
   - "Toda acao de campanha e Nivel 2 do protocolo de aprovacao."
   - "Trava atingida nunca se auto-reverte."

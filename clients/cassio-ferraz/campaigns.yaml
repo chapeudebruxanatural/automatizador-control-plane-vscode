@@ -71,7 +71,8 @@ liveSnapshot:
   loginCustomerId: "3992594849"
   apiVersion: v21
   requestId: p8kvVJZJoP3rc-5FuD58Jw
-  changesMade: 0
+  changesMade: 5
+  changesMadeNote: 'ALTERACOES EXECUTADAS em 2026-08-05 — ver inventory/google-ads.yaml executedChanges'
   verificationStatus: verified
 
   campaign:
