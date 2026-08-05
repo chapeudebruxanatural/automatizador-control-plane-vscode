@@ -1,0 +1,101 @@
+# =============================================================================
+# automatizador-sudoers.example
+# =============================================================================
+# EXEMPLO. Nao instalado na VPS. Nao ativa nada sozinho.
+#
+# Define o que o usuario operacional `automatizador` pode executar via sudo,
+# SEM SENHA e SEM SHELL — apenas os binarios explicitamente listados, com os
+# argumentos explicitamente listados. E LISTA BRANCA: o que nao esta aqui e
+# recusado pelo sudo, nao por disciplina de quem digita o comando.
+#
+# Instalacao (quando aprovada, Nivel 2):
+#   1. copiar para /etc/sudoers.d/automatizador (SEM a extensao .example.txt)
+#   2. validar com: visudo -cf /etc/sudoers.d/automatizador
+#   3. `chmod 440 /etc/sudoers.d/automatizador`
+#   4. testar como o usuario automatizador ANTES de remover qualquer acesso
+#      alternativo
+#
+# Validado localmente com `visudo -cf` antes de ser proposto neste arquivo.
+# =============================================================================
+
+# Sem isso, cada comando abaixo pediria senha interativa — que o usuario
+# operacional nao tem, de proposito (ver vps-operator-model.md).
+Defaults:automatizador !requiretty
+Defaults:automatizador secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# -----------------------------------------------------------------------------
+# COMANDOS PERMITIDOS — todos de leitura, todos com argumento fixo ou
+# restringido por padrao glob do proprio sudoers.
+# -----------------------------------------------------------------------------
+
+# Docker: apenas subcomandos de leitura. Cada linha e um subcomando especifico,
+# nao "docker *" — "docker *" permitiria "docker rm", "docker system prune"
+# etc. por estarem dentro do glob.
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker ps
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker ps -a
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker ps --all *
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker ps --filter *
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker images
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker images *
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker network ls
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker volume ls
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker system df
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker system df -v
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker stats --no-stream *
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker service ls
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker service ps *
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker stack ls
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker node ls
+automatizador ALL=(root) NOPASSWD: /usr/bin/docker compose ls *
+# Deliberadamente AUSENTES: docker exec, docker inspect, docker service
+# inspect, docker container inspect (revelam variavel de ambiente),
+# e qualquer subcomando mutante (run, rm, stop, restart, prune, ...).
+
+# Sistema: apenas leitura de estado.
+automatizador ALL=(root) NOPASSWD: /usr/bin/df -h
+automatizador ALL=(root) NOPASSWD: /usr/bin/df -h -x tmpfs -x devtmpfs
+automatizador ALL=(root) NOPASSWD: /usr/bin/free -h
+automatizador ALL=(root) NOPASSWD: /usr/bin/uptime
+automatizador ALL=(root) NOPASSWD: /usr/bin/uptime -p
+automatizador ALL=(root) NOPASSWD: /bin/cat /proc/loadavg
+automatizador ALL=(root) NOPASSWD: /usr/bin/ss -tulpn
+automatizador ALL=(root) NOPASSWD: /bin/systemctl status *
+automatizador ALL=(root) NOPASSWD: /bin/systemctl list-units *
+automatizador ALL=(root) NOPASSWD: /bin/systemctl list-timers *
+automatizador ALL=(root) NOPASSWD: /usr/bin/crontab -l
+# Deliberadamente AUSENTES: systemctl start/stop/restart/enable/disable/mask,
+# reboot, shutdown, halt, poweroff.
+
+# -----------------------------------------------------------------------------
+# NEGADOS EXPLICITAMENTE
+# -----------------------------------------------------------------------------
+# O sudoers ja nega por padrao o que nao esta listado acima. As linhas abaixo
+# sao redundantes DE PROPOSITO: documentam a intencao para quem ler o arquivo,
+# e sao uma segunda barreira caso uma linha de permissao acima seja escrita
+# de forma ampla demais por engano no futuro.
+automatizador ALL=(ALL) !/usr/bin/docker rm *
+automatizador ALL=(ALL) !/usr/bin/docker rmi *
+automatizador ALL=(ALL) !/usr/bin/docker stop *
+automatizador ALL=(ALL) !/usr/bin/docker restart *
+automatizador ALL=(ALL) !/usr/bin/docker kill *
+automatizador ALL=(ALL) !/usr/bin/docker exec *
+automatizador ALL=(ALL) !/usr/bin/docker run *
+automatizador ALL=(ALL) !/usr/bin/docker inspect *
+automatizador ALL=(ALL) !/usr/bin/docker service inspect *
+automatizador ALL=(ALL) !/usr/bin/docker system prune *
+automatizador ALL=(ALL) !/usr/bin/docker volume prune *
+automatizador ALL=(ALL) !/usr/bin/docker volume rm *
+automatizador ALL=(ALL) !/usr/bin/docker network rm *
+automatizador ALL=(ALL) !/usr/bin/docker compose up *
+automatizador ALL=(ALL) !/usr/bin/docker compose down *
+automatizador ALL=(ALL) !/bin/systemctl stop *
+automatizador ALL=(ALL) !/bin/systemctl restart *
+automatizador ALL=(ALL) !/bin/systemctl disable *
+automatizador ALL=(ALL) !/sbin/reboot
+automatizador ALL=(ALL) !/sbin/shutdown *
+automatizador ALL=(ALL) !/sbin/poweroff
+automatizador ALL=(ALL) !/usr/sbin/ufw *
+automatizador ALL=(ALL) !/usr/sbin/iptables *
+automatizador ALL=(ALL) !/usr/sbin/visudo
+automatizador ALL=(ALL) !/usr/bin/passwd *
+automatizador ALL=(ALL) !/bin/su *
