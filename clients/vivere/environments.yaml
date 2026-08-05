@@ -1,0 +1,44 @@
+# Ambientes — VIVERE
+# Nenhum ambiente foi acessado, testado ou alterado por este inventario.
+slug: vivere
+importedAt: 2026-08-05
+
+environments:
+  - id: producao
+    urls:
+      site: https://www.viveremp.com
+      gestao: https://gestao.viveremp.com
+      conteudo: https://conteudo.viveremp.com
+    apresentacao: https://gestao.viveremp.com/apresentacao
+    integracoes: https://gestao.viveremp.com/gestao/integracoes
+    promob: https://gestao.viveremp.com/gestao/integracoes/promob
+    verificationStatus: owner_reported
+    liveStatus: requires_live_verification
+    note: >-
+      URLs informadas pelo dono. Nenhuma foi acessada por este processo.
+      Nao ha confirmacao de que refletem o branch main ou algum outro estado.
+
+  - id: homologacao
+    url: https://vivere-homologacao.estudionovacena.workers.dev
+    workerName: vivere-homologacao
+    platform: cloudflare-workers
+    verificationStatus: owner_reported
+    liveStatus: requires_live_verification
+    purpose: >-
+      Ambiente para validar mudancas antes de producao. E aqui, nao em
+      producao, que o trabalho pendente (AFD, leitura de folha manual por IA)
+      deveria ser primeiro exercitado — ver homologation.md.
+
+  - id: local-dev
+    verificationStatus: unknown
+    note: Nenhuma informacao sobre setup de desenvolvimento local foi fornecida.
+
+deploymentRelation:
+  branchToEnvironment: unknown
+  note: >-
+    Nao esta confirmado qual branch alimenta qual ambiente (main -> producao?
+    a branch de homologacao -> homologacao?). O nome da branch-base
+    (feat/homologacao-vivere-360-0-9) sugere relacao com o worker de
+    homologacao, mas isso e inferencia de nome, nao confirmacao.
+
+changesMade: 0

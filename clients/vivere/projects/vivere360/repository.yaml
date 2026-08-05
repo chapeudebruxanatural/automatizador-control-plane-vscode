@@ -1,0 +1,83 @@
+# Repositorio — VIVERE 360
+# Verificado via gh api em 2026-08-05. NENHUMA alteracao foi feita no
+# repositorio: sem checkout, sem merge, sem push, sem deploy.
+slug: vivere360
+client: vivere
+importedAt: 2026-08-05
+
+repository:
+  fullName: dadocruz/vivere
+  visibility: private
+  defaultBranch: main
+  verificationStatus: verified
+  lastVerifiedAt: 2026-08-05
+
+workingBranch:
+  name: feat/substituicao-omie-completa-v1
+  headSha: 9c94469ffb377aff5a7e5d94a9891e848000987e
+  headCommitMessage: "feat(rh): casar funcionario pelo registro do AFD e ler folha manual por foto (IA)"
+  headCommitDate: "2026-08-05T03:37:15Z"
+  verificationStatus: verified
+  lastVerifiedAt: 2026-08-05
+  handoffMatch: >-
+    O SHA e a mensagem do commit mais recente na branch batem exatamente com o
+    que foi informado no handoff (branch, HEAD 9c94469, tema RH/AFD/foto).
+    Nenhuma divergencia encontrada entre o handoff e o estado real do
+    repositorio no momento da verificacao.
+
+baseBranch:
+  name: feat/homologacao-vivere-360-0-9
+  verificationStatus: verified
+  note: >-
+    Existe no repositorio remoto. Nao verificado se e ancestral direto da
+    branch de trabalho ou uma branch paralela.
+
+comparisonToMain:
+  aheadBy: 383
+  behindBy: 0
+  filesChanged: 246
+  verificationStatus: verified
+  lastVerifiedAt: 2026-08-05
+  interpretation: >-
+    383 commits e 246 arquivos a frente da main e um volume grande de trabalho
+    nao integrado. Isso NAO e necessariamente um problema — pode refletir um
+    projeto de substituicao de ERP em andamento, deliberadamente mantido fora
+    da main ate o cutover. Mas e um sinal de que fundir esta branch e evento
+    significativo, nao trivial, e deve ser tratado como tal quando chegar a
+    hora.
+
+otherBranches:
+  verificationStatus: verified
+  lastVerifiedAt: 2026-08-05
+  list:
+    - { name: main, headShaShort: fca2492, role: producao (presumido) }
+    - { name: feat/homologacao-vivere-360-0-9, headShaShort: a447af1, role: base da branch de trabalho }
+    - { name: feat/substituicao-omie-completa-v1, headShaShort: 9c94469, role: branch de trabalho atual }
+    - { name: codex/omie-operational-hardening, headShaShort: d44abfb, role: unknown }
+    - { name: codex/apresentacao-10h-final, headShaShort: ac6602e, role: unknown }
+    - { name: claude/vivere-omie-parity-ydjly2, headShaShort: 2c1f786, role: unknown }
+    - { name: claude/snapshot-mac-2026-08-03, headShaShort: f715973, role: unknown }
+  note: >-
+    Presenca de branches prefixadas "codex/" e "claude/" confirma o que o
+    handoff ja indicava: multiplos agentes de IA trabalharam neste repositorio.
+    Isso reforca a importancia de nao presumir qual branch e a fonte da
+    verdade sem perguntar.
+
+repositoryStructureObserved:
+  totalFiles: 587
+  migrationsCount: 57
+  rhRelatedFiles: 21
+  omieRelatedFiles: 41
+  promobRelatedFiles: 23
+  verificationStatus: verified
+  source: "git tree recursivo do commit 9c94469"
+
+integrityChecks:
+  checkoutPerformed: false
+  mergePerformed: false
+  pushPerformed: false
+  deployPerformed: false
+  mainAltered: false
+  destructiveCheckoutPerformed: false
+
+changesMade: 0

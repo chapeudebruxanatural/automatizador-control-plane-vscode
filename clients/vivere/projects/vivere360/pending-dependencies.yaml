@@ -1,0 +1,56 @@
+# Dependencias pendentes — VIVERE 360
+# Nenhuma dependencia foi instalada, atualizada ou removida por este processo.
+slug: vivere360
+client: vivere
+importedAt: 2026-08-05
+
+pending:
+  - package: "@anthropic-ai/sdk"
+    version: "^0.115.0"
+    verificationStatus: verified
+    source: "package.json, branch feat/substituicao-omie-completa-v1"
+    purpose: "interpretacao de folha de ponto manuscrita por foto (IA)"
+    addedInCommit: 9c94469
+    status: adicionada ao package.json, homologacao NAO confirmada
+
+    requiredCredential:
+      name: ANTHROPIC_API_KEY
+      configured: unknown
+      configuredNote: >-
+        Nao verificado se a chave esta configurada no ambiente de producao,
+        homologacao, ou em nenhum dos dois. Sem ela, o codigo que depende desta
+        dependencia nao executa.
+
+    humanReviewRequired: true
+    humanReviewRequiredSource: handoff do dono
+    humanReviewImplementationVerified: false
+    humanReviewImplementationNote: >-
+      "Revisao humana obrigatoria" foi declarada como requisito, mas NAO foi
+      confirmado SE e COMO isso e imposto no fluxo: pode ser um controle que
+      bloqueia o lancamento ate aprovacao (forte), ou apenas uma recomendacao
+      de processo que um usuario apressado pode pular (fraco). Essa distincao
+      importa e nao foi resolvida.
+
+    homologationStatus: NAO homologado com dados reais
+    homologationStatusSource: handoff do dono
+
+    risk: >-
+      IA lendo documento fonte de folha de pagamento e superficie sensivel:
+      erro de leitura tem consequencia financeira direta sobre funcionarios.
+      A mitigacao correta (revisao humana) foi desenhada; sua efetividade real
+      depende de implementacao que nao foi verificada.
+
+    blockedBy:
+      - Confirmar credencial ANTHROPIC_API_KEY configurada
+      - Confirmar como a revisao humana e imposta no fluxo (bloqueio vs recomendacao)
+      - Homologar com dados reais em ambiente de homologacao
+      - Definir criterio de aceite (taxa de erro tolerada, processo de correcao)
+
+notes:
+  - >-
+    Este e o UNICO item de dependencia sensivel identificado nesta leitura.
+    Outras dependencias do projeto (Next.js, React, Supabase client,
+    opennextjs) sao infraestrutura padrao e nao levantam a mesma classe de
+    risco.
+
+changesMade: 0

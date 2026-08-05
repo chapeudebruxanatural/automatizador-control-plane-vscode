@@ -1,0 +1,64 @@
+# Projeto — VIVERE 360
+slug: vivere360
+client: vivere
+importedAt: 2026-08-05
+
+name: VIVERE 360
+type: ERP / plataforma de gestao de negocio
+verificationStatus: verified
+lastVerifiedAt: 2026-08-05
+
+description: >-
+  Sistema de gestao para o negocio Vivere, substituindo o Omie como ERP
+  principal. Cobre o ciclo operacional completo: cadastros, CRM, vendas,
+  financeiro, fiscal, compras, estoque, producao, servicos e RH — alem de
+  integracoes com o contador, Promob (projetos de moveis planejados) e AC
+  Ponto (relogio de ponto).
+
+stack:
+  framework: "Next.js 16.2.11"
+  ui: "React 19.2.4"
+  database: "Supabase (PostgreSQL gerenciado)"
+  hosting: "Cloudflare Workers via @opennextjs/cloudflare ^1.20.1"
+  verificationStatus: verified
+  source: package.json da branch feat/substituicao-omie-completa-v1
+
+modules:
+  detail: clients/vivere/projects/vivere360/modules.yaml
+  list:
+    - cadastros
+    - crm
+    - vendas
+    - financeiro
+    - fiscal
+    - compras
+    - estoque
+    - producao
+    - servicos
+    - contador
+    - omie (migracao)
+    - promob (integracao)
+    - rh
+    - ponto
+    - afd
+    - homologacao
+    - seguranca
+    - mfa
+    - migracao
+    - cutover
+
+currentFocus:
+  area: RH / fechamento de ponto
+  verificationStatus: verified
+  evidence: 4 dos ultimos 5 commits da branch de trabalho sao feat(rh)
+  detail: clients/vivere/projects/vivere360/rh-timesheet.md
+
+repository: clients/vivere/projects/vivere360/repository.yaml
+architecture: clients/vivere/projects/vivere360/architecture.md
+deployment: clients/vivere/projects/vivere360/deployment.yaml
+homologation: clients/vivere/projects/vivere360/homologation.md
+omieMigration: clients/vivere/projects/vivere360/omie-migration.md
+security: clients/vivere/projects/vivere360/security.md
+pendingDependencies: clients/vivere/projects/vivere360/pending-dependencies.yaml
+
+changesMade: 0

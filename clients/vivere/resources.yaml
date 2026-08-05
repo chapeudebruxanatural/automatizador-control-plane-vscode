@@ -1,0 +1,67 @@
+# Recursos — VIVERE
+# Verificado onde marcado. O restante e owner_reported (handoff do dono).
+slug: vivere
+importedAt: 2026-08-05
+
+repositories:
+  - name: dadocruz/vivere
+    visibility: private
+    defaultBranch: main
+    workingBranch: feat/substituicao-omie-completa-v1
+    baseBranch: feat/homologacao-vivere-360-0-9
+    headSha: 9c94469ffb377aff5a7e5d94a9891e848000987e
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+    detail: clients/vivere/projects/vivere360/repository.yaml
+
+domains:
+  - domain: viveremp.com
+    role: institucional
+    verificationStatus: owner_reported
+  - domain: gestao.viveremp.com
+    role: aplicacao de gestao (VIVERE 360)
+    verificationStatus: owner_reported
+  - domain: conteudo.viveremp.com
+    role: conteudo
+    verificationStatus: owner_reported
+  - domain: vivere-homologacao.estudionovacena.workers.dev
+    role: homologacao
+    platform: cloudflare-workers
+    workerName: vivere-homologacao
+    verificationStatus: owner_reported
+
+database:
+  provider: supabase
+  projectRef: wuaavhtwtidkdxxexzug
+  verificationStatus: owner_reported
+  note: >-
+    Identificador de projeto Supabase. NAO e segredo por si so — e a chave
+    anonima/service role associada a ele que seria. Nenhuma credencial
+    registrada aqui.
+
+hostingPlatform:
+  provider: cloudflare-workers
+  adapter: "@opennextjs/cloudflare"
+  verificationStatus: verified
+  note: Confirmado no package.json da branch de trabalho.
+
+externalIntegrations:
+  - name: Omie
+    role: "ERP legado — origem da migracao"
+    status: em migracao
+    verificationStatus: owner_reported
+  - name: Promob
+    role: "software de projetos de moveis planejados — integracao"
+    status: existente no codigo (23 arquivos relacionados)
+    verificationStatus: verified
+  - name: AC Ponto (acponto)
+    role: "relogio de ponto — integracao de RH"
+    status: existente no codigo (20 arquivos relacionados)
+    verificationStatus: verified
+  - name: Anthropic API
+    role: "leitura assistida por IA de folha de ponto manuscrita"
+    status: dependencia adicionada, nao homologada
+    verificationStatus: verified
+    detail: clients/vivere/projects/vivere360/pending-dependencies.yaml
+
+changesMade: 0

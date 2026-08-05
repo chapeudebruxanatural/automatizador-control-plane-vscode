@@ -2,6 +2,7 @@ slug: vivere
 name: Vivere
 kind: cliente
 owner: unknown
+responsibleContact: Tiago Facanali
 segment: unknown
 status: ativo
 
@@ -14,22 +15,39 @@ projects:
   - slug: vivere-360
     name: VIVERE 360
     description: >-
-      Aplicacao Next.js com Supabase, preparada para deploy em Cloudflare
-      Workers via open-next. Tem migrations versionadas.
+      ERP/plataforma de gestao do negocio Vivere: cadastros, CRM, vendas,
+      financeiro, fiscal, compras, estoque, producao, servicos, RH/ponto e
+      migracao do Omie. Next.js 16 + React 19 + Supabase, deploy via
+      @opennextjs/cloudflare.
     status: em-desenvolvimento
-    verificationStatus: discovered
-    note: >-
-      O nome "VIVERE 360" vem dos titulos dos workflows do repositorio, nao de
-      declaracao do dono.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+    detail: clients/vivere/projects/vivere360/project.yaml
 
-confirmedRepositories: []
-
-likelyRepositories:
+confirmedRepositories:
   - name: vivere
-    reason: nome do repositorio corresponde exatamente ao slug do cliente
-    verificationStatus: discovered
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+    note: >-
+      Confirmado via gh api contra o repositorio. Branch de trabalho
+      feat/substituicao-omie-completa-v1, SHA 9c94469, 383 commits a frente da
+      main. Detalhe completo em projects/vivere360/repository.yaml.
 
-domains: []
+likelyRepositories: []
+
+domains:
+  - domain: viveremp.com
+    role: site institucional
+    verificationStatus: owner_reported
+  - domain: gestao.viveremp.com
+    role: "aplicacao VIVERE 360 (gestao)"
+    verificationStatus: owner_reported
+  - domain: conteudo.viveremp.com
+    role: conteudo
+    verificationStatus: owner_reported
+  - domain: vivere-homologacao.estudionovacena.workers.dev
+    role: ambiente de homologacao (Cloudflare Worker)
+    verificationStatus: owner_reported
 
 accounts:
   - platform: supabase
@@ -77,11 +95,23 @@ risks:
       Cliente sem responsavel declarado. Nao se sabe quem aprova mudancas.
 
 nextSteps:
-  - Descobrir o responsavel do lado do cliente
+  - Confirmar quem e Tiago Facanali no organograma do cliente (decisor, dev, operacao?)
   - Inventariar o projeto Supabase (regiao, plano, backups, acessos)
-  - Confirmar se existe ambiente de producao e qual e o dominio
+  - Confirmar se gestao.viveremp.com e o ambiente de producao real
   - Revisar os workflows que alteram migrations automaticamente
+  - Investigar e resolver o incidente do TOTP exposto (ver security.yaml)
   - Registrar o processo de aprovacao de mudancas deste cliente
 
+related:
+  - clients/vivere/resources.yaml
+  - clients/vivere/environments.yaml
+  - clients/vivere/integrations.yaml
+  - clients/vivere/security.yaml
+  - clients/vivere/operations.md
+  - clients/vivere/backlog.md
+  - clients/vivere/marketing-readiness.yaml
+  - clients/vivere/tracking.yaml
+  - clients/vivere/projects/vivere360/
+
 verificationStatus: owner_reported
-lastVerifiedAt: 2026-08-04
+lastVerifiedAt: 2026-08-05
