@@ -12,16 +12,18 @@
  * Não é logada, não é devolvida, não entra em mensagem de erro: `sanitize()`
  * limpa qualquer resposta antes de virar exceção.
  *
- * ## Somente leitura
+ * ## Leitura e escrita, com fronteira clara
  *
- * Só existe `searchStream` (GAQL) e `listAccessibleCustomers`. Não há método
- * que chame endpoint `:mutate`. E `assertReadOnlyQuery`, no adaptador, recusa
- * GAQL que não comece com SELECT.
+ * `searchStream` e `listAccessibleCustomers` sao leitura. `mutate` existe,
+ * mas so e alcancado pelo GoogleAdsWriteAdapter, que exige plano validado com
+ * validateOnly e hash aprovado antes de executar. `assertReadOnlyQuery` segue
+ * recusando GAQL que nao comece com SELECT.
  */
 
 import { readFile } from 'node:fs/promises';
 import { createSign } from 'node:crypto';
-import type { GoogleAdsSearchTransport } from './read-adapter.js';
+import type { GoogleAdsMutateTransport } from './write-adapter.js';
+
 
 export const GOOGLE_ADS_API_VERSION = 'v21';
 
@@ -95,7 +97,7 @@ export class GoogleAdsAuthError extends Error {
 
 export async function createGoogleAdsTransport(
   config: TransportConfig,
-): Promise<GoogleAdsSearchTransport> {
+): Promise<GoogleAdsMutateTransport> {
   if (!config.developerToken) {
     throw new GoogleAdsAuthError(
       'developer token ausente',
@@ -180,6 +182,29 @@ export async function createGoogleAdsTransport(
       }
       const parsed = JSON.parse(body) as { resourceNames?: string[] };
       return { resourceNames: parsed.resourceNames ?? [], requestId };
+    },
+
+    /**
+     * Escrita. `validateOnly: true` valida SEM executar — e o padrao do
+     * fluxo de plano. Executar de verdade exige validateOnly: false, o que
+     * so acontece via GoogleAdsWriteAdapter.execute() com hash aprovado.
+     */
+    async mutate(_customerId: string, endpoint: string, payload: unknown, validateOnly: boolean) {
+      const body = { ...(payload as Record<string, unknown>), validateOnly };
+      const res = await fetch(`${base}/${endpoint}`, {
+        method: 'POST',
+        headers: await headers(),
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      const requestId = res.headers.get('request-id') ?? 'sem-request-id';
+      if (!res.ok) {
+        throw new GoogleAdsAuthError(
+          `mutate ${validateOnly ? '(validateOnly)' : '(EXECUCAO)'} falhou ` +
+            `(HTTP ${res.status}, request-id ${requestId}): ${sanitize(text)}`,
+        );
+      }
+      return { response: text === '' ? {} : JSON.parse(text), requestId };
     },
 
     async searchStream(customerId, query) {
