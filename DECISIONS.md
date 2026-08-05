@@ -7,6 +7,38 @@ Formato: **data — decisão** · motivo · consequência.
 
 ---
 
+## 2026-08-05 — Incidente: scripts de backup ignorados em silêncio pelo `.gitignore`
+
+**O que aconteceu.** Os quatro arquivos de `scripts/backup/` (`lib.sh`,
+`backup-postgres.sh`, `backup-volumes.sh`, `backup-configs.sh`) foram escritos,
+testados em dry-run e em execução real com dados sintéticos, e o PR #1
+descreveu-os como entregues — mas nunca haviam sido commitados. A regra
+`backup/` no `.gitignore` (sem barra inicial, portanto casando em qualquer
+profundidade) foi escrita para bloquear *diretórios de dados* de backup e
+acabou também bloqueando `scripts/backup/`, que é código. `git add -A` ignora
+arquivos ignorados sem avisar — não houve erro, não houve sinal.
+
+**Como foi encontrado.** Revisão externa do PR notou que a árvore publicada no
+GitHub não tinha a pasta que a documentação descrevia.
+
+**Correção.** Negação explícita no `.gitignore`
+(`!scripts/backup/` + `!scripts/backup/**`), confirmada com
+`git check-ignore` antes e depois. Os arquivos foram revisados de novo
+(scanner de segredos, dry-run, execução real) antes do commit — não bastava
+"agora aparece no `git status`", precisava continuar correto.
+
+**Motivo de registrar.** Não é só o bug do `.gitignore`. É que eu declarei
+algo como entregue sem confirmar que estava versionado — "escrito em disco" e
+"commitado" são coisas diferentes, e só a segunda conta para efeito de
+entrega. `git status --short` e `git ls-files` deveriam fazer parte de toda
+checklist de "isto está pronto", não só do `git add`.
+
+**Consequência.** Antes de declarar qualquer entrega de código pronta, checar
+`git status --short` e `git diff --stat` contra o que foi de fato pedido —
+não presumir que Write bem-sucedido implica arquivo rastreado pelo Git.
+
+---
+
 ## 2026-08-04 — Fundação do Control Plane
 
 **Repositório central privado, separado dos repositórios de clientes.**
