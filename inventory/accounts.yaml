@@ -1,0 +1,334 @@
+# =============================================================================
+# inventory/accounts.yaml — contas e acessos
+# =============================================================================
+# Registra EXISTENCIA, FINALIDADE, PERMISSAO e LOCAL DE ARMAZENAMENTO.
+# NUNCA registra valor de autenticacao: sem token, sem senha, sem chave.
+#
+# IDs numericos de conta de anuncios e enderecos de e-mail administrativos NAO
+# sao segredo — sao metadados operacionais. Ver docs/security/secrets-policy.md.
+#
+# Leitura narrativa: docs/security/access-matrix.md
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-04
+  verificationStatus: verified
+  scope: >-
+    Acessos disponiveis na estacao de trabalho do dono em 2026-08-04, apurados
+    por diagnostico direto de cada ferramenta.
+
+# =============================================================================
+# REGRA DE SEPARACAO DAS CONTAS GOOGLE
+# =============================================================================
+accountSeparationPolicy:
+  canonical:
+    account: contato.automatizadoria@gmail.com
+    scope: AutomatizadorIA — operacao de servicos e clientes
+  separate:
+    account: estudionovacena@gmail.com
+    scope: Novacena — producao audiovisual e musical
+  rule: >-
+    NAO misturar arquivos, e-mails, agendas, contatos ou recursos entre as duas
+    contas. Nenhuma automacao pode ler de uma e escrever na outra. A conta e
+    parametro obrigatorio de toda operacao Google, e a implementacao deve
+    recusar operacao entre contas diferentes.
+  source: instrucao explicita do dono em 2026-08-04
+  status: EM CONFLITO — ver accounts[google-drive-connector]
+
+# =============================================================================
+accounts:
+  # ---------------------------------------------------------------------------
+  - id: github-dadocruz
+    platform: GitHub
+    account: dadocruz
+    purpose: Todos os repositorios da operacao
+    client: automatizadoria
+    permissions: { read: true, write: true, create: true, delete: false }
+    scopes: [gist, read:org, repo, workflow]
+    authSource: gh CLI (OAuth)
+    storage: keychain do macOS
+    status: ativo
+    risk: medio
+    riskDetail: >-
+      Token com escrita em todos os repositorios, inclusive os de clientes.
+      Nao possui delete_repo nem admin:org, o que limita o dano maximo.
+      Ponto unico: uma conta, uma pessoa, sem redundancia.
+    requiredAction: >-
+      Avaliar token de escopo reduzido para uso do Control Plane, separado do
+      token pessoal de uso diario.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: vps-hostinger
+    platform: Hostinger VPS
+    account: root@automatizadoria (alias SSH nvvps)
+    purpose: Infraestrutura de producao — 13 stacks, 28 servicos
+    client: automatizadoria
+    permissions: { read: true, write: true, create: true, delete: true }
+    permissionsNote: >-
+      O ACESSO tecnico permite tudo. A POLITICA restringe a leitura. A diferenca
+      entre os dois e disciplina, e disciplina falha — por isso o coletor
+      (scripts/collect-vps-inventory.sh) recusa comandos mutantes em codigo.
+    authSource: chave SSH sem senha
+    storage: ~/.ssh (fora do repositorio, nunca lida)
+    status: ativo
+    risk: alto
+    riskDetail: >-
+      Acesso root direto e sem senha. Nao existe erro de digitacao inofensivo.
+      A chave nao tem passphrase: quem obtiver o arquivo obtem producao inteira.
+    requiredAction: >-
+      Criar usuario nao-root com permissao somente leitura para inventario
+      recorrente. Avaliar passphrase na chave e uso de ssh-agent.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: google-automatizadoria
+    platform: Google (conta)
+    account: contato.automatizadoria@gmail.com
+    purpose: Conta administrativa CANONICA da AutomatizadorIA
+    client: automatizadoria
+    permissions: { read: unknown, write: unknown, create: unknown, delete: unknown }
+    authSource: nenhuma credencial programatica configurada
+    storage: n/a
+    status: sem integracao
+    risk: medio
+    riskDetail: >-
+      E a conta canonica da operacao, mas nao ha OAuth configurado. Todo acesso
+      hoje e manual pelo navegador.
+    requiredAction: Criar credencial OAuth com escopos minimos, separada da Novacena.
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  - id: google-novacena
+    platform: Google (conta)
+    account: estudionovacena@gmail.com
+    purpose: Conta SEPARADA dos projetos Novacena
+    client: novacena
+    permissions: { read: unknown, write: unknown, create: unknown, delete: unknown }
+    authSource: nenhuma credencial programatica configurada
+    storage: n/a
+    status: sem integracao
+    risk: medio
+    requiredAction: Credencial OAuth propria, com escopos separados dos da conta canonica.
+    verificationStatus: owner_reported
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: gmail-connector
+    platform: Gmail (conector do Claude)
+    account: estudionovacena@gmail.com
+    purpose: Leitura de e-mail e criacao de rascunhos
+    client: novacena
+    permissions: { read: true, write: true, create: true, delete: false }
+    permissionsNote: >-
+      "write/create" cobrem rascunhos e rotulos. NAO EXISTE ferramenta de envio
+      no conector — nenhum e-mail pode ser enviado por ele.
+    authSource: conector OAuth do Claude
+    storage: infraestrutura do Claude
+    status: ativo
+    risk: medio
+    riskDetail: >-
+      Caixa com ~51.800 mensagens e ~48.400 nao lidas. Volume alto significa
+      que qualquer automacao de leitura precisa de filtro muito estreito para
+      nao processar dado irrelevante ou sensivel.
+    requiredAction: >-
+      Confirmar que esta e a conta desejada para automacao de e-mail, dada a
+      regra de separacao.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - id: calendar-connector
+    platform: Google Calendar (conector do Claude)
+    account: estudionovacena@gmail.com
+    purpose: Leitura e escrita de agenda
+    client: novacena
+    permissions: { read: true, write: true, create: true, delete: true }
+    authSource: conector OAuth do Claude
+    storage: infraestrutura do Claude
+    status: ativo
+    risk: medio
+    riskDetail: >-
+      Permite APAGAR eventos. Cinco agendas acessiveis, entre elas uma pessoal
+      de medicacao e uma familiar — dados sensiveis, sem relacao com a operacao.
+    requiredAction: >-
+      Restringir automacoes de agenda a calendarios especificos. Nunca operar
+      sobre a agenda inteira.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - id: google-drive-connector
+    platform: Google Drive (conector do Claude)
+    account: INDETERMINADO
+    purpose: Leitura e criacao de arquivos
+    client: CONFLITANTE
+    permissions: { read: true, write: true, create: true, delete: false }
+    authSource: conector OAuth do Claude
+    storage: infraestrutura do Claude
+    status: ativo
+    risk: ALTO
+    riskDetail: >-
+      CONFLITO DE SEPARACAO. Gmail e Calendar respondem pela conta Novacena
+      (estudionovacena@gmail.com), mas a listagem de arquivos recentes do Drive
+      devolveu arquivos de propriedade de contato.automatizadoria@gmail.com.
+      Nao foi possivel determinar por qual das duas contas o conector autentica:
+      pode ser a conta AutomatizadorIA, ou a conta Novacena enxergando arquivos
+      compartilhados. Em qualquer das hipoteses, uma unica sessao alcanca
+      recursos das duas contas — exatamente o que a regra proibe.
+    requiredAction: >-
+      RESOLVER ANTES DE QUALQUER AUTOMACAO GOOGLE. Determinar a conta de
+      autenticacao do conector e, se necessario, reconecta-lo com escopo unico.
+    verificationStatus: conflicting
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: meta-ads
+    platform: Meta Marketing API (conector MCP)
+    account: multiplas contas de anuncio
+    purpose: Gestao de trafego pago
+    client: multiplos
+    permissions: { read: true, write: true, create: true, delete: true }
+    authSource: conector MCP autenticado
+    storage: infraestrutura do conector
+    status: parcial
+    risk: ALTO
+    riskDetail: >-
+      Permissao completa de CRUD sobre campanhas com verba real em BRL. Uma
+      acao errada gasta dinheiro ou derruba a entrega de um cliente.
+      Situacao das contas: 2 ativas e consultaveis, 4 desabilitadas por
+      atividade incomum, 2 com pendencia financeira.
+    requiredAction: >-
+      Manter toda operacao de campanha em Nivel 2 de aprovacao. Regularizar as
+      6 contas restritas junto a Meta — e problema administrativo, nao tecnico.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    activeAccounts:
+      - { id: "1217584809532823", name: "ADM 01", business: "Dado Cruz" }
+      - { id: "639428487465234", name: "tt", business: "BM5-9" }
+
+  # ---------------------------------------------------------------------------
+  - id: cloudflare
+    platform: Cloudflare
+    account: unknown
+    purpose: DNS e hospedagem na borda
+    client: multiplos
+    permissions: { read: false, write: false, create: false, delete: false }
+    authSource: sessao de navegador apenas — sem token de API
+    storage: navegador
+    status: sem integracao
+    risk: medio
+    riskDetail: >-
+      Existe sessao autenticada no navegador, o que da acesso completo por
+      interface, mas nao ha token para uso programatico. Acesso critico
+      (DNS de todos os clientes) sem inventario.
+    requiredAction: Emitir token SOMENTE LEITURA (Zone:Read, DNS:Read).
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: n8n
+    platform: n8n (auto-hospedado)
+    account: unknown
+    purpose: Orquestracao das automacoes de clientes
+    client: multiplos
+    permissions: { read: false, write: false, create: false, delete: false }
+    authSource: API key — NAO EXISTE
+    storage: n/a
+    status: sem integracao
+    risk: ALTO
+    riskDetail: >-
+      Roda ha ~6 meses como orquestrador de fato e nao ha inventario do que faz.
+      Suas credenciais de integracao provavelmente vivem no PostgreSQL
+      compartilhado, sem backup verificado.
+    requiredAction: Gerar API key somente leitura. E o bloqueio de maior impacto.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: whatsapp-evolution
+    platform: Evolution API (WhatsApp)
+    account: instancias na VPS
+    purpose: Canal de mensagem com cliente final
+    client: multiplos
+    permissions: { read: false, write: false, create: false, delete: false }
+    permissionsNote: Zero permissao PARA O CONTROL PLANE, por decisao desta fase.
+    authSource: interna a VPS
+    storage: volume evolution_instances
+    status: fora de escopo por decisao
+    risk: ALTO
+    riskDetail: >-
+      A capacidade existe e esta operante ha ~6 meses, com sessoes conectadas.
+      O Control Plane nao a utiliza, mas o canal esta no ar fora deste controle.
+      Mensagem enviada por engano e publica e irreversivel.
+    requiredAction: >-
+      Manter desligado ate que auditoria e aprovacao estejam exercitadas em
+      canais de menor consequencia.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: navegador
+    platform: Google Chrome (controlado)
+    account: sessoes do dono
+    purpose: Acesso a paineis sem API
+    client: multiplos
+    permissions: { read: true, write: true, create: true, delete: true }
+    permissionsNote: >-
+      Herda TODA a permissao das sessoes abertas. E o acesso mais amplo e menos
+      auditavel do inventario.
+    authSource: sessoes ja autenticadas no Chrome
+    storage: perfil do Chrome
+    status: ativo
+    risk: ALTO
+    riskDetail: >-
+      Sessoes ativas observadas em GitHub, Cloudflare, WhatsApp Web, Instagram,
+      Google Drive e ChatGPT. Automacao por navegador nao deixa trilha de
+      auditoria util e e fragil a mudanca de interface.
+      ACHADO ADICIONAL: uma aba carrega token de acesso na propria URL — deve
+      ser tratado como comprometido e rotacionado.
+    requiredAction: >-
+      Usar navegador apenas onde nao existe API. Preferir CLI e API sempre.
+      Fechar a aba com token na URL e rotacionar a credencial.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  # ---------------------------------------------------------------------------
+  - id: claude-desktop
+    platform: Claude Code / Desktop
+    account: estudionovacena@gmail.com
+    purpose: Ambiente de trabalho assistido por IA
+    client: automatizadoria
+    permissions: { read: true, write: true, create: true, delete: false }
+    permissionsNote: >-
+      Escrita limitada ao sistema de arquivos local e aos conectores listados
+      acima. As permissoes efetivas sao a UNIAO de todos os conectores ativos.
+    authSource: sessao do Claude
+    storage: infraestrutura do Claude
+    status: ativo
+    risk: medio
+    riskDetail: >-
+      Concentra, numa unica sessao, acesso a GitHub, VPS, Google, Meta e
+      navegador. E o ponto onde a separacao entre contas e clientes precisa ser
+      mais rigorosa, porque tecnicamente nada a impoe.
+    requiredAction: >-
+      Manter kill switch ligado. Registrar permissoes explicitas em
+      .claude/settings.local.json, negando por padrao o que for destrutivo.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+# =============================================================================
+summary:
+  total: 14
+  ativos: 9
+  bloqueados: 4
+  conflitantes: 1
+  riscoAlto: [vps-hostinger, google-drive-connector, meta-ads, n8n, whatsapp-evolution, navegador]
+
+topActions:
+  - { priority: 1, action: "Resolver o conflito de contas do conector do Drive", why: "Viola a regra de separacao, e regra do dono" }
+  - { priority: 2, action: "Rotacionar o token exposto na URL da aba do navegador", why: "Credencial ja exposta" }
+  - { priority: 3, action: "Gerar API key somente leitura do n8n", why: "Maior ponto cego da operacao" }
+  - { priority: 4, action: "Emitir token somente leitura da Cloudflare", why: "Destrava o mapa dominio -> cliente" }
+  - { priority: 5, action: "Criar usuario nao-root na VPS para inventario", why: "Reduz o raio de um erro" }
+  - { priority: 6, action: "Regularizar as 6 contas Meta restritas", why: "Bloqueia entrega de servico vendido" }

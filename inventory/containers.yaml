@@ -1,0 +1,155 @@
+# =============================================================================
+# inventory/containers.yaml — containers, imagens, redes e volumes
+# =============================================================================
+# Origem: coleta somente leitura em 2026-08-04.
+# Volumes registrados APENAS por nome e driver — conteudo nunca inspecionado.
+# Nenhum `docker inspect` foi executado (bloqueado pelo guarda do coletor).
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-04
+  runtime: Docker 28.5.1
+  compose: v2.40.3
+  orchestrator: docker-swarm (no unico)
+  runningContainers: 32
+  failedContainers: 0
+  verificationStatus: verified
+
+# -----------------------------------------------------------------------------
+# CONTAINER FORA DE GESTAO
+# -----------------------------------------------------------------------------
+orphanContainers:
+  - name: determined_neumann
+    image: novacena-editais-tools:v2
+    state: running
+    uptime: ~2 semanas
+    memoryUse: ~152MiB
+    stack: null
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    risk: >-
+      Nome gerado automaticamente pelo Docker: indica `docker run` manual que
+      ficou. Nao pertence a stack, portanto nao e reiniciado automaticamente,
+      nao e versionado e nao e monitorado. Ver achado V-008.
+    action: Descobrir o proposito. Encerrar se for tarefa pontual esquecida.
+
+# -----------------------------------------------------------------------------
+# DUPLICACAO
+# -----------------------------------------------------------------------------
+duplicatedWorkloads:
+  - workload: novacena-music
+    severity: media
+    swarmStack:
+      name: novacena_music
+      containers: [novacena_music_backend, novacena_music_frontend, novacena_music_nginx]
+      volume: novacena_music_novacena_music_data
+      network: novacena_music_app (overlay)
+    composeProject:
+      name: novacena-music
+      configFile: /opt/novacena-music/docker-compose.yml
+      containers: [novacena-music-backend-1, novacena-music-frontend-1, novacena-music-nginx-1]
+      volume: novacena-music_novacena_music_data
+      networks: [novacena-music_app (overlay), novacena-music_default (bridge)]
+      exposedPort: 127.0.0.1:8088
+    wastedMemory: ~75MiB
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    risk: >-
+      Nao se sabe qual dos dois atende o trafego real. Uma alteracao pode ser
+      aplicada na copia errada e parecer nao ter efeito. Os volumes tem nomes
+      quase identicos, o que aumenta a chance de erro em manutencao.
+    action: >-
+      Identificar qual esta ligado ao Traefik e desligar o outro.
+      EXIGE APROVACAO DE NIVEL 2 — desligar o par errado tira o servico do ar.
+
+# -----------------------------------------------------------------------------
+# IMAGENS
+# -----------------------------------------------------------------------------
+images:
+  proprietary:
+    - { name: "novacena-editais:v3", size: 308MB, age: 2 semanas, hasKnownRepo: false }
+    - { name: "novacena-editais-tools:v2", size: 1.13GB, age: 2 semanas, hasKnownRepo: false }
+    - { name: "novacena-motion:auto-8bf8c5c", size: 1.82GB, age: 4 semanas, hasKnownRepo: true }
+    - { name: "novacena-music-backend:local", size: 688MB, age: 8 semanas, hasKnownRepo: true }
+    - { name: "novacena-music-frontend:local", size: 182MB, age: 8 semanas, hasKnownRepo: true }
+
+  outdated:
+    - name: "quay.io/minio/minio"
+      tag: RELEASE.2024-01-13T07-53-03Z-cpuv1
+      age: ~2 anos
+      severity: media
+    - name: "chatwoot/chatwoot:v4.1.0"
+      age: ~15 meses
+      severity: media
+    - name: "nginx:1.27-alpine"
+      age: ~15 meses
+      severity: baixa
+
+  untagged:
+    count: 8
+    note: >-
+      Imagens com tag <none>, resultado do `docker image prune -af` diario.
+      Ver achado V-006: nao ha imagem anterior guardada para rollback.
+
+# -----------------------------------------------------------------------------
+# REDES
+# -----------------------------------------------------------------------------
+networks:
+  - { name: automatizadoria, driver: overlay, scope: swarm }
+  - { name: encantaria_internal, driver: overlay, scope: swarm }
+  - { name: novacena-music_app, driver: overlay, scope: swarm }
+  - { name: novacena_music_app, driver: overlay, scope: swarm }
+  - { name: novacena-music_default, driver: bridge, scope: local }
+  - { name: ingress, driver: overlay, scope: swarm }
+  - { name: bridge, driver: bridge, scope: local }
+  - { name: docker_gwbridge, driver: bridge, scope: local }
+  - { name: host, driver: host, scope: local }
+  - { name: none, driver: "null", scope: local }
+networksNote: >-
+  As redes novacena-music_app e novacena_music_app diferem por um caractere.
+  E consequencia direta da duplicacao descrita em duplicatedWorkloads e uma
+  armadilha para quem for fazer manutencao.
+
+# -----------------------------------------------------------------------------
+# VOLUMES (apenas nome e driver — conteudo nunca inspecionado)
+# -----------------------------------------------------------------------------
+volumes:
+  - { name: chatwoot_mailer, driver: local, service: chatwoot }
+  - { name: chatwoot_mailers, driver: local, service: chatwoot }
+  - { name: chatwoot_public, driver: local, service: chatwoot }
+  - { name: chatwoot_redis, driver: local, service: chatwoot }
+  - { name: chatwoot_storage, driver: local, service: chatwoot, containsUserData: provavel }
+  - { name: evolution_instances, driver: local, service: evolution, containsUserData: provavel }
+  - { name: evolution_redis, driver: local, service: evolution }
+  - { name: minio_data, driver: local, service: minio, containsUserData: provavel }
+  - { name: n8n_redis, driver: local, service: n8n }
+  - { name: nocodb_data, driver: local, service: nocodb, containsUserData: provavel }
+  - { name: novacena_data, driver: local, service: novacena }
+  - { name: novacena_uploads, driver: local, service: novacena, containsUserData: provavel }
+  - { name: novacena-music_novacena_music_data, driver: local, service: novacena-music }
+  - { name: novacena_music_novacena_music_data, driver: local, service: novacena_music }
+  - { name: pgvector, driver: local, service: pgvector, containsUserData: provavel }
+  - { name: portainer_data, driver: local, service: portainer }
+  - { name: postgres_data, driver: local, service: postgres, containsUserData: provavel }
+  - { name: volume_swarm_certificates, driver: local, service: traefik, containsSecrets: sim }
+
+volumesNote: >-
+  volume_swarm_certificates contem chaves privadas de TLS. Nunca deve ser
+  inspecionado, copiado ou incluido em backup nao cifrado.
+  Chamou atencao a AUSENCIA de um volume dedicado ao n8n: existe apenas
+  n8n_redis (a fila). Os dados dos workflows provavelmente estao no PostgreSQL
+  compartilhado — o que reforca a criticidade do stack `postgres`.
+
+# -----------------------------------------------------------------------------
+# PORTAS
+# -----------------------------------------------------------------------------
+exposedPorts:
+  - { port: 80, scope: publico, process: docker-proxy, target: traefik }
+  - { port: 443, scope: publico, process: docker-proxy, target: traefik }
+  - { port: 22, scope: publico, process: sshd }
+  - { port: 8088, scope: loopback, process: docker-proxy, target: novacena-music-nginx }
+  - { port: 2377, scope: TODAS AS INTERFACES, process: dockerd, risk: alto,
+      note: "Porta de gestao do Swarm. Ver achado V-002." }
+  - { port: 7946, scope: TODAS AS INTERFACES, process: dockerd, risk: alto,
+      note: "Descoberta de nos do Swarm. Ver achado V-002." }
+  - { port: 4789, protocol: udp, scope: todas, process: dockerd, note: "Rede overlay VXLAN." }

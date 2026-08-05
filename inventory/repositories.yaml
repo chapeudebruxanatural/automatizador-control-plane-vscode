@@ -454,16 +454,24 @@ repositories:
     environments: []
     topics: []
     likelyClient: null
-    likelyProject: null
+    likelyProject: encantaria-cms
     relationshipStatus: unknown
     needsInspection: true
-    verificationStatus: unknown
+    verificationStatus: discovered
     lastVerifiedAt: 2026-08-04
+    hasProductionDeployment: true
     notes: >-
-      A raiz contem apenas um diretorio homonimo (encantaria_artesanal/), sem
-      README nem package.json na raiz — provavel commit acidental de uma pasta
-      inteira, com o projeto real um nivel abaixo. Nao corresponde a nenhum
-      slug conhecido. PERGUNTAR AO DONO e avaliar reestruturacao ou remocao.
+      CORRIGIDO em 2026-08-04 pelo inventario da VPS. A avaliacao inicial, feita
+      so pelos metadados do GitHub, foi de "provavel commit acidental de pasta"
+      — a raiz contem apenas um diretorio homonimo, sem README nem
+      package.json.
+      O inventario da VPS desmentiu isso: existe o stack `encantaria` em
+      producao ha ~6 semanas, com Directus 11 e PostgreSQL 16 em rede overlay
+      dedicada, e o diretorio /root/encantaria-cms no host.
+      E projeto REAL e ATIVO, e nao pertence a nenhum cliente do catalogo.
+      Bom exemplo de por que inferencia nao vira `verified`: a leitura isolada
+      do GitHub teria levado a arquivar um projeto em producao.
+      PERGUNTAR AO DONO de quem e este projeto.
 
 # =============================================================================
 # LEITURA DOS DADOS
@@ -518,9 +526,24 @@ findings:
     action: Confirmar e arquivar se for redundante.
 
   - id: F-005
-    severity: baixa
-    title: encantaria_artesanal tem estrutura aninhada indevida
+    severity: media
+    title: encantaria_artesanal esta em producao e nao tem cliente atribuido
     detail: >-
-      A raiz contem apenas uma pasta homonima. Sugere commit acidental de
-      diretorio inteiro.
-    action: Confirmar proposito, reestruturar ou remover.
+      Revisado em 2026-08-04. A leitura inicial (so metadados do GitHub) sugeria
+      commit acidental de diretorio. O inventario da VPS mostrou stack
+      `encantaria` em producao ha ~6 semanas, com Directus 11 e PostgreSQL 16.
+      Projeto real, ativo, sem dono declarado no catalogo de clientes.
+    action: >-
+      Perguntar ao dono a quem pertence, criar o cliente correspondente e
+      reestruturar o repositorio (a raiz aninhada continua sendo um problema).
+
+  - id: F-006
+    severity: media
+    title: servicos em producao sem repositorio conhecido
+    detail: >-
+      `novacena-editais` (web + worker, com imagens proprias novacena-editais:v3
+      e novacena-editais-tools:v2) e `novacena-propostas` rodam na VPS e nao
+      correspondem a nenhum repositorio do GitHub de dadocruz.
+      Ou o codigo esta em outro lugar, ou nao esta versionado — e nesse caso
+      existe apenas dentro de uma imagem Docker, num host sem backup verificado.
+    action: Localizar o codigo-fonte. Se nao existir, versiona-lo com urgencia.

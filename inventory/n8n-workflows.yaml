@@ -1,0 +1,88 @@
+# =============================================================================
+# inventory/n8n-workflows.yaml
+# =============================================================================
+# Este arquivo esta VAZIO DE PROPOSITO e o motivo importa.
+#
+# O inventario de workflows exige a API REST do n8n, que exige uma API key que
+# ainda nao existe. Nenhum workflow foi lido, executado ou alterado.
+#
+# Preencher este arquivo com suposicoes seria pior do que deixa-lo vazio:
+# criaria a impressao de que a operacao esta mapeada quando nao esta.
+#
+# Analise completa: docs/discovery/n8n-inventory.md
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-04
+  status: BLOQUEADO
+  verificationStatus: unknown
+  blocker: >-
+    API key do n8n nao disponivel. Sem ela nao e possivel listar workflows,
+    verificar quais estao ativos, nem descobrir quais clientes dependem de
+    quais automacoes.
+  unblockedBy: >-
+    Gerar API key em Settings > n8n API na interface do n8n e guardar em .env
+    local como N8N_API_KEY. Leitura apenas; nao altera nada em producao.
+  impact: >-
+    Maior ponto cego da operacao. O n8n roda ha ~6 meses como orquestrador de
+    fato. Enquanto este arquivo estiver vazio, qualquer manutencao na VPS
+    (atualizar o SO, reiniciar o PostgreSQL, mexer no Traefik) e feita sem
+    saber quais processos de clientes vao parar.
+
+# O que se sabe da instalacao, sem tocar em workflow algum.
+installation:
+  method: docker-swarm
+  stack: n8n
+  manifest: /root/n8n.yaml
+  image: n8nio/n8n:latest
+  imageAge: ~8 meses
+  queueMode: true
+  services:
+    - { name: n8n_n8n_editor, role: interface de edicao, port: 5678, replicas: "1/1" }
+    - { name: n8n_n8n_worker, role: execucao, concurrency: 10, replicas: "1/1" }
+    - { name: n8n_n8n_webhook, role: recepcao de webhooks, replicas: "1/1" }
+    - { name: n8n_n8n_redis, role: fila, replicas: "1/1" }
+  dataDir: /root/dados_vps/dados_n8n
+  volumes: [n8n_redis]
+  processUser: debian
+  uptime: ~6 meses
+  state: running
+  externallyExposed: false
+  ingress: via Traefik
+  verificationStatus: verified
+  lastVerifiedAt: 2026-08-04
+
+database:
+  engine: PostgreSQL
+  instance: postgres-shared (postgres:14)
+  verificationStatus: discovered
+  confidence: media
+  reasoning: >-
+    Nao existe volume n8n_data — apenas n8n_redis, que e a fila. O n8n precisa
+    persistir workflows, credenciais e execucoes, e ha um PostgreSQL 14
+    compartilhado no host. A hipotese e que use esse banco.
+  implication: >-
+    Se confirmada, as credenciais de todas as integracoes do n8n vivem no
+    PostgreSQL compartilhado, cifradas por uma chave que e variavel de
+    ambiente. Perder o banco = perder as automacoes. Vazar banco + chave =
+    vazar todas as credenciais de todos os clientes.
+  howToConfirm: >-
+    Consultar a variavel DB_TYPE via API do n8n depois de gerar a key, ou
+    conectar ao banco com usuario somente leitura sob aprovacao de Nivel 2.
+
+# Estrutura que sera usada quando o bloqueio for removido.
+workflowSchema:
+  id: identificador do n8n
+  name: nome do workflow
+  active: true/false
+  clientSlug: cliente atendido (clients/index.yaml)
+  businessProcess: qual processo de negocio ele executa
+  trigger: webhook | schedule | manual | outro
+  integrations: sistemas externos que ele toca
+  criticality: critica | alta | media | baixa
+  hasWriteEffects: se produz efeito colateral externo
+  lastModified: data
+  verificationStatus: procedencia
+  lastVerifiedAt: data
+
+workflows: []   # BLOQUEADO — ver meta.blocker

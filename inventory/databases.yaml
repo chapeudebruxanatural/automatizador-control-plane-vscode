@@ -1,0 +1,170 @@
+# =============================================================================
+# inventory/databases.yaml — bancos de dados
+# =============================================================================
+# Origem: coleta somente leitura em 2026-08-04.
+# NENHUMA conexao a banco foi aberta. NENHUMA consulta foi executada.
+# Tamanho, numero de bases e esquemas sao desconhecidos por politica.
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-04
+  method: >-
+    Identificacao pela imagem do container e pela porta exposta na rede interna.
+    Nenhum cliente de banco foi executado, nem no host nem dentro do container.
+  verificationStatus: verified
+
+databases:
+  - id: postgres-shared
+    engine: PostgreSQL
+    version: "14"
+    image: postgres:14
+    service: postgres_postgres
+    stack: postgres
+    location: VPS (nvvps)
+    internalPort: 5432
+    externallyExposed: false
+    volume: postgres_data
+    state: running
+    uptime: ~6 meses
+    criticality: critica
+    likelyConsumers:
+      - n8n (workflows, execucoes, credenciais)
+      - chatwoot
+      - typebot
+      - evolution-api
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Provavel banco compartilhado da maior parte da plataforma. A inferencia
+      vem da ausencia de volume dedicado ao n8n (existe apenas n8n_redis, que e
+      a fila) e da ausencia de bancos proprios para chatwoot e typebot.
+      Se estiver correta, este e o ponto unico de falha mais critico da
+      operacao: sua perda derruba automacao, atendimento e chatbot de uma vez.
+      CONFIRMAR quais bases existem antes de qualquer manutencao.
+    risks:
+      - PostgreSQL 14 recebe correcoes ate novembro de 2026
+      - Sem backup verificado (ver achado V-004)
+      - Concentra dados de multiplos servicos sem isolamento por cliente
+
+  - id: pgvector
+    engine: PostgreSQL + pgvector
+    version: "16"
+    image: pgvector/pgvector:pg16
+    service: pgvector_pgvector
+    stack: pgvector
+    location: VPS (nvvps)
+    internalPort: 5432
+    externallyExposed: false
+    volume: pgvector
+    state: running
+    uptime: ~6 meses
+    memoryLimit: 1GiB
+    memoryUsePct: 11
+    criticality: media
+    likelyConsumers:
+      - fluxos de IA / RAG no n8n
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Banco vetorial, tipicamente usado para busca semantica e memoria de
+      agentes. Quem o consome nao foi confirmado — depende de ler os workflows
+      do n8n, hoje bloqueado por falta de API key.
+
+  - id: encantaria-db
+    engine: PostgreSQL
+    version: "16"
+    image: postgres:16-alpine
+    service: encantaria_database
+    stack: encantaria
+    location: VPS (nvvps)
+    internalPort: 5432
+    externallyExposed: false
+    network: encantaria_internal (overlay)
+    state: running (healthy)
+    uptime: ~6 semanas
+    criticality: alta
+    likelyConsumers:
+      - encantaria_directus (Directus 11)
+    client: null
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Unico banco com rede overlay dedicada (encantaria_internal) — bom
+      isolamento, melhor que o padrao dos demais. Pertence ao projeto
+      "encantaria", que NAO tem cliente atribuido no catalogo.
+
+  - id: supabase-vivere
+    engine: PostgreSQL (Supabase gerenciado)
+    version: unknown
+    location: EXTERNO — fora da VPS
+    state: unknown
+    criticality: alta
+    client: vivere
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Inferido do diretorio supabase/ com migrations no repositorio `vivere`.
+      Nao foi acessado, nem confirmado que existe projeto ativo. E o unico
+      banco de cliente fora do perimetro da VPS — e, portanto, fora de todo
+      controle e backup que possamos verificar daqui.
+    risks:
+      - Projeto, regiao, plano e politica de backup desconhecidos
+      - Nao se sabe quem mais tem acesso
+      - Workflows automatizados no repositorio alteram migrations
+
+# -----------------------------------------------------------------------------
+caches:
+  - id: redis-n8n
+    engine: Redis
+    image: redis:latest
+    service: n8n_n8n_redis
+    role: fila de execucao do n8n (modo queue)
+    volume: n8n_redis
+    criticality: critica
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - id: redis-chatwoot
+    engine: Redis
+    image: redis:latest
+    service: chatwoot_chatwoot_redis
+    role: fila do Sidekiq
+    volume: chatwoot_redis
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - id: redis-evolution
+    engine: Redis
+    image: redis:latest
+    service: evolution_evolution_redis
+    role: cache/fila da Evolution API
+    volume: evolution_redis
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+objectStorage:
+  - id: minio
+    engine: MinIO (compativel com S3)
+    image: quay.io/minio/minio:RELEASE.2024-01-13T07-53-03Z-cpuv1
+    service: minio_minio
+    volume: minio_data
+    internalPorts: [9000, 9001]
+    externallyExposed: false
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: Imagem de janeiro de 2024. Ver inventory/containers.yaml (outdated).
+
+# -----------------------------------------------------------------------------
+gaps:
+  - Nomes das bases dentro de cada instancia
+  - Tamanho em disco de cada banco
+  - Quais servicos usam quais bases (confirmar a hipotese do banco compartilhado)
+  - Politica de retencao e existencia de backup logico (pg_dump)
+  - Versao e configuracao do Supabase do cliente vivere
+gapsNote: >-
+  Todas essas lacunas exigem conectar a um banco, o que e escrita em potencial
+  e esta fora do escopo desta fase. Resolver com aprovacao especifica e
+  usuario somente leitura dedicado — nunca com o superusuario.

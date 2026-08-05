@@ -1,0 +1,431 @@
+# =============================================================================
+# inventory/services.yaml — servicos em execucao na VPS
+# =============================================================================
+# Origem: coleta somente leitura em 2026-08-04 (scripts/collect-vps-inventory.sh).
+# Nenhuma alteracao foi feita. Nenhuma variavel de ambiente foi lida.
+# Detalhes e achados: docs/discovery/vps-inventory.md
+# =============================================================================
+
+meta:
+  host: automatizadoria
+  accessAlias: nvvps
+  orchestrator: docker-swarm
+  swarmNodes: 1
+  stackCount: 13
+  serviceCount: 28
+  collectedAt: 2026-08-04
+  verificationStatus: verified
+  note: >-
+    Estado dos servicos e FATO verificado via docker service ls / docker ps.
+    A associacao com cliente e INFERENCIA (discovered), exceto onde indicado.
+
+# -----------------------------------------------------------------------------
+# INFRAESTRUTURA COMPARTILHADA
+# -----------------------------------------------------------------------------
+services:
+  - name: traefik_traefik
+    stack: traefik
+    image: traefik:v3.4.0
+    role: proxy reverso e terminacao TLS
+    replicas: 1/1
+    state: running
+    uptime: ~6 meses
+    publicPorts: [80, 443]
+    client: automatizadoria
+    criticality: critica
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Unica porta de entrada do host. Gerencia os certificados no volume
+      volume_swarm_certificates. Se cair, TUDO cai. Nao ha Cloudflare Tunnel.
+
+  - name: portainer_portainer
+    stack: portainer
+    image: portainer/portainer-ce:latest
+    role: painel de gestao de containers
+    replicas: 1/1
+    state: running
+    uptime: ~6 meses
+    client: automatizadoria
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Da controle total sobre o Docker por interface web. Verificar como esta
+      exposto e com que autenticacao. Um painel de containers e alvo de valor.
+
+  - name: portainer_agent
+    stack: portainer
+    image: portainer/agent:latest
+    role: agente do Portainer
+    replicas: 1/1 (global)
+    state: running
+    client: automatizadoria
+    criticality: baixa
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: minio_minio
+    stack: minio
+    image: quay.io/minio/minio:RELEASE.2024-01-13T07-53-03Z-cpuv1
+    role: armazenamento de objetos compativel com S3
+    replicas: 1/1
+    state: running
+    uptime: ~6 meses
+    client: automatizadoria
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Imagem de janeiro de 2024, ha mais de 2 anos sem atualizar. Guarda dados
+      no volume minio_data. Avaliar atualizacao em janela de manutencao.
+
+# -----------------------------------------------------------------------------
+# AUTOMACAO E ATENDIMENTO
+# -----------------------------------------------------------------------------
+  - name: n8n_n8n_editor
+    stack: n8n
+    image: n8nio/n8n:latest
+    role: interface de edicao de workflows
+    replicas: 1/1
+    state: running
+    uptime: ~6 meses
+    memoryLimit: 1GiB
+    memoryUsePct: 26
+    client: automatizadoria
+    criticality: critica
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: n8n_n8n_worker
+    stack: n8n
+    image: n8nio/n8n:latest
+    role: execucao de workflows (modo fila, concurrency=10)
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 23
+    client: automatizadoria
+    criticality: critica
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: n8n_n8n_webhook
+    stack: n8n
+    image: n8nio/n8n:latest
+    role: recepcao de webhooks
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 17
+    client: automatizadoria
+    criticality: critica
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: n8n_n8n_redis
+    stack: n8n
+    image: redis:latest
+    role: fila do n8n
+    replicas: 1/1
+    state: running
+    client: automatizadoria
+    criticality: critica
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: evolution_evolution_api
+    stack: evolution
+    image: evoapicloud/evolution-api:latest
+    role: gateway de WhatsApp
+    replicas: 1/1
+    state: running
+    uptime: ~6 meses
+    client: automatizadoria
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      A capacidade de WhatsApp JA EXISTE e esta operante, com volume
+      evolution_instances (sessoes conectadas). O Control Plane nao integra com
+      ela nesta fase por decisao, mas o canal esta no ar fora deste controle.
+
+  - name: evolution_evolution_redis
+    stack: evolution
+    image: redis:latest
+    role: cache/fila da Evolution API
+    replicas: 1/1
+    state: running
+    client: automatizadoria
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: chatwoot_chatwoot_app
+    stack: chatwoot
+    image: chatwoot/chatwoot:v4.1.0
+    role: plataforma de atendimento (web)
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 56
+    client: automatizadoria
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+    notes: Maior consumidor relativo de memoria do host. Ver achado V-007.
+
+  - name: chatwoot_chatwoot_sidekiq
+    stack: chatwoot
+    image: chatwoot/chatwoot:v4.1.0
+    role: processamento assincrono do Chatwoot
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 28
+    client: automatizadoria
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: chatwoot_chatwoot_redis
+    stack: chatwoot
+    image: redis:latest
+    role: fila do Chatwoot
+    replicas: 1/1
+    state: running
+    client: automatizadoria
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: typebot_typebot_builder
+    stack: typebot
+    image: baptistearno/typebot-builder:latest
+    role: construtor de chatbots
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 32
+    client: automatizadoria
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: typebot_typebot_viewer
+    stack: typebot
+    image: baptistearno/typebot-viewer:latest
+    role: execucao de chatbots publicados
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 25
+    client: automatizadoria
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: nocodb_nocodb
+    stack: nocodb
+    image: nocodb/nocodb:latest
+    role: banco de dados no-code
+    replicas: 1/1
+    state: running
+    memoryLimit: 1GiB
+    memoryUsePct: 21
+    client: automatizadoria
+    criticality: media
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+# -----------------------------------------------------------------------------
+# APLICACOES DE CLIENTE
+# -----------------------------------------------------------------------------
+  - name: automatizadoria-site
+    stack: null
+    image: nginx:1.27-alpine
+    role: site estatico institucional / de conformidade
+    replicas: 1/1
+    state: running
+    uptime: ~11 dias
+    appDir: /opt/automatizadoria-compliance-site
+    client: automatizadoria
+    likelyRepository: automatizadoria-compliance-site
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      Servico avulso, fora de stack. O diretorio em /opt tem o mesmo nome do
+      repositorio, o que reforca a associacao. Relevante para a verificacao do
+      Google OAuth.
+
+  - name: encantaria_directus
+    stack: encantaria
+    image: directus/directus:11
+    role: CMS headless
+    replicas: 1/1
+    state: running
+    uptime: ~6 semanas
+    appDir: /root/encantaria-cms
+    client: null
+    likelyRepository: encantaria_artesanal
+    criticality: alta
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      CORRIGE O CATALOGO. O repositorio encantaria_artesanal havia sido
+      classificado como possivel commit acidental. Existe stack em producao ha
+      6 semanas, com CMS e banco proprios. E projeto real, sem cliente
+      atribuido. PERGUNTAR AO DONO de quem e.
+
+  - name: encantaria_database
+    stack: encantaria
+    image: postgres:16-alpine
+    role: banco do Directus
+    replicas: 1/1
+    state: running (healthy)
+    client: null
+    criticality: alta
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-04
+
+  - name: novacena-motion
+    stack: null
+    image: novacena-motion:auto-8bf8c5c
+    role: geracao programatica de video
+    replicas: 1/1
+    state: running (healthy)
+    uptime: ~4 semanas
+    appDir: /root/novacena-motion
+    client: novacena
+    likelyRepository: novacena-motion
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      A tag da imagem (auto-8bf8c5c) indica build automatico a partir de commit
+      — provavelmente o workflow "Deploy VPS" do repositorio. Ha um cron horario
+      que executa `npm run cleanup:transient` neste container.
+
+  - name: novacena-editais_web
+    stack: novacena-editais
+    image: novacena-editais:v3
+    role: aplicacao web
+    replicas: 1/1
+    state: running (healthy)
+    uptime: ~2 semanas
+    memoryLimit: 768MiB
+    appDir: /opt/novacena-editais
+    client: novacena
+    likelyRepository: null
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: >-
+      SEM REPOSITORIO CONHECIDO. Imagem propria (v3), em producao, e nenhum
+      repositorio do GitHub corresponde. Ou o codigo esta em outro lugar, ou
+      nao esta versionado. Prioridade de investigacao.
+
+  - name: novacena-editais_worker
+    stack: novacena-editais
+    image: novacena-editais-tools:v2
+    role: worker
+    replicas: 1/1
+    state: running
+    memoryLimit: 512MiB
+    memoryUsePct: 23
+    client: novacena
+    likelyRepository: null
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+
+  - name: novacena-propostas
+    stack: null
+    image: nginx:1.27-alpine
+    role: site estatico
+    replicas: 1/1
+    state: running
+    uptime: ~5 semanas
+    appDir: /opt/novacena-propostas
+    client: novacena
+    likelyRepository: null
+    criticality: baixa
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: SEM REPOSITORIO CONHECIDO. Mesmo caso de novacena-editais.
+
+  - name: novacena_music_backend
+    stack: novacena_music
+    image: novacena-music-backend:local
+    role: backend
+    replicas: 1/1
+    state: running
+    uptime: ~8 semanas
+    client: novacena
+    likelyRepository: novacena-music
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: DUPLICADO — ver achado V-005.
+
+  - name: novacena_music_frontend
+    stack: novacena_music
+    image: novacena-music-frontend:local
+    role: frontend
+    replicas: 1/1
+    state: running
+    client: novacena
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: DUPLICADO — ver achado V-005.
+
+  - name: novacena_music_nginx
+    stack: novacena_music
+    image: nginx:1.27-alpine
+    role: proxy do stack novacena-music
+    replicas: 1/1
+    state: running
+    client: novacena
+    criticality: media
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    notes: DUPLICADO — ver achado V-005.
+
+# -----------------------------------------------------------------------------
+# HOST (fora do Docker)
+# -----------------------------------------------------------------------------
+hostServices:
+  - name: docker
+    state: active
+    criticality: critica
+  - name: containerd
+    state: active
+    criticality: critica
+  - name: ssh
+    state: active
+    criticality: critica
+  - name: cron
+    state: active
+    criticality: alta
+    note: Executa poda diaria de imagens e containers. Ver achado V-006.
+  - name: unattended-upgrades
+    state: active
+    criticality: media
+    note: >-
+      Ativo, mas o host esta ha 193 dias sem reiniciar. Atualizacao de kernel
+      so vale apos reboot.
+  - name: nginx
+    state: FAILED
+    since: 2026-06-20
+    criticality: baixa
+    note: >-
+      Falho ha ~1,5 mes, desabilitado. Sem impacto: o Traefik atende 80/443.
+      Residuo de topologia anterior. Ver achado V-010.
+  - name: pm2
+    state: instalado sem processos
+    criticality: nenhuma
+    note: >-
+      Nada gerenciado por PM2. Relevante: gaveta-monitor (Node) NAO esta
+      rodando aqui.

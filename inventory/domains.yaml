@@ -1,0 +1,105 @@
+# =============================================================================
+# inventory/domains.yaml — dominios e DNS
+# =============================================================================
+# Inventario MUITO INCOMPLETO, e isso e um achado, nao um descuido.
+#
+# O mapeamento dominio -> cliente e a maior lacuna do catalogo. Ele exige a API
+# da Cloudflare (zonas e registros DNS), para a qual nao ha token, ou a leitura
+# da configuracao do Traefik na VPS.
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-04
+  status: PARCIAL
+  verificationStatus: unknown
+  blocker: >-
+    Sem token da Cloudflare nao e possivel listar zonas nem registros DNS.
+    Um token SOMENTE LEITURA (Zone:Read + DNS:Read) resolve, e nao permite
+    alterar nada.
+  impact: >-
+    Sem esse mapeamento nao se sabe qual dominio aponta para qual servico da
+    VPS, nem qual cliente e afetado se um servico cair. E o que transforma um
+    incidente em adivinhacao.
+
+# -----------------------------------------------------------------------------
+domains:
+  - domain: automatizadoria.cloud
+    client: automatizadoria
+    purpose: unknown
+    registrar: unknown
+    dnsProvider: unknown
+    pointsTo: unknown
+    tlsProvider: unknown
+    verificationStatus: discovered
+    lastVerifiedAt: 2026-08-04
+    source: >-
+      Observado como aba aberta no navegador durante o diagnostico de acessos
+      em 2026-08-04, com titulo "Automatizador IA". Indicio, nao confirmacao:
+      nao foi checado contra registrador, DNS, Cloudflare nem Traefik.
+    action: Confirmar propriedade e para onde aponta.
+
+# -----------------------------------------------------------------------------
+# O que se sabe sobre a entrada de trafego, sem conhecer os dominios.
+# -----------------------------------------------------------------------------
+ingress:
+  reverseProxy: traefik
+  version: v3.4.0
+  location: VPS (nvvps), stack traefik
+  publicPorts: [80, 443]
+  tlsCertificates:
+    storage: volume Docker `volume_swarm_certificates`
+    domains: unknown
+    expiry: unknown
+    note: >-
+      Nao existe /etc/letsencrypt no host. Os certificados sao gerenciados pelo
+      Traefik dentro do volume. Ler dominios e validade exigiria inspecionar o
+      volume ou o container — bloqueado por conter chaves privadas.
+  cloudflareTunnel: false
+  cloudflareTunnelNote: >-
+    Nao ha cloudflared instalado no host. O Traefik recebe trafego diretamente
+    nas portas 80 e 443. Se a Cloudflare estiver no caminho, e como proxy de
+    DNS, nao como tunel.
+  verificationStatus: verified
+  lastVerifiedAt: 2026-08-04
+
+# -----------------------------------------------------------------------------
+# Servicos que necessariamente tem dominio, mas cujo dominio e desconhecido.
+# Cada linha aqui e uma pergunta em aberto.
+# -----------------------------------------------------------------------------
+servicesNeedingDomainMapping:
+  - { service: automatizadoria-site, client: automatizadoria, domain: unknown }
+  - { service: n8n_n8n_editor, client: automatizadoria, domain: unknown }
+  - { service: n8n_n8n_webhook, client: automatizadoria, domain: unknown,
+      note: "Webhooks tem URL publica. Nunca registrar aqui a URL com token." }
+  - { service: chatwoot_chatwoot_app, client: automatizadoria, domain: unknown }
+  - { service: evolution_evolution_api, client: automatizadoria, domain: unknown }
+  - { service: typebot_typebot_builder, client: automatizadoria, domain: unknown }
+  - { service: typebot_typebot_viewer, client: automatizadoria, domain: unknown }
+  - { service: nocodb_nocodb, client: automatizadoria, domain: unknown }
+  - { service: minio_minio, client: automatizadoria, domain: unknown }
+  - { service: portainer_portainer, client: automatizadoria, domain: unknown }
+  - { service: encantaria_directus, client: null, domain: unknown }
+  - { service: novacena-motion, client: novacena, domain: unknown }
+  - { service: novacena-editais_web, client: novacena, domain: unknown }
+  - { service: novacena-propostas, client: novacena, domain: unknown }
+  - { service: novacena_music_nginx, client: novacena, domain: unknown }
+
+# -----------------------------------------------------------------------------
+# Repositorios com artefatos de deploy na borda: cada um sugere um dominio.
+# -----------------------------------------------------------------------------
+staticSitesLikelyOnEdge:
+  - { repository: cassio-ferraz, evidence: "_headers, .assetsignore", platform: cloudflare, domain: unknown }
+  - { repository: garbo, evidence: "_redirects, sitemap.xml", platform: cloudflare, domain: unknown }
+  - { repository: 4cadeiras, evidence: "_headers, _redirects, sitemap.xml", platform: cloudflare, domain: unknown }
+  - { repository: gabriel-gadelha-casamentos, evidence: "_headers, sitemap.xml", platform: cloudflare, domain: unknown }
+  - { repository: chay-portal, evidence: "wrangler.toml, functions/", platform: cloudflare-workers, domain: unknown }
+  - { repository: vivere, evidence: "open-next.config.ts", platform: cloudflare-workers, domain: unknown }
+  - { repository: malta-sertaneja, evidence: "site estatico", platform: unknown, domain: unknown }
+
+# -----------------------------------------------------------------------------
+nextSteps:
+  - Emitir token somente leitura da Cloudflare (Zone:Read, DNS:Read)
+  - Listar zonas e registros, e cruzar com servicos da VPS e repositorios
+  - Ler as rotas do Traefik para mapear dominio -> servico (aprovacao Nivel 1)
+  - Registrar validade dos certificados e criar alerta de expiracao
+  - Atribuir cada dominio a um cliente do catalogo
