@@ -43,8 +43,21 @@ export function createRateLimiter(
 }
 
 export interface Deduplicator {
-  /** true = novo (processar), false = já visto (ignorar) */
-  isNew(messageId: string): boolean;
+  /**
+   * Consulta SEM marcar. Separado de `markSeen` de propósito.
+   *
+   * A versão anterior tinha um único `isNew()` que consultava e marcava no
+   * mesmo passo, e era chamado ANTES do rate limit. Consequência: uma mensagem
+   * barrada por rate limit já saía marcada como vista, e a retentativa
+   * legítima — inclusive a reentrega automática da Evolution após timeout —
+   * era descartada como duplicata. O comando se perdia em silêncio: o usuário
+   * recebia "aguarde", esperava, reenviava, e não obtinha resposta nenhuma.
+   *
+   * Com a separação, só se marca o que foi de fato processado.
+   */
+  hasSeen(messageId: string): boolean;
+  /** Marca como processado. Chamar apenas depois de passar por todos os portões. */
+  markSeen(messageId: string): void;
 }
 
 export function createDeduplicator(capacity = 2000): Deduplicator {
@@ -52,15 +65,16 @@ export function createDeduplicator(capacity = 2000): Deduplicator {
   const order: string[] = [];
 
   return {
-    isNew(messageId: string): boolean {
-      if (seen.has(messageId)) return false;
+    hasSeen: (messageId) => seen.has(messageId),
+
+    markSeen(messageId: string): void {
+      if (seen.has(messageId)) return;
       seen.add(messageId);
       order.push(messageId);
       if (order.length > capacity) {
         const oldest = order.shift();
         if (oldest !== undefined) seen.delete(oldest);
       }
-      return true;
     },
   };
 }

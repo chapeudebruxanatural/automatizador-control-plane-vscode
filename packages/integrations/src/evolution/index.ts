@@ -77,19 +77,26 @@ export function createWhatsAppModule(config: WhatsAppModuleConfig): WhatsAppModu
         return { ok: false, correlationId, text: '' };
       }
 
-      if (!deduplicator.isNew(message.messageId)) {
+      // Consulta sem marcar: uma mensagem que não chegar a ser processada
+      // precisa continuar elegível para retentativa. Ver Deduplicator.
+      if (deduplicator.hasSeen(message.messageId)) {
         config.logger.info('whatsapp: mensagem duplicada ignorada', { maskedFrom, correlationId });
         return { ok: false, correlationId, text: '' };
       }
 
       if (!rateLimiter.check(message.from)) {
         config.logger.warn('whatsapp: rate limit excedido', { maskedFrom, correlationId });
+        // Sem marcar: quando a janela abrir, a reentrega deve ser aceita.
         return {
           ok: false,
           correlationId,
           text: 'Muitas mensagens em pouco tempo. Aguarde um momento.',
         };
       }
+
+      // Passou por todos os portões — a partir daqui a mensagem é processada
+      // de fato, então marcar como vista é correto e necessário.
+      deduplicator.markSeen(message.messageId);
 
       const [command, ...args] = message.body.trim().toLowerCase().split(/\s+/);
 

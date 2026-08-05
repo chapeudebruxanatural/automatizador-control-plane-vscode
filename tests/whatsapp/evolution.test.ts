@@ -45,19 +45,49 @@ function buildExecutor(engaged = true) {
 
 // -----------------------------------------------------------------------------
 describe('maskPhone', () => {
-  it('mascara mantendo os ultimos 4 digitos visiveis', () => {
+  it('preserva apenas prefixo de pais e 2 digitos finais', () => {
     const masked = maskPhone('5511987654321');
-    assert.match(masked, /4321$/);
-    assert.doesNotMatch(masked, /987654321/);
+    assert.equal(masked, '+55*********21');
   });
 
   it('nunca revela o numero completo', () => {
-    const masked = maskPhone('+55 11 98765-4321');
-    assert.doesNotMatch(masked, /987654321/);
+    assert.doesNotMatch(maskPhone('+55 11 98765-4321'), /987654321/);
   });
 
-  it('lida com entrada curta sem lançar', () => {
-    assert.equal(maskPhone('123'), '****');
+  it('INVARIANTE: revela sempre menos digitos do que a entrada tem', () => {
+    // Esta é a propriedade que a versão anterior violava. Para 6 dígitos ela
+    // produzia "+1234****3456" — mais longo que a entrada e revelando tudo.
+    // Testar comprimento a comprimento é o que teria pego aquele defeito.
+    for (let len = 1; len <= 15; len += 1) {
+      const number = '5'.repeat(len);
+      const masked = maskPhone(number);
+      const revealed = masked.replace(/\D/g, '').length;
+      assert.ok(
+        revealed < number.length,
+        `comprimento ${len}: revelou ${revealed} de ${number.length} digitos em "${masked}"`,
+      );
+    }
+  });
+
+  it('INVARIANTE: nunca revela mais que 4 digitos, qualquer que seja a entrada', () => {
+    for (let len = 1; len <= 15; len += 1) {
+      const masked = maskPhone('9'.repeat(len));
+      assert.ok(
+        masked.replace(/\D/g, '').length <= 4,
+        `comprimento ${len} revelou demais: "${masked}"`,
+      );
+    }
+  });
+
+  it('oculta tudo quando nao ha folga para esconder nada no meio', () => {
+    // Melhor perder o diagnóstico que vazar o número.
+    assert.equal(maskPhone('123'), '***');
+    assert.equal(maskPhone('1234'), '****');
+  });
+
+  it('lida com entrada sem digitos', () => {
+    assert.equal(maskPhone('abc'), '****');
+    assert.equal(maskPhone(''), '****');
   });
 });
 
@@ -125,19 +155,32 @@ describe('rate limiter', () => {
 });
 
 describe('deduplicador', () => {
-  it('processa a primeira vez e ignora repeticoes', () => {
+  it('consulta NAO marca — so markSeen marca', () => {
+    // A separação existe porque a versão anterior marcava na consulta, o que
+    // consumia mensagens que o rate limit ainda ia rejeitar.
     const dedup = createDeduplicator();
-    assert.equal(dedup.isNew('msg-1'), true);
-    assert.equal(dedup.isNew('msg-1'), false);
-    assert.equal(dedup.isNew('msg-2'), true);
+    assert.equal(dedup.hasSeen('msg-1'), false);
+    assert.equal(dedup.hasSeen('msg-1'), false, 'consultar nao pode marcar');
+
+    dedup.markSeen('msg-1');
+    assert.equal(dedup.hasSeen('msg-1'), true);
+  });
+
+  it('markSeen e idempotente', () => {
+    const dedup = createDeduplicator();
+    dedup.markSeen('x');
+    dedup.markSeen('x');
+    assert.equal(dedup.hasSeen('x'), true);
   });
 
   it('descarta o mais antigo ao exceder a capacidade', () => {
     const dedup = createDeduplicator(2);
-    assert.equal(dedup.isNew('a'), true);
-    assert.equal(dedup.isNew('b'), true);
-    assert.equal(dedup.isNew('c'), true); // expulsa 'a'
-    assert.equal(dedup.isNew('a'), true); // 'a' esquecido, processa de novo
+    dedup.markSeen('a');
+    dedup.markSeen('b');
+    dedup.markSeen('c'); // expulsa 'a'
+    assert.equal(dedup.hasSeen('a'), false, "'a' deveria ter sido esquecido");
+    assert.equal(dedup.hasSeen('b'), true);
+    assert.equal(dedup.hasSeen('c'), true);
   });
 });
 
@@ -350,6 +393,43 @@ describe('modulo completo — processIncoming', () => {
     assert.equal((await send('r1')).ok, true);
     assert.equal((await send('r2')).ok, true);
     assert.equal((await send('r3')).ok, false);
+  });
+
+  it('mensagem barrada por rate limit continua elegivel para retentativa', async () => {
+    // Regressão do MEDIUM-3: a versão anterior marcava o messageId como visto
+    // ANTES de checar o rate limit. A mensagem barrada saía consumida, e a
+    // reentrega — inclusive a automática da Evolution após timeout — era
+    // descartada como duplicata. O comando se perdia em silêncio.
+    const mod = createWhatsAppModule({
+      allowedNumbers: ['5511999999999'],
+      rateLimitPerMinute: 1,
+      executor: buildExecutor(),
+      logger: silentLogger,
+      githubOwner: 'dadocruz',
+    });
+
+    const send = (id: string) =>
+      mod.processIncoming(
+        { from: '5511999999999', body: 'ajuda', messageId: id, receivedAt: new Date().toISOString() },
+        id,
+      );
+
+    assert.equal((await send('rt-1')).ok, true, 'a primeira deve passar');
+
+    const blocked = await send('rt-2');
+    assert.equal(blocked.ok, false, 'a segunda deve ser barrada por rate limit');
+    assert.match(blocked.text, /Aguarde/);
+
+    // O deduplicador NÃO pode ter consumido 'rt-2'. Provamos isso indiretamente:
+    // se tivesse consumido, a reentrega cairia como duplicata (text vazio) em
+    // vez de bater no rate limit de novo (text com "Aguarde").
+    const retry = await send('rt-2');
+    assert.equal(retry.ok, false);
+    assert.match(
+      retry.text,
+      /Aguarde/,
+      'reentrega caiu como duplicata: o dedup consumiu uma mensagem que nunca foi processada',
+    );
   });
 
   it('writeActionsEnabled e sempre false no modulo', () => {

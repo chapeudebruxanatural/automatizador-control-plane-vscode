@@ -14,6 +14,7 @@ import {
   jidToDigits,
   isGroupJid,
   isBroadcastJid,
+  hasAcceptedJidDomain,
   extractText,
   REAL_PAYLOAD_VERIFIED,
 } from '../../packages/integrations/src/evolution/normalize.js';
@@ -78,6 +79,26 @@ describe('classificacao de JID', () => {
   it('reconhece broadcast e status', () => {
     assert.equal(isBroadcastJid('status@broadcast'), true);
     assert.equal(isBroadcastJid(ALLOWED_JID), false);
+  });
+
+  it('dominio e ALLOWLIST: aceita so o conhecido', () => {
+    assert.equal(hasAcceptedJidDomain('5511999999999@s.whatsapp.net'), true);
+    assert.equal(hasAcceptedJidDomain('5511999999999@c.us'), true);
+  });
+
+  it('dominio: recusa qualquer coisa nao prevista (falha fechada)', () => {
+    // Regressão do MEDIUM-2. A versão anterior usava denylist e aceitava tudo
+    // que não fosse @g.us ou @broadcast — inclusive @lid, cujo identificador
+    // NAO e um telefone e poderia colidir com um numero da allowlist.
+    for (const jid of [
+      '5511999999999@lid',
+      '5511999999999@newsletter',
+      '5511999999999@qualquercoisa',
+      '5511999999999', // sem dominio
+      '',
+    ]) {
+      assert.equal(hasAcceptedJidDomain(jid), false, `aceitou indevidamente: "${jid}"`);
+    }
   });
 });
 
@@ -174,6 +195,14 @@ describe('normalizeEvolutionWebhook — recusa', () => {
     const result = normalizeEvolutionWebhook(withoutMessageId());
     assert.equal(result.accepted, false);
     assert.equal(result.reason, 'malformed');
+  });
+
+  it('dominio nao suportado (@lid, @newsletter) no fluxo completo', () => {
+    for (const jid of ['5511999999999@lid', '5511999999999@newsletter']) {
+      const result = normalizeEvolutionWebhook(textMessage({ jid }));
+      assert.equal(result.accepted, false, `aceitou ${jid}`);
+      assert.equal(result.reason, 'unsupported_jid_domain');
+    }
   });
 
   it('entrada que nao e objeto', () => {

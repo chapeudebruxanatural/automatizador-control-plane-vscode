@@ -12,15 +12,48 @@ import type { VerificationStatus } from '../../../domain/src/verification.js';
  * Número de telefone SEMPRE mascarado fora da fronteira de rede.
  * Nunca serializado, logado ou auditado em forma completa.
  */
-export type MaskedPhone = string; // formato: "+55119****1234"
+export type MaskedPhone = string; // formato: "+55*********21"
 
+/** Dígitos de código de país preservados, para dar contexto sem identificar. */
+const COUNTRY_PREFIX_DIGITS = 2;
+/** Dígitos finais preservados, para correlacionar duas linhas de log. */
+const SUFFIX_DIGITS = 2;
+
+/**
+ * Mascara um telefone preservando o mínimo necessário para diagnóstico.
+ *
+ * Duas propriedades que a versão anterior não tinha, e que estão travadas por
+ * teste:
+ *
+ * 1. **Revela menos do que esconde, sempre.** A implementação anterior
+ *    preservava `length - 8` dígitos do início mais os 4 finais — o que, num
+ *    número brasileiro de 13 dígitos, revelava 9 e escondia 4. Com 4 dígitos
+ *    ocultos e o DDD visível, restam 10.000 possibilidades: isso identifica,
+ *    não mascara.
+ *
+ * 2. **Não falha em entrada curta.** Com 6 dígitos, `slice(0, length - 8)`
+ *    virava `slice(0, -2)` e devolvia os 4 primeiros; somados aos 4 últimos,
+ *    os conjuntos se sobrepunham e cobriam o número inteiro — a saída era
+ *    mais longa que a entrada e revelava tudo.
+ *
+ * A regra agora é aritmética simples: só preserva prefixo e sufixo se sobrar
+ * pelo menos um dígito para esconder entre eles. Não sobrando, esconde tudo.
+ */
 export function maskPhone(phone: string): MaskedPhone {
   const digits = phone.replace(/\D/g, '');
-  if (digits.length < 6) return '****';
-  const country = digits.slice(0, digits.length - 8);
-  const visible = digits.slice(-4);
-  const hiddenLength = digits.length - country.length - 4;
-  return `+${country}${'*'.repeat(Math.max(hiddenLength, 4))}${visible}`;
+  if (digits.length === 0) return '****';
+
+  const keep = COUNTRY_PREFIX_DIGITS + SUFFIX_DIGITS;
+
+  // Sem folga para ocultar nada no meio, oculta o número inteiro. Melhor
+  // perder o diagnóstico que vazar o número.
+  if (digits.length <= keep) return '*'.repeat(digits.length);
+
+  const prefix = digits.slice(0, COUNTRY_PREFIX_DIGITS);
+  const suffix = digits.slice(-SUFFIX_DIGITS);
+  const hidden = digits.length - keep;
+
+  return `+${prefix}${'*'.repeat(hidden)}${suffix}`;
 }
 
 export interface EvolutionInstanceSummary {

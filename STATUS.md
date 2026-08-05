@@ -5,8 +5,8 @@
 ## Checkpoint — Ciclo 2 (estabilização operacional)
 
 - **Branch:** `feat/operational-stabilization-v1`
-- **HEAD:** `1d87c92` (5 commits à frente de `main`, que está em `4b567d3`)
-- **Testes:** 102/102 passando · lint, typecheck e build limpos
+- **HEAD:** ver `git log` (branch à frente de `main`, que está em `4b567d3`)
+- **Testes:** 142/142 passando · lint, typecheck e build limpos · CI verde em Node 20.11.0 e 24
 - **Kill switch:** ligado (`engaged`) · **Modo de execução:** `dry-run`
 - **Integrações reais conectadas:** nenhuma. Cloudflare e n8n seguem bloqueados
   por falta de credencial; WhatsApp em homologação com `writeActionsEnabled`

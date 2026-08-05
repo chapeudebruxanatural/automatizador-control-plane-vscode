@@ -42,6 +42,7 @@ export type RejectReason =
   | 'from_self'
   | 'group_message'
   | 'broadcast_or_status'
+  | 'unsupported_jid_domain'
   | 'no_text_content'
   | 'malformed';
 
@@ -77,6 +78,30 @@ export function isGroupJid(jid: string): boolean {
 
 export function isBroadcastJid(jid: string): boolean {
   return jid.endsWith('@broadcast') || jid === 'status@broadcast';
+}
+
+/**
+ * Domínios de JID aceitos — **allowlist**, não denylist.
+ *
+ * A primeira versão rejeitava `@g.us` e `@broadcast` e aceitava todo o resto.
+ * Isso falhava aberto: `@lid`, `@newsletter`, um domínio inventado, ou um JID
+ * sem domínio nenhum passavam como se fossem telefone.
+ *
+ * O caso concreto é `@lid` (Baileys): o identificador **não é um número de
+ * telefone**, mas é numérico. Um LID cujos dígitos coincidissem com um número
+ * da allowlist seria aceito como aquele operador — a allowlist deixaria de ser
+ * garantia de identidade.
+ *
+ * O resto do projeto já insiste nesse princípio (ver
+ * `docs/security/vps-operator-model.md`: "lista branca falha fechada, lista
+ * negra falha aberta"). Aqui ele agora vale também.
+ */
+const ACCEPTED_JID_DOMAINS = new Set(['s.whatsapp.net', 'c.us']);
+
+export function hasAcceptedJidDomain(jid: string): boolean {
+  const at = jid.lastIndexOf('@');
+  if (at === -1) return false; // sem domínio não é JID válido
+  return ACCEPTED_JID_DOMAINS.has(jid.slice(at + 1));
 }
 
 /**
@@ -163,6 +188,16 @@ export function normalizeEvolutionWebhook(raw: unknown): NormalizedIncoming {
     return {
       accepted: false,
       reason: 'broadcast_or_status',
+      ...(instance === undefined ? {} : { instance }),
+    };
+  }
+
+  // 4. Domínio conhecido — allowlist. Tudo que não for conversa individual
+  //    reconhecida é recusado, inclusive formatos que ainda não existem.
+  if (!hasAcceptedJidDomain(remoteJid)) {
+    return {
+      accepted: false,
+      reason: 'unsupported_jid_domain',
       ...(instance === undefined ? {} : { instance }),
     };
   }

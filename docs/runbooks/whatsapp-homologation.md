@@ -138,6 +138,7 @@ reenfileirar indefinidamente algo que nunca será aceito.
 | `broadcast_or_status` | status/stories | não é conversa dirigida |
 | `no_text_content` | mídia sem texto, reação, edição | não há comando a interpretar |
 | `not_a_message_event` | `connection.update`, `messages.update`, etc. | não carrega mensagem nova |
+| `unsupported_jid_domain` | domínio fora de `@s.whatsapp.net`/`@c.us` (ex.: `@lid`, `@newsletter`) | allowlist de domínio: o identificador pode não ser um telefone e colidir com a allowlist de números |
 | `malformed` | estrutura inesperada, ou mensagem sem `id` | sem `id` estável não há deduplicação possível |
 
 ## Se algo der errado em homologação
