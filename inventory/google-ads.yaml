@@ -52,6 +52,37 @@ structure:
     email: google-ads-automation@automatizador-ia-ads.iam.gserviceaccount.com
     verificationStatus: owner_reported
     credentialsRegistered: false
+    keyId: 6ec937378864e4bcbfdc9f41afd0ed7ba233ddd8
+    oauthClientId: "104380424995543795724"
+    createdAt: 2026-07-28
+    keyIdNote: >-
+      ID da chave e client ID OAuth NAO sao segredos — identificam a chave, nao
+      autorizam nada. O material privado (o JSON) permanece fora deste repo.
+
+liveAccess:
+  authMode: unavailable
+  credentialReference: null
+  developerTokenConfigured: false
+  loginCustomerIdConfigured: true
+  liveReadVerified: false
+  reason: >-
+    O projeto google-ads-automation e o diretorio .secrets/google-ads vivem no
+    notebook do dono, nao nesta maquina. Confirmado por busca: ~/Documents/Codex
+    existe mas contem apenas pastas de sessao datadas.
+  runbook: docs/runbooks/google-ads-live-operations.md
+
+credentialIncident:
+  date: 2026-08-05
+  severity: alta
+  summary: >-
+    Um developer token do Google Ads foi colado em conversa de chat. Conversas
+    sao registradas, resumidas e persistidas.
+  valueStored: false
+  valueStoredNote: >-
+    O valor NAO foi gravado em nenhum arquivo deste repositorio. Varredura de
+    segredos cobre 150 arquivos com 0 achados.
+  action: ROTACIONAR o developer token na Central de API do Google Ads
+  status: pendente
     note: >-
       Apenas o identificador. Nenhuma chave, token ou developer token e
       registrado neste repositorio.
