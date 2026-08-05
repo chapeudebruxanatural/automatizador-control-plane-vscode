@@ -48,3 +48,84 @@ campaigns:
       - CPV medio
 
 changesMade: 0
+
+# =============================================================================
+# BUTECO SERTANEJO — leitura ao vivo 2026-08-05
+# =============================================================================
+butecoSertanejo:
+  source: live_api
+  observedAt: 2026-08-05
+  customerId: "2656966896"
+  apiVersion: v21
+  changesMade: 0
+  verificationStatus: verified
+
+  campaignId: "24105770570"
+  campaignIdNote: "Localizado por correspondencia EXATA do nome."
+  name: "DG | Buteco Sertanejo | Shorts | Spotify"
+  status: ENABLED
+  statusNote: "Unica campanha ENABLED da conta inteira."
+  primaryStatus: NOT_ELIGIBLE
+  primaryStatusReasons: [BIDDING_STRATEGY_LEARNING, HAS_ADS_DISAPPROVED]
+  startDate: "2026-08-05"
+  endDate: "2026-08-11"
+  budgetResource: "customers/2656966896/campaignBudgets/15765671162"
+
+  delivery:
+    impressions: 0
+    clicks: 0
+    costBRL: 0.00
+    note: >-
+      Entrega ZERO. NAO registrar como falha de segmentacao, publico ou
+      orcamento: a campanha nunca teve oportunidade de veicular porque seu
+      unico anuncio esta bloqueado.
+
+  disapprovedAd:
+    adGroupId: "199026733436"
+    adId: "819900433355"
+    adStatus: ENABLED
+    approvalStatus: DISAPPROVED
+    reviewStatus: REVIEWED
+    policyTopic: COPYRIGHTED_CONTENT
+    severity: FULLY_LIMITED
+    severityNote: "Bloqueio TOTAL, nao veiculacao restrita."
+
+  historicalConfig:
+    source: historical_manual
+    preserved: true
+    type: Demand Gen
+    goal: cliques
+    biddingStrategy: Maximizar cliques
+    totalBudgetBRL: 300.00
+    location: Brasil
+    language: Portugues
+    devices: [smartphones]
+    channels: ["YouTube Shorts"]
+    channelsExcluded: [in-stream, in-feed, Discover, Gmail, Display, Maps]
+    adGroup: "Sertanejo | Shorts | Brasil"
+    audience: "Sertanejo | Spotify | Alta Intencao"
+    customSegment: "Intencao | Playlist Sertanejo"
+    optimizedTargeting: desativada
+    ageRanges: ["18-24", "25-34", "35-44", "45-54"]
+    segmentTermsCount: 22
+    creative:
+      name: "Short | Buteco Sertanejo | Spotify"
+      video: "https://youtube.com/shorts/TcDuuODhFIE"
+      finalUrl: "https://open.spotify.com/playlist/3OA6L1iAtiq2hZwdwcPC6u"
+      businessName: "Buteco Sertanejo"
+      cta: "Saiba mais"
+    note: "Configuracao boa. O bloqueio NAO e consequencia dela."
+
+  measurement:
+    spotifyTagInstalled: false
+    allowedMetrics: [custo, impressoes, cliques, ctr, cpc, visualizacoes, taxa_visualizacao, cpv, alcance, frequencia]
+    forbiddenClaims: >-
+      NUNCA reportar cliques como streams, ouvintes, seguidores ou salvamentos.
+      Um clique prova apenas direcionamento ao Spotify.
+
+  actionsTaken: nenhuma
+  actionsTakenNote: >-
+    Nao contestado, nao editado, video nao substituido, anuncio nao duplicado,
+    nenhum formulario enviado ao Google.
+
+  detail: docs/operations/gaveta-buteco-copyright-status.md
