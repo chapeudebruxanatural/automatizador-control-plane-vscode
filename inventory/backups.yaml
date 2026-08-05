@@ -1,0 +1,208 @@
+# =============================================================================
+# inventory/backups.yaml — cobertura de backup
+# =============================================================================
+# Origem: leitura da VPS em 2026-08-05. Nenhum arquivo de segredo foi aberto.
+# Analise: docs/discovery/vps-risk-review.md
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-05
+  verificationStatus: verified
+  correction: >-
+    Corrige o achado V-004 do Ciclo 1 ("sem backup verificado"). Existe backup
+    externo automatizado. O achado estava errado por ter olhado apenas
+    /root/backups e /var/backups — a rotina real usa systemd timer e destino S3.
+
+# -----------------------------------------------------------------------------
+existingJobs:
+  - id: novacena-motion-s3
+    name: novacena-backup
+    type: systemd-timer
+    unit: novacena-backup.timer
+    service: novacena-backup.service
+    script: /usr/local/bin/novacena-backup.sh
+    schedule: "diario 04:15 (RandomizedDelaySec=300, Persistent=true)"
+    lastRun: 2026-08-04T04:19:37-03:00
+    lastResult: success
+    destination:
+      type: s3
+      provider: aws
+      region: us-east-1
+      bucket: remotionlambda-useast1-zj52zr8mhy
+      prefix: backups/novacena
+      external: true
+      note: >-
+        Reaproveita o bucket do Remotion Lambda, onde o usuario IAM ja tem
+        permissao. Funciona, mas mistura backup com artefato de deploy no mesmo
+        bucket — vale separar quando houver oportunidade.
+    method:
+      data: "tar -czf de /var/www/novacena-motion/data, snapshot diario datado"
+      uploads: "aws s3 sync de /var/www/novacena-motion/public/uploads (incremental)"
+      tooling: "docker run --rm amazon/aws-cli (nada instalado no host)"
+    retentionDays: 30
+    retentionVerified: true
+    retentionEvidence: "log mostra remocao de snapshots de 2026-07-03 e 2026-07-04"
+    credentialsLocation: /root/.novacena-backup.env
+    credentialsMode: "600 (nao foi aberto)"
+    lock: /var/run/novacena-backup.lock
+    log: /var/log/novacena-backup.log
+    restoreTested: false
+    restoreTestedNote: >-
+      Nao ha evidencia de restauracao ja testada. Backup nao restaurado e
+      hipotese, nao garantia.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+    concerns:
+      - severity: critico
+        id: R-002
+        summary: >-
+          A origem do backup e um caminho no host, nao os volumes Docker.
+          /var/www/novacena-motion/public/uploads tem 791 MB; o volume
+          novacena_uploads tem 2,3 GB. O container reporta 2 volumes locais.
+          /var/www/novacena-motion e a copia de trabalho do Git, sobre a qual o
+          autodeploy roda `git reset --hard`.
+        pendingCheck: >-
+          Confirmar as montagens reais do servico. Exige `docker service
+          inspect`, bloqueado pelo guarda. Aprovacao Nivel 1.
+
+# -----------------------------------------------------------------------------
+# COBERTURA — o que esta protegido e o que nao esta
+# -----------------------------------------------------------------------------
+coverage:
+  covered:
+    - resource: novacena-motion data/
+      size: ~352KB (tarball 28KB)
+      job: novacena-motion-s3
+      caveat: "origem possivelmente incorreta — ver R-002"
+    - resource: novacena-motion public/uploads/
+      size: 791MB no host
+      job: novacena-motion-s3
+      caveat: "volume vivo tem 2,3 GB — ver R-002"
+
+  notCovered:
+    - resource: postgres_data (PostgreSQL 14 compartilhado)
+      size: 317MB
+      criticality: critica
+      contains: >-
+        Provavelmente workflows e credenciais do n8n, dados do Chatwoot,
+        Typebot e Evolution API. E o item mais critico da lista.
+      method: pg_dump por base, com --format=custom
+    - resource: pgvector (PostgreSQL 16 + pgvector)
+      size: 81MB
+      criticality: alta
+      method: pg_dump
+    - resource: encantaria_database (PostgreSQL 16)
+      size: incluso em overlay
+      criticality: alta
+      method: pg_dump
+    - resource: minio_data
+      size: 13MB
+      criticality: alta
+      method: mc mirror ou aws s3 sync para destino externo
+    - resource: chatwoot_public / chatwoot_storage / chatwoot_mailers
+      size: ~52MB
+      criticality: alta
+      method: tar do volume + dump do banco
+    - resource: evolution_instances
+      size: 12KB
+      criticality: alta
+      contains: sessoes de WhatsApp conectadas
+      method: tar do volume com servico em quiesce, ou snapshot consistente
+    - resource: n8n_redis
+      size: 63MB
+      criticality: media
+      note: fila; perda causa reexecucao, nao perda de definicao
+      method: opcional
+    - resource: nocodb_data
+      size: 8KB
+      criticality: media
+      method: tar do volume
+    - resource: novacena_uploads (volume vivo)
+      size: 2.3GB
+      criticality: alta
+      note: "possivelmente NAO coberto — ver R-002"
+      method: aws s3 sync a partir do volume
+    - resource: novacena-music_novacena_music_data
+      size: 766MB
+      criticality: media
+      method: tar do volume
+    - resource: manifestos de stack (/root/*.yaml)
+      size: ~60KB
+      criticality: alta
+      note: topologia dos 13 stacks, fora de versionamento
+      method: copia sanitizada versionada em Git
+    - resource: /usr/local/bin/novacena-*.sh
+      criticality: media
+      note: scripts de backup e autodeploy, fora de versionamento
+      method: copia sanitizada versionada em Git
+    - resource: volume_swarm_certificates
+      size: 184KB
+      criticality: media
+      note: >-
+        Contem chaves privadas TLS. Backup APENAS cifrado, ou nenhum — os
+        certificados sao reemitidos pelo Traefik automaticamente.
+      method: preferir reemissao a backup
+
+summary:
+  totalLiveDataApprox: ~3.7GB
+  stacksTotal: 13
+  stacksCovered: 1
+  coveragePercent: ~8
+  externalDestinationExists: true
+  restoreEverTested: false
+
+# -----------------------------------------------------------------------------
+# DESTINOS EXTERNOS — o que ja existe
+# -----------------------------------------------------------------------------
+availableDestinations:
+  - id: aws-s3-remotion
+    type: s3
+    status: EM USO
+    external: true
+    credentialsOn: /root/.novacena-backup.env
+    authorized: true
+    authorizedNote: >-
+      Ja em uso produtivo pelo proprio dono desde antes deste projeto. Estender
+      a cobertura para este mesmo destino NAO introduz servico novo nem novo
+      terceiro — e o caminho de menor atrito e menor risco de autorizacao.
+    verificationStatus: verified
+
+  - id: cloudflare-r2
+    type: s3-compativel
+    status: nao verificado
+    external: true
+    authorized: unknown
+    note: >-
+      A conta Cloudflare existe. R2 seria destino natural e barato, mas exige
+      token e autorizacao. Verificavel na Fase 5 quando houver credencial.
+
+  - id: hostinger-backup
+    type: snapshot do provedor
+    status: nao verificado
+    external: true
+    authorized: unknown
+    note: >-
+      Planos da Hostinger costumam incluir snapshot semanal. Nao verificavel por
+      SSH — so pelo painel. PERGUNTAR AO DONO.
+
+  - id: minio-local
+    type: s3-compativel
+    status: existe, mas INADEQUADO
+    external: false
+    authorized: n/a
+    note: >-
+      Roda na propria VPS. Nao serve como destino: nao protege contra perda do
+      host, que e o cenario principal.
+
+notAvailable:
+  tooling:
+    - rclone: ausente
+    - restic: ausente
+    - borg: ausente
+    - duplicity: ausente
+    - aws-cli-no-host: ausente (usado via docker run)
+    - pg_dump-no-host: ausente (disponivel dentro dos containers postgres)
+  mounts:
+    externalMountsFound: false
+    note: "Nenhuma montagem de rede, NAS ou disco adicional."

@@ -1,0 +1,156 @@
+# =============================================================================
+# inventory/retention-jobs.yaml — rotinas automaticas de limpeza e deploy
+# =============================================================================
+# Origem: leitura da VPS em 2026-08-05. NENHUMA rotina foi alterada.
+# Analise: docs/operations/docker-retention-policy.md
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-05
+  verificationStatus: verified
+  warning: >-
+    Existem DUAS configuracoes de poda de imagem, em lugares diferentes, que se
+    ignoram. Qualquer correcao precisa tratar as duas — mudar so uma e achar
+    que resolveu e o erro mais provavel aqui.
+
+# -----------------------------------------------------------------------------
+pruneJobs:
+  - id: crontab-image-prune
+    source: "crontab -l (root)"
+    schedule: "30 3 * * *"
+    command: "docker image prune -af"
+    user: root
+    log: /var/log/novacena-docker-prune.log
+    destructive: true
+    filter: nenhum
+    severity: alta
+    risk: >-
+      `-a` remove imagens TAGUEADAS sem container ativo, nao apenas dangling.
+      No dia de um deploy, a imagem anterior deixa de estar em uso e e removida
+      na primeira janela seguinte — eliminando o alvo do rollback do Swarm.
+    verificationStatus: verified
+
+  - id: crond-image-prune
+    source: /etc/cron.d/docker-image-prune
+    schedule: "23 0 * * *"
+    command: 'docker image prune -af --filter "until=24h"'
+    user: root
+    log: /dev/null
+    destructive: true
+    filter: "until=24h"
+    severity: media
+    risk: >-
+      Menos agressiva que a anterior por ter janela de 24h, mas ainda usa `-a`.
+      Escreve em /dev/null: nao ha registro do que foi removido.
+    verificationStatus: verified
+
+  - id: crontab-container-prune
+    source: "crontab -l (root)"
+    schedule: "45 3 * * *"
+    command: "docker container prune -f"
+    user: root
+    destructive: true
+    severity: baixa
+    risk: >-
+      Remove containers parados. Baixo impacto no Swarm, que recria tarefas.
+      Remove tambem o historico de containers que falharam — util para
+      diagnostico post-mortem.
+    verificationStatus: verified
+
+  - id: crontab-builder-prune
+    source: "crontab -l (root)"
+    schedule: "0 4 * * *"
+    command: "docker builder prune -af"
+    user: root
+    destructive: true
+    severity: baixa
+    risk: >-
+      Remove cache de build. Consequencia: builds do autodeploy ficam mais
+      lentos. Sem risco de perda de dado.
+    verificationStatus: verified
+
+  - id: crontab-apt-clean
+    source: "crontab -l (root)"
+    schedule: "15 4 * * *"
+    command: "apt-get clean"
+    user: root
+    destructive: false
+    severity: nenhuma
+    verificationStatus: verified
+
+observedEffectiveness:
+  log: /var/log/novacena-docker-prune.log
+  lastEntries: "Total reclaimed space: 0B (repetido)"
+  interpretation: >-
+    Hoje a poda nao remove nada, porque todas as imagens estao em uso. Isso
+    REDUZ a urgencia, mas nao elimina o risco: o problema se materializa no
+    primeiro deploy apos a janela.
+  verificationStatus: verified
+
+# -----------------------------------------------------------------------------
+otherAutomation:
+  - id: novacena-autodeploy
+    type: systemd-timer
+    unit: novacena-autodeploy.timer
+    schedule: "OnUnitInactiveSec=2min (a cada ~2 minutos)"
+    script: /usr/local/bin/novacena-autodeploy.sh
+    log: /var/log/novacena-autodeploy.log
+    lock: /var/run/novacena-autodeploy.lock
+    destructive: parcialmente
+    behaviour: >-
+      Deploy PULL-based: a VPS puxa o Git. Havendo commit novo executa
+      `git reset --hard`, `docker build` e `docker service update`, com
+      `docker service update --rollback` automatico se o update falhar ou o
+      estado pos-update nao for Running. Se remotion/* mudou, redeploya o site
+      Remotion Lambda.
+    severity: media
+    risk: >-
+      `git reset --hard` descarta qualquer alteracao local em
+      /var/www/novacena-motion. Combinado com R-002, e o motivo de o diretorio
+      de backup ser um checkout de repositorio, e nao dados de runtime.
+      Ponto positivo: implementa rollback, que o Ciclo 1 supos inexistente.
+    verificationStatus: verified
+
+  - id: novacena-cleanup-transient
+    type: cron
+    schedule: "0 * * * *"
+    command: "docker exec <novacena-motion> npm run cleanup:transient"
+    log: /var/log/novacena-cleanup.log
+    destructive: parcialmente
+    severity: baixa
+    risk: >-
+      Limpeza interna da aplicacao, de hora em hora. O que exatamente e
+      considerado "transient" nao foi verificado — esta no codigo da aplicacao.
+    verificationStatus: discovered
+
+  - id: novacena-backup
+    type: systemd-timer
+    schedule: "diario 04:15"
+    destructive: false
+    severity: nenhuma
+    note: "Ver inventory/backups.yaml."
+    verificationStatus: verified
+
+systemTimers:
+  - { name: apt-daily.timer, purpose: atualizar indice de pacotes, destructive: false }
+  - { name: apt-daily-upgrade.timer, purpose: unattended-upgrades, destructive: false }
+  - { name: logrotate.timer, purpose: rotacao de logs, destructive: false }
+  - { name: man-db.timer, purpose: indice de manuais, destructive: false }
+  - { name: e2scrub_all.timer, purpose: verificacao de filesystem, destructive: false }
+  - { name: fstrim.timer, purpose: TRIM do disco, destructive: false }
+  - { name: systemd-tmpfiles-clean.timer, purpose: limpeza de /tmp, destructive: false }
+
+# -----------------------------------------------------------------------------
+recommendedChanges:
+  note: >-
+    NENHUMA alteracao foi feita. Substituir cron exige aprovacao de Nivel 2.
+  proposals:
+    - target: crontab-image-prune
+      change: "trocar `-af` por poda seletiva que preserva as N imagens mais recentes por servico"
+      approval: nivel-2
+    - target: crond-image-prune
+      change: "consolidar com a anterior — hoje sao duas politicas independentes"
+      approval: nivel-2
+    - target: crond-image-prune
+      change: "parar de escrever em /dev/null; registrar o que foi removido"
+      approval: nivel-2
