@@ -25,7 +25,28 @@ import { createSign } from 'node:crypto';
 import type { GoogleAdsMutateTransport } from './write-adapter.js';
 
 
-export const GOOGLE_ADS_API_VERSION = 'v21';
+/**
+ * Versão da API.
+ *
+ * Em 05/08/2026 a v21 começou a devolver `UNSUPPORTED_VERSION` de forma
+ * intermitente ("Version v21 is deprecated. Requests to this version will be
+ * blocked") — o Google faz o bloqueio em rollout, então a mesma consulta
+ * alternava entre 200 e 400. Toda a integração ficou instável.
+ *
+ * A v22 é a escolha deliberada, não a mais nova. Testadas contra a conta real,
+ * v22 a v25 respondem a todas as consultas em uso — mas a partir da **v23** os
+ * campos `campaign.start_date` e `campaign.end_date` devolvem
+ * `UNRECOGNIZED_FIELD`, e é exatamente por eles que o plano de recuperação do
+ * Cássio estende a data final da campanha.
+ *
+ * Ou seja: subir direto para a v25 não quebraria o build nem os testes — só
+ * quebraria a operação de data, em produção, silenciosamente. A v22 é o menor
+ * passo para fora da versão bloqueada que preserva o que já funciona.
+ *
+ * Para migrar adiante é preciso primeiro descobrir o substituto dos campos de
+ * data e ajustar o write-adapter.
+ */
+export const GOOGLE_ADS_API_VERSION = 'v22';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const ADS_SCOPE = 'https://www.googleapis.com/auth/adwords';

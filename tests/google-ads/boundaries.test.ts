@@ -24,6 +24,7 @@ import {
   ScopeViolationError,
   AUTHORIZED_CAMPAIGNS,
 } from '../../packages/integrations/src/google-ads/scope.js';
+import { GOOGLE_ADS_API_VERSION } from '../../packages/integrations/src/google-ads/transport.js';
 import {
   createGoogleAdsReadAdapter,
   assertReadOnlyQuery,
@@ -266,5 +267,42 @@ describe('conversoes', () => {
 
   it('lead qualificado NAO e microconversao', () => {
     assert.equal(isMicroConversion('CASSIO | LEAD QUALIFICADO | FORM'), false);
+  });
+});
+
+// -----------------------------------------------------------------------------
+/**
+ * Versao da API.
+ *
+ * Existe porque isso ja quebrou em producao: em 05/08/2026 o Google comecou a
+ * bloquear a v21 em rollout, e a integracao inteira passou a falhar de forma
+ * intermitente sem que nada no repositorio tivesse mudado. Lint, typecheck,
+ * teste e build seguiam verdes.
+ *
+ * Estes testes nao alcancam a rede — nao dizem se a versao continua ativa no
+ * Google. O que eles travam sao as duas decisoes que a escolha da versao
+ * carrega, para que trocar o numero exija ler o motivo.
+ */
+describe('versao da API', () => {
+  it('nao usa versao que o Google ja bloqueia', () => {
+    const BLOQUEADAS = ['v21'];
+    assert.ok(
+      !BLOQUEADAS.includes(GOOGLE_ADS_API_VERSION),
+      `${GOOGLE_ADS_API_VERSION} devolve UNSUPPORTED_VERSION. Suba a versao.`,
+    );
+  });
+
+  it('nao passa da v22 sem resolver os campos de data', () => {
+    // A partir da v23, campaign.start_date e campaign.end_date devolvem
+    // UNRECOGNIZED_FIELD. O write-adapter estende a data final da campanha do
+    // Cassio por esses campos: subir a versao sem substitui-los quebraria a
+    // operacao em producao, em silencio, com o build verde.
+    const numero = Number(GOOGLE_ADS_API_VERSION.replace('v', ''));
+    assert.ok(Number.isFinite(numero), 'versao deve ser vXX');
+    assert.ok(
+      numero <= 22,
+      `v${numero} removeu campaign.start_date/end_date. Ajuste o write-adapter ` +
+        'antes de subir, e atualize este teste junto.',
+    );
   });
 });

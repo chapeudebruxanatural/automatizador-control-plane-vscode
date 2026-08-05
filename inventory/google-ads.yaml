@@ -95,7 +95,26 @@ liveAccess:
   writeExecuted: true
   writeExecutedAt: 2026-08-05
   liveReadVerifiedAt: 2026-08-05
+  # Versao usada nas leituras e escritas de 05/08. Fica registrada como fato
+  # historico: foi essa a versao que respondeu naquelas chamadas.
   apiVersion: v21
+  # Versao em uso pelo codigo hoje. Divergem de proposito.
+  currentApiVersion: v22
+  apiVersionChangedAt: 2026-08-05
+  apiVersionChangeReason: >-
+    No fim de 05/08 a v21 passou a devolver UNSUPPORTED_VERSION de forma
+    intermitente ("Version v21 is deprecated. Requests to this version will be
+    blocked") — o bloqueio do Google e progressivo, entao a mesma consulta
+    alternava entre 200 e 400 e o monitor quebrou. Testadas contra a conta real,
+    v22 a v25 respondem a todas as consultas em uso; a v26 nao existe (404).
+    Fixado em v22 e nao na mais nova porque a partir da v23 os campos
+    campaign.start_date e campaign.end_date devolvem UNRECOGNIZED_FIELD, e e por
+    eles que o plano de recuperacao estende a data final da campanha. Subir
+    direto para a v25 quebraria a operacao de data em silencio, com o build
+    verde. Ha teste em tests/google-ads/boundaries.test.ts travando as duas
+    pontas.
+  apiVersionVerifiedAt: 2026-08-05
+  apiVersionVerificationStatus: live_api
   firstCallRequestId: p8kvVJZJoP3rc-5FuD58Jw
   domainWideDelegationNeeded: false
   domainWideDelegationNote: >-

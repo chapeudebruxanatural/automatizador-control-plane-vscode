@@ -1,7 +1,26 @@
 # HANDOFF — AutomatizadorIA Control Plane
 
-Documento de transferência. Data: **2026-08-05**.
-Cole este arquivo inteiro como contexto inicial no Codex.
+Documento de transferência. **2026-08-05.** Cole inteiro como contexto inicial.
+
+Tudo aqui foi verificado na data acima. Comando documentado é comando executado;
+número foi lido da API, não estimado. Onde não deu para verificar, está escrito
+**NÃO VERIFICADO** — e isso é informação, não lacuna a preencher com suposição.
+
+---
+
+## 0. LEIA ISTO PRIMEIRO
+
+Três coisas que mudam a forma de trabalhar neste repositório:
+
+1. **Existe dinheiro real em jogo agora.** A campanha do Cássio está ativa,
+   gastando, com R$ 300 disponíveis até 20/08. Não é ambiente de teste.
+2. **A conta de anúncios é compartilhada** entre Cássio, Garbo, NovaCena e
+   Gaveta. Alteração em propriedade de conta afeta todos. Isolamento é por
+   campanha, via allowlist em `scope.ts`.
+3. **Inferência não vira fato.** Todo dado carrega `verificationStatus`. Já
+   houve um caso concreto de erro por deduzir: `encantaria_artesanal` foi
+   classificado como commit acidental lendo só o GitHub, e tinha stack em
+   produção há 6 semanas.
 
 ---
 
@@ -11,188 +30,329 @@ Repositório privado central da operação AutomatizadorIA. Reúne inventário d
 infraestrutura, contexto de clientes e automação com trava de segurança.
 
 **Repo:** `dadocruz/automatizador-control-plane` (privado)
-**Diretório local:** `/Users/dadocruz/Projetos/automatizador-control-plane`
+**Local:** `/Users/dadocruz/Projetos/automatizador-control-plane`
 
-| Ref | SHA | Estado |
-|---|---|---|
-| `main` | `d91a670` | Ciclo 1 + 2 mesclados |
-| `feat/operational-stabilization-v1` | `0665ae1` | **mesclada** (PR #1) |
-| `feat/google-ads-live-operations-v1` | `cea21a6` | **ativa, PR #2 draft, NÃO mesclada** |
+| Ref | Estado |
+|---|---|
+| `main` | `d91a670` — Ciclo 1 + 2 mesclados |
+| `feat/operational-stabilization-v1` | mesclada (PR #1) |
+| `feat/google-ads-live-operations-v1` | **ativa** — PR #2 draft, **não mesclada** |
 
-**Continue em `feat/google-ads-live-operations-v1`.**
+**Continue em `feat/google-ads-live-operations-v1`.** Ela está ~16 commits à
+frente da `main`. Não trabalhe na `main`. Não mescle o PR #2 sem revisão.
 
-### Comandos
+---
+
+## 2. VALIDAÇÃO DO AMBIENTE
+
+Rode isto antes de qualquer coisa:
 
 ```bash
-npm ci && npm run lint && npm run typecheck && npm test && npm run build && npm run scan:secrets:all
+npm ci && npm run verify && npm run scan:secrets:all
 ```
 
-**166 testes.** CI no GitHub Actions roda em Node 20.11.0 e 24.
+Resultado esperado, verificado em 05/08:
+
+| Comando | Estado | Observação |
+|---|---|---|
+| `npm run lint` | OK | ESLint |
+| `npm run typecheck` | OK | `tsc --noEmit` |
+| `npm test` | OK | **168 testes, 48 suítes, 0 falhas** |
+| `npm run build` | OK | gera `dist/apps/api/src/main.js` |
+| `npm run scan:secrets` | OK | arquivos em stage |
+| `npm run scan:secrets:all` | OK | repositório inteiro |
+| `npm run verify` | OK | lint + typecheck + test + build |
+
+**Node:** exigido `>=20.11.0`. Testado localmente em **v24.14.0**. CI roda nos
+dois extremos, 20.11.0 e 24 — de propósito: `node --test` só aceita glob a
+partir do Node 21, e a suíte já quebrou por isso. Por isso a descoberta de
+testes é feita com `find` em `scripts/run-tests.sh`, não com glob.
+
+**Dependência de runtime: uma só** (`zod`). Deliberado — o processo segura
+credencial de produção, então superfície de supply chain importa. Não adicione
+dependência com acesso a rede ou credencial sem aprovação.
 
 ---
 
-## 2. REGRAS QUE NÃO PODEM SER QUEBRADAS
+## 3. REGRAS QUE NÃO PODEM SER QUEBRADAS
 
-1. **Segredo nunca entra em arquivo versionado.** `npm run scan:secrets` antes
-   de commitar. O scanner reporta arquivo/linha/tipo, nunca o valor.
+1. **Segredo nunca entra em arquivo versionado.** Nem em exemplo, log,
+   inventário ou mensagem de commit. `npm run scan:secrets` antes de commitar.
+   O scanner reporta arquivo, linha e tipo provável — **nunca o valor**.
 2. **VPS é somente leitura.** `scripts/collect-vps-inventory.sh` recusa comando
-   mutante em código, não só por disciplina.
+   mutante em código, não por disciplina. Nunca reiniciar, parar, remover,
+   instalar, atualizar ou fazer `prune`.
 3. **Contas Google separadas.** `contato.automatizadoria@gmail.com` (canônica)
-   e `estudionovacena@gmail.com` (Novacena) não se misturam.
-4. **Conta de anúncios é compartilhada** entre Cássio, Garbo, NovaCena e
-   Gaveta. Isolamento é por campanha — ver `scope.ts`. Nunca usar "todas as
-   conversões da conta" como resultado de um cliente.
-5. **WhatsApp: clique ≠ lead ≠ contrato.** `WHATSAPP - CÁSSIO` é
-   microconversão. `CASSIO | LEAD QUALIFICADO | FORM` é lead.
+   e `estudionovacena@gmail.com` (Novacena) não se misturam — nem arquivo, nem
+   e-mail, nem agenda, nem recurso.
+4. **Conta de anúncios compartilhada.** Nunca usar "todas as conversões da
+   conta" como resultado de um cliente.
+5. **Clique ≠ lead ≠ contrato.** `WHATSAPP - CÁSSIO` é microconversão.
+   `CASSIO | LEAD QUALIFICADO | FORM` é lead. Não confundir no relatório.
 6. **Nunca `force push`. Nunca apagar recurso.**
+7. **Kill switch (`CONTROL_PLANE_KILL_SWITCH`) começa ligado.** Nenhuma ação
+   externa com efeito colateral roda sem desligamento explícito e aprovado.
+
+### Peça aprovação antes de
+
+Desligar o kill switch · rodar em `EXECUTION_MODE=live` · qualquer escrita em
+VPS, n8n, Cloudflare, DNS ou banco · alterar repositório que não seja este ·
+criar/pausar/editar campanha · enviar mensagem ou publicar · apagar qualquer
+coisa · adicionar dependência com rede ou credencial.
+
+**Não precisa pedir para:** ler, inventariar, documentar, rodar
+lint/typecheck/teste/build, corrigir erro reversível dentro deste repositório.
 
 ---
 
-## 3. GOOGLE ADS — ESTÁ CONECTADO E FUNCIONANDO
+## 4. ARQUITETURA
+
+Portas e adaptadores. A separação leitura/escrita é estrutural, não
+convenção: o adaptador de leitura **não tem método de escrita na interface**.
+
+```
+packages/
+  domain/       action.ts  actions.ts  executor.ts  result.ts  verification.ts
+  security/     approval.ts  kill-switch.ts
+  shared/       config.ts  logger.ts  redact.ts
+  audit/        audit.ts
+  integrations/
+    ports/        adapters.ts  secret-provider.ts
+    adapters/     mock.ts                    ← só mock
+    google-ads/   credential-provider.ts  transport.ts  scope.ts
+                  read-adapter.ts  write-adapter.ts     ← ÚNICO ao vivo
+    evolution/    9 módulos                  ← pronto, não conectado
+    n8n/          parser.ts                  ← lê export, não chama API
+    cloudflare/   parser.ts                  ← lê export, não chama API
+apps/
+  api/          server.ts  main.ts  routes/  ← webhook do WhatsApp
+  worker/       main.ts
+tests/          9 arquivos, 168 testes
+scripts/        17 arquivos
+```
+
+**Estado real de conexão** — o ponto estrutural mais importante:
+
+| Integração | Estado |
+|---|---|
+| Google Ads | **ao vivo**, leitura e escrita, usada em produção |
+| Evolution / WhatsApp | construída e testada, **número real não conectado** |
+| n8n | parser de export. **Sem API key** |
+| Cloudflare | parser de export. **Sem token** |
+| VPS | inventário por SSH, somente leitura |
+
+A fundação está sólida, mas só **um braço opera**. Não abra integração nova
+antes de o que está ao vivo ter vigilância.
+
+---
+
+## 5. GOOGLE ADS — CONECTADO
 
 | Item | Valor |
 |---|---|
-| MCC / login-customer-id | `3992594849` |
-| Conta anunciante | `2656966896` |
-| Autenticação | conta de serviço (**sem** delegação de domínio) |
-| Chave | `~/Documents/Codex/.secrets/google-ads/service-account.json` (modo 600) |
-| Developer token | `.env` → `GOOGLE_ADS_DEVELOPER_TOKEN` (modo 600, fora do Git) |
-| API | **v21** |
+| MCC / `login-customer-id` | `3992594849` |
+| Conta anunciante | `2656966896` (compartilhada) |
+| Autenticação | conta de serviço, **sem** delegação de domínio |
+| Chave | `~/Documents/Codex/.secrets/google-ads/service-account.json` — modo `600`, verificado |
+| Developer token | `.env` → `GOOGLE_ADS_DEVELOPER_TOKEN` — modo `600`, fora do Git |
+| **API** | **`v22`** — ver abaixo, mudou hoje |
 | Nível de acesso | Básico |
 
-A conta de serviço **já está vinculada como usuária** da conta do Ads — foi por
-isso que funcionou sem Workspace.
+A conta de serviço **já está vinculada como usuária** da conta do Ads. Foi por
+isso que funcionou sem Workspace — a ressalva registrada antes não se
+materializou.
 
-### Módulo (`packages/integrations/src/google-ads/`)
+### 5.1 A v21 foi bloqueada — corrigido hoje
+
+No fim de 05/08 o monitor quebrou sozinho, sem nenhuma mudança no repositório:
+
+```
+UNSUPPORTED_VERSION
+"Version v21 is deprecated. Requests to this version will be blocked."
+```
+
+O bloqueio do Google é **progressivo**, então a mesma consulta alternava entre
+200 e 400. Lint, typecheck, teste e build seguiam verdes — nada local acusava.
+
+Versões testadas contra a conta real, com as seis consultas em uso:
+
+| Versão | Consultas | `start_date` / `end_date` |
+|---|---|---|
+| v21 | intermitente | — bloqueada |
+| **v22** | **6/6 OK** | **OK** ← escolhida |
+| v23 | 6/6 OK | `UNRECOGNIZED_FIELD` |
+| v24 | 6/6 OK | `UNRECOGNIZED_FIELD` |
+| v25 | 6/6 OK | `UNRECOGNIZED_FIELD` |
+| v26 | HTTP 404 | não existe |
+
+**Fixado em v22, não na mais nova.** A partir da v23 os campos de data somem, e
+é por eles que o plano de recuperação estende a data final da campanha. Subir
+direto para a v25 não quebraria build nem teste — quebraria a operação de data
+em produção, em silêncio.
+
+Escrita revalidada na v22 com `validateOnly` e valor idêntico ao atual (zero
+alteração): **HTTP 200**, request-id `FftynTF3-BsVNs6o3CinNA`.
+
+Há dois testes travando isso em `tests/google-ads/boundaries.test.ts`: um recusa
+versão bloqueada, outro impede passar da v22 sem antes resolver os campos de
+data. **Para migrar adiante: descubra o substituto dos campos de data, ajuste o
+`write-adapter`, e atualize o teste junto.**
+
+### 5.2 Módulo
 
 | Arquivo | Função |
 |---|---|
 | `credential-provider.ts` | Lê a chave **por caminho**, nunca por valor. Falha fechada. |
 | `transport.ts` | JWT com `node:crypto` → access token → REST. Sem SDK. `sanitize()` limpa segredo de qualquer erro. |
 | `scope.ts` | Allowlist de conta e campanha. Impede ler campanha de um cliente declarando outro. |
-| `read-adapter.ts` | 10 operações de leitura. `assertReadOnlyQuery` recusa GAQL sem `SELECT`. |
+| `read-adapter.ts` | 10 operações. `assertReadOnlyQuery` recusa GAQL que não comece com `SELECT`. |
 | `write-adapter.ts` | `validateOnly` → plano → hash → aprovação → execução. |
 
-### Fluxo de escrita
+### 5.3 Fluxo de escrita
 
 ```
 planCampaignStatus() / planCampaignBudget()
-  → valida com validateOnly: true (Google confirma sem executar)
-  → devolve MutationPlan com hash SHA-256 do payload
-  → execute(plan, hash) só roda se o hash bater
+  → valida com validateOnly: true      (Google confirma sem executar)
+  → devolve MutationPlan + hash SHA-256 do payload
+  → execute(plan, hash)                 só roda se o hash bater
 ```
 
-O hash é recalculado na execução: plano alterado depois de aprovado **não roda**.
+O hash é **recalculado na execução**. Plano alterado depois de aprovado não
+roda. Um plano não serve para outra operação.
 
-### Descobertas técnicas da API (custaram tentativa e erro)
+Só existem duas operações: status de campanha e valor de orçamento. Não há
+criação, remoção, mudança de lance, de meta de conversão nem edição de anúncio.
 
-- O orçamento da campanha do Cássio é **`CUSTOM_PERIOD`** (total do período),
-  não diário. Gravar `amount_micros` devolve `INVALID_ARGUMENT` — o campo é
+### 5.4 Descobertas da API que custaram tentativa e erro
+
+- Orçamento do Cássio é **`CUSTOM_PERIOD`** (total do período), não diário.
+  Gravar `amount_micros` devolve `INVALID_ARGUMENT` — o campo é
   **`total_amount_micros`**.
-- O **tipo de orçamento é imutável** (`requestError.IMMUTABLE_FIELD`). Não dá
-  para converter total → diário; só criar um orçamento novo.
+- **Tipo de orçamento é imutável** (`IMMUTABLE_FIELD`). Não dá para converter
+  total → diário; só criar orçamento novo.
 - **Estender a data antes de subir o orçamento falha** com
-  `BUDGET_BELOW_PER_DAY_MINIMUM`. A ordem importa: orçamento primeiro.
+  `BUDGET_BELOW_PER_DAY_MINIMUM`. **A ordem importa: orçamento primeiro.**
 - `listAccessibleCustomers` devolve **só a MCC**. A conta filha se acessa via
   `login-customer-id`.
+- `campaign.start_date` / `end_date` existem até a **v22**. Removidos na v23.
 
 ---
 
-## 4. O QUE FOI EXECUTADO NO GOOGLE ADS (05/08/2026)
+## 6. O QUE FOI EXECUTADO (05/08/2026)
 
 Campanha do Cássio `24066140634`, autorizado pelo dono:
 
-| Operação | De → Para | Request ID |
-|---|---|---|
-| Orçamento total | R$ 203,20 → **R$ 472,94** | `DxGYRwSfTPNL-a6e1duZ9w` |
-| Data final | 08/08 → **20/08** | `N7aI1EH774GQZDYEoVr-Ng` |
-| Status | PAUSED → **ENABLED** | `ajgCun7HloI0XhndrUpo5g` |
-| `WHATSAPP - CÁSSIO` `primary_for_goal` | false → true | `xMbYjE0H2R9w7f6h9evw8A` |
-| ↳ **REVERTIDA** (era desnecessária e afeta conta compartilhada) | true → **false** | `J2oEmOcK-ehjc17EP6TRQw` |
+| Operação | De → Para | `validateOnly` | Request ID |
+|---|---|:--:|---|
+| Orçamento total | R$ 203,20 → **R$ 472,94** | sim | `DxGYRwSfTPNL-a6e1duZ9w` |
+| Data final | 08/08 → **20/08** | sim | `N7aI1EH774GQZDYEoVr-Ng` |
+| Status | PAUSED → **ENABLED** | sim | `ajgCun7HloI0XhndrUpo5g` |
+| `WHATSAPP - CÁSSIO` `primary_for_goal` | false → true | **não** | `xMbYjE0H2R9w7f6h9evw8A` |
+| ↳ **REVERTIDA** | true → **false** | sim | `J2oEmOcK-ehjc17EP6TRQw` |
 
-Estado pós-operação: **`ENABLED` / `ELIGIBLE`**, sem bloqueio.
+Auditoria completa em `audit/google-ads.jsonl` (fora do Git, contém request IDs).
 
-### Falhas de processo registradas
+### 6.1 Falhas de processo — registradas para não repetir
 
-- A alteração da conversão foi a **única sem `validateOnly` prévio**.
-- `primary_for_goal` é propriedade da **ação na conta**, não da campanha. Numa
-  conta compartilhada isso muda a linha de base de relatório de todos. Afirmei
-  que afetava só o Cássio sem testar. **Revertida.**
-- **Landing page, botão do WhatsApp e tag: NÃO VERIFICADOS** antes de liberar
-  os R$ 300. Falha de sequência — o teste deveria ter vindo antes.
-- **`MONITOR_NOT_DEPLOYED`** — o agendamento era de sessão, sem processo
-  persistente.
+- **A alteração da conversão foi a única sem `validateOnly` prévio.**
+- **`primary_for_goal` é propriedade da ação na conta, não da campanha.** Numa
+  conta compartilhada isso muda a linha de base de relatório de todos. Foi
+  afirmado isolamento por raciocínio, sem teste. **Revertida.**
+- **Landing page, botão do WhatsApp e tag: NÃO VERIFICADOS** antes de liberar os
+  R$ 300. Falha de sequência — o teste deveria ter vindo antes da verba.
+- **Overclaim de resultado:** "já está funcionando" foi dito comparando cliques
+  da interface com dados da API, que estavam em janelas diferentes.
+- **`MONITOR_NOT_DEPLOYED`** — foi dito que havia monitor rodando. Não havia
+  processo persistente.
 
-### Correção estatística
+### 6.2 Correção estatística
 
-"300 cliques sem contato prova defeito" está **errado**. Com p=0,9%,
-P(zero em 300) = **6,6%**. É alerta forte, não prova.
-
-Estado pós-operação: **`ENABLED` / `ELIGIBLE`**, sem bloqueio.
-
-Auditoria em `audit/google-ads.jsonl` (fora do Git).
+"300 cliques sem contato prova defeito" está **errado**. Com p = 0,9%,
+P(zero em 300) = **6,6%**. É alerta forte, não prova. Prova exige ~600 cliques
+(P ≈ 0,4%).
 
 ---
 
-## 5. DIAGNÓSTICO DO CÁSSIO — LEIA ANTES DE MEXER
+## 7. DIAGNÓSTICO DO CÁSSIO — LEIA ANTES DE MEXER
 
-### O achado que inverteu a conclusão
+Campanha `24066140634` — `CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | BRASIL_PRIORITARIO`
+
+| Campo | Valor (v22, 05/08) |
+|---|---|
+| Status | `ENABLED` / `ELIGIBLE` / `SERVING` |
+| Canal | `DEMAND_GEN` |
+| Lance | `TARGET_SPEND` (Maximizar cliques) |
+| Orçamento | `CUSTOM_PERIOD`, R$ 472,94 — id `15746425389` |
+| Período | 27/07 → 20/08 |
+| Anúncio | `818466618702` — `DEMAND_GEN_VIDEO_RESPONSIVE_AD`, `ENABLED`, `APPROVED` |
+
+**URL final do anúncio** — é esta landing que precisa ser testada:
+
+```
+https://cassioferraz.com.br/contratar-show/?lp=proposta&utm_source=youtube&utm_medium=paid_video&utm_campaign=cassio_video_dvd&utm_content=rotacao_5_videos
+```
+
+### 7.1 O achado que inverteu a conclusão
 
 `metrics.conversions` = **0**, `metrics.all_conversions` = **5**.
 
 Não se contradizem: `conversions` conta **só ações primárias**, e
 `WHATSAPP - CÁSSIO` era não primária. **As 5 conversões sempre existiram.** O
-"0 conversões" era artefato de configuração.
+"zero conversões" era artefato de configuração, não ausência de resultado.
 
-### Por dia (30 dias)
+### 7.2 Por dia
 
 | Data | Custo | Cliques | CPC | WhatsApp |
 |---|---|---|---|---|
+| 27/07 | R$ 0,19 | 0 | — | 0 |
 | 28/07 | R$ 74,91 | 23 | R$ 3,26 | 0 |
 | **29/07** | R$ 72,84 | **554** | **R$ 0,13** | **5** |
-| 01–04/08 | R$ 25,00 | 65 | — | 0 |
+| 01/08 | R$ 1,37 | 0 | — | 0 |
+| 02/08 | R$ 8,01 | 2 | R$ 4,00 | 0 |
+| 03/08 | R$ 8,04 | 4 | R$ 2,01 | 0 |
+| 04/08 | R$ 7,58 | 59 | R$ 0,13 | 0 |
 
-100% do resultado veio de **mobile**.
+**Acumulado 30d: R$ 172,94 · 642 cliques · 5 contatos.** 100% do resultado veio
+de **mobile**. Disponível até o teto: **R$ 300,00**.
 
-### As três hipóteses
+**05/08 ainda não materializou na API** — a interface mostrava mais cliques que
+a API. Reporting lag. Não tratar divergência interface × API como resultado.
 
-- **A — mensuração quebrada: REFUTADA.** A tag funciona.
+### 7.3 As três hipóteses
+
+- **A — mensuração quebrada: REFUTADA.** A tag funciona; os 5 contatos provam.
 - **B — problema pós-clique: PARCIAL.** Taxa de 0,9% (5/554). Baixa, mas existe.
-- **C — reabertura degradou a entrega: CONFIRMADA, causa principal.**
-  Com 0,9%, os 65 cliques pós-reabertura deveriam dar ~0,6 conversões. **Zero
-  não é anomalia — é volume insuficiente.** A entrega caiu ~97%.
+- **C — reabertura degradou a entrega: CONFIRMADA, causa principal.** Com 0,9%,
+  os 65 cliques pós-reabertura deveriam dar ~0,6 conversões. **Zero não é
+  anomalia — é volume insuficiente.** A entrega caiu ~97%.
 
-### Ponto que ainda não foi resolvido
+### 7.4 O que ainda não foi resolvido
 
-A estratégia é **Maximizar cliques** (`TARGET_SPEND`): otimiza para clique
-barato, **não** para contato no WhatsApp. Os 5 contatos foram incidentais.
-
-Tornar a conversão primária melhorou a **medição**, não o leilão.
+A estratégia é **`TARGET_SPEND`**: otimiza para clique barato, **não** para
+contato no WhatsApp. Os 5 contatos foram subproduto de volume.
 
 **Não trocar para lance por conversão agora** — precisa de ~30 conversões/mês
 para calibrar, e há 5. O caminho é acumular volume com clique barato primeiro.
 
-### Limiar de alerta (corrigido)
+### 7.5 Limiares
 
-~300 cliques sem contato novo é **sinal de investigação**, não prova de
-defeito: com p=0,9%, a chance de zero em 300 é de 6,6%. Prova só a partir de
-~600 cliques (P ≈ 0,4%).
-
-### Restrição financeira
-
-**Conflito aberto:** orçamento configurado vs verba recebida. Não presumir
-valor autorizado. Bloqueia aumento de orçamento, reativação e nova campanha.
+| Sinal | Leitura |
+|---|---|
+| CPC ~R$ 0,13 | regime bom; volume vem |
+| CPC > R$ 1,00 | comprando clique caro — alertar |
+| ~300 cliques sem contato | **investigar** (6,6% de ser acaso) |
+| ~600 cliques sem contato | **defeito** (P ≈ 0,4%) |
 
 ---
 
-## 6. GAVETA / BUTECO SERTANEJO — NÃO MEXER
+## 8. GAVETA / BUTECO SERTANEJO — NÃO MEXER
 
 Campanha `24105770570` — `DG | Buteco Sertanejo | Shorts | Spotify`
 
 - `ENABLED` mas **`NOT_ELIGIBLE`**
 - Ad `819900433355` → **`DISAPPROVED`**, política **`COPYRIGHTED_CONTENT`**,
   severidade **`FULLY_LIMITED`** (bloqueio total)
-- Entrega: **0 / 0 / R$ 0,00**
+- Entrega: **0 impressões / 0 cliques / R$ 0,00**
 
 **Não é falha de segmentação nem de orçamento.** A campanha nunca teve
 oportunidade de veicular.
@@ -200,118 +360,178 @@ oportunidade de veicular.
 **Instrução vigente do dono: não mexer.** Não contestar, não editar, não
 substituir vídeo.
 
-Antes de contestar é preciso ter: autorização do fonograma, da obra, do vídeo,
-licença **para mídia paga**, e procuração de agência. **A conta é compartilhada** —
-reprovação repetida por direitos autorais afeta Cássio, Garbo e NovaCena junto.
+Antes de contestar seria preciso ter: autorização do fonograma, da obra, do
+vídeo, licença **para mídia paga** e procuração de agência. E **a conta é
+compartilhada** — reprovação repetida por direitos autorais afeta Cássio, Garbo
+e NovaCena junto.
 
-Campanha antiga `24079586567` = `removed_by_owner`. Não reativar.
+Campanha antiga `24079586567` = `removed_by_owner`. Não reativar — o
+`write-adapter` recusa em código.
 
 ---
 
-## 7. MONITORAMENTO
+## 9. MONITORAMENTO — `MONITOR_NOT_DEPLOYED`
 
 ```bash
 node --import tsx scripts/google-ads-monitor.mts
 ```
 
-Somente leitura. Alerta em: CPC > R$ 1,00 · gasto acumulado > R$ 400 · mais de
-R$ 100 num dia sem contato novo. Grava em `audit/google-ads-monitor.jsonl`.
+Somente leitura, nenhum mutate. Alerta em: CPC > R$ 1,00 · gasto acumulado >
+R$ 400 · mais de R$ 100 num dia sem contato novo. Grava em
+`audit/google-ads-monitor.jsonl`.
 
-**`MONITOR_NOT_DEPLOYED`.** Não existe processo persistente: o agendamento era
-`CronCreate` de sessão do Claude, sem PID, sem serviço, morto ao fechar a
-conversa. O script funciona, mas **nada o chama sozinho**.
+**Verificado em 05/08: o script roda e produz saída correta.** Mas:
 
-Para tornar real: `launchd` no Mac, cron na VPS, ou GitHub Actions agendado.
+- `launchctl list` → nada deste projeto
+- `crontab -l` → vazio
+- `.github/workflows/` → só `ci.yml`, **nenhum `schedule:`**
+- `audit/google-ads-monitor.jsonl` → **2 linhas**, ambas execução manual
+
+O agendamento anterior era de sessão — sem PID, sem serviço, morto ao fechar a
+conversa. **O script funciona; nada o chama sozinho.** Enquanto isso a campanha
+gasta dinheiro real sem vigilância.
+
+Para tornar real: `launchd` no Mac, cron na VPS, ou GitHub Actions agendado
+(o repositório já tem CI; o developer token iria para Actions secrets).
+**Provar com PID, serviço ou registro de execução** — não declarar pronto.
 
 ---
 
-## 8. RESTO DA OPERAÇÃO (Ciclo 1 e 2)
+## 10. RESTO DA OPERAÇÃO
 
-### VPS `nvvps` — Debian 11, Docker Swarm, 13 stacks, 28 serviços
+### 10.1 VPS `nvvps` — Debian 11, Docker Swarm, 13 stacks, 28 serviços
 
 Riscos abertos, **nenhum corrigido**:
 
 | ID | Sev | Risco |
 |---|---|---|
 | V-001 | crítico | Debian 11 no fim do suporte LTS; 193 dias sem reboot |
-| R-001 | crítico | Backup cobre 1 de 13 stacks |
-| R-002 | crítico | Backup provavelmente arquiva a cópia errada (checkout do Git, não os volumes) |
+| R-001 | crítico | Backup cobre **1 de 13 stacks** |
+| R-002 | crítico | Backup provavelmente arquiva a cópia errada — checkout do Git, não os volumes Docker (791 MB vs 2,3 GB) |
 | R-003 | alto | Portas 2377/7946 do Swarm expostas em todas as interfaces |
 | R-004 | alto | Arquivo com nome de backup de ambiente em `/root` (não aberto) |
 
 Existe backup diário em S3 (`novacena-backup.timer`), mas só do NovaCena Motion.
+Correção de Ciclo 1: dizer que "não havia backup" estava errado — havia, e é
+insuficiente, que é diferente.
 
 Scripts prontos e testados, **não instalados**: `scripts/backup/`,
 `scripts/restore/`, `scripts/docker-retention-*.sh`.
 
-### WhatsApp / Evolution API — homologação
+### 10.2 WhatsApp / Evolution API — homologação
 
 `packages/integrations/src/evolution/` · `writeActionsEnabled = false` fixo em
-código · número real **não conectado**.
+código (literal de tipo, não variável) · número real **não conectado**.
 
-Defesas: HMAC em tempo constante, allowlist, rate limit, deduplicação, e
-descarte de `fromMe` (**prevenção de loop** — a Evolution reenvia as próprias
-mensagens).
+Defesas testadas: HMAC em tempo constante · allowlist · rate limit ·
+deduplicação · descarte de `fromMe` (**prevenção de loop** — a Evolution reenvia
+as próprias mensagens) · descarte de grupo e broadcast · resposta 413 sem matar
+o socket antes de responder.
 
-**`REAL_PAYLOAD_VERIFIED = false`** — formato veio da documentação, não de
+**`REAL_PAYLOAD_VERIFIED = false`** — o formato veio da documentação, não de
 amostra real. `x-webhook-signature` é **convenção deste projeto**, não recurso
-da Evolution.
+da Evolution. Antes de conectar: capturar payload real e confirmar.
 
-### Bloqueios pendentes
+### 10.3 Bloqueios pendentes
 
-- **n8n** — sem API key. Maior ponto cego: 13 stacks e ninguém sabe o que os
+- **n8n** — sem API key. **Maior ponto cego:** 13 stacks e ninguém sabe o que os
   workflows fazem.
 - **Cloudflare** — sem token. Falta o mapa domínio → cliente.
 - **Conector do Drive** — conta indeterminada, viola a separação Google.
 
-### Segurança pendente
+### 10.4 Segurança pendente
 
-1. **TOTP de `contato.automatizadoria@gmail.com`** exposto em captura —
+1. **TOTP de `contato.automatizadoria@gmail.com`** exposto em captura de tela —
    registrado em `clients/vivere/security.yaml`, **não rotacionado**.
 2. `~/Downloads/credentials.json` — chave S3 com permissão `644`.
+3. O developer token foi exposto em chat e **rotacionado pelo dono** em 05/08.
 
 ---
 
-## 9. ONDE ESTÁ CADA COISA
+## 11. ONDE ESTÁ CADA COISA
 
 ```
-clients/<slug>/profile.yaml          contexto do cliente
-clients/<slug>/google-ads.yaml       histórico + snapshot ao vivo
-inventory/*.yaml                     fatos com procedência
-docs/discovery/                      levantamentos datados
-docs/operations/                     planos e políticas
-docs/runbooks/                       procedimentos
-brain/                               julgamento e critério
+clients/<slug>/profile.yaml     contexto do cliente
+clients/<slug>/campaigns.yaml   histórico + snapshot ao vivo
+inventory/*.yaml                13 arquivos de fatos com procedência
+docs/discovery/                 levantamentos datados
+docs/operations/                planos e políticas
+docs/runbooks/                  procedimentos
+docs/adr/                       decisões arquiteturais
+brain/                          julgamento e critério
+STATUS.md  TASKS.md  DECISIONS.md
 ```
 
-**Todo dado carrega `verificationStatus` e `lastVerifiedAt`.** Valores:
-`live_api`, `historical_manual`, `user_reported`, `owner_reported`,
-`discovered`, `verified`, `conflicting`, `stale`, `unknown`,
-`requires_verification`.
+**Clientes:** `automatizadoria` · `cassio-ferraz` · `chapeu-de-bruxa` ·
+`garbo-eventos` · `gaveta-producoes` · `novacena` · `soulraizes` · `vivere`.
+O `slug` é a chave canônica, em `clients/index.yaml`.
 
-**Regra:** inferência **nunca** vira `verified`. Já houve um caso concreto —
-`encantaria_artesanal` foi classificado como commit acidental pela leitura só
-do GitHub, e tinha stack em produção há 6 semanas.
+**Caminho inverso** (achei um recurso, de quem é?): `inventory/repositories.yaml`,
+`domains.yaml` ou `services.yaml` — cada entrada aponta `likelyClient`.
 
-Leituras essenciais: `CLAUDE.md`, `STATUS.md`, `DECISIONS.md`,
-`docs/operations/cassio-campaign-recovery-plan.md`,
-`docs/operations/gaveta-buteco-copyright-status.md`.
+### `verificationStatus` — obrigatório em todo dado
+
+`live_api` · `historical_manual` · `user_reported` · `owner_reported` ·
+`discovered` · `verified` · `conflicting` · `stale` · `unknown` ·
+`requires_verification`
+
+**Inferência nunca vira `verified`.** Se a associação não for certa, registre
+`unknown` e pergunte.
+
+### Leitura essencial
+
+`CLAUDE.md` · `STATUS.md` · `DECISIONS.md` ·
+`docs/discovery/google-ads-post-op-audit-2026-08-05.md` ·
+`docs/operations/cassio-campaign-recovery-plan.md` ·
+`docs/operations/gaveta-buteco-copyright-status.md`
 
 ---
 
-## 10. PRÓXIMOS PASSOS
+## 12. PRÓXIMOS PASSOS
 
-**Imediato, nesta ordem:**
-1. **Testar landing page, botão do WhatsApp e disparo da tag** — deveria ter
-   sido feito antes de liberar a verba, e não foi.
-2. **Tornar o monitor persistente** (`MONITOR_NOT_DEPLOYED` hoje).
-3. Acompanhar o CPC. Investigar a partir de ~300 cliques sem contato; concluir
-   defeito só a partir de ~600.
+### Nesta ordem
 
-**Curto prazo:** tornar o monitor permanente · resolver R-002 (confirmar as
-montagens do `novacena-motion`) · rotacionar o TOTP · gerar API key do n8n e
-token da Cloudflare.
+**1. Testar a landing do Cássio.** É a variável que pode invalidar os R$ 300 em
+curso, e nunca foi verificada. Em viewport mobile (100% do resultado é mobile),
+na URL da seção 7: carregamento · botão do WhatsApp visível e clicável · número
+de destino · mensagem pré-preenchida · HTTPS · redirecionamento · e se
+`WHATSAPP - CÁSSIO` dispara **exatamente uma vez**. Abrir o WhatsApp até a tela
+**antes** do envio, sem enviar. Marcar **NÃO VERIFICADO** o que não conseguir.
+**Se estiver quebrado, pausar a campanha e informar o motivo.**
 
-**Não fazer agora:** trocar a estratégia de lance do Cássio (dados
-insuficientes) · mexer no Buteco (instrução do dono) · conectar WhatsApp real ·
-mesclar o PR #2 sem revisão.
+**2. Tornar o monitor persistente.** Hoje `MONITOR_NOT_DEPLOYED`. Provar com
+PID, serviço ou registro de execução.
+
+**3. Acompanhar CPC e contatos** pelos limiares da seção 7.5.
+
+### Curto prazo
+
+Resolver R-002 (confirmar as montagens do `novacena-motion`) · rotacionar o
+TOTP · gerar API key do n8n e token da Cloudflare · fechar o PR #2.
+
+### Não fazer agora
+
+Trocar a estratégia de lance do Cássio (dados insuficientes) · mexer no Buteco
+(instrução do dono) · conectar WhatsApp real (payload não homologado) · subir a
+versão da API além da v22 (campos de data) · mesclar o PR #2 sem revisão ·
+abrir integração nova antes de o monitor existir.
+
+### Restrição vigente do dono
+
+> Não faça nova otimização. Não altere público, criativo, lance, orçamento,
+> datas ou status. Não toque em nenhuma outra campanha.
+
+Vale até nova autorização explícita. A correção da versão da API (v21 → v22)
+foi feita sob esta restrição por ser **conserto de integração quebrada**, não
+otimização: nenhum parâmetro de campanha foi tocado, e a única chamada de
+escrita foi `validateOnly` com valor idêntico ao atual.
+
+---
+
+## 13. SITUAÇÃO ATUAL
+
+**`CASSIO_DELIVERING`** — há entrega, sem contato novo confirmado desde a
+reativação.
+
+Só reporte **`CASSIO_CONVERTING`** após novo `WHATSAPP - CÁSSIO` confirmado
+**pela API**, não pela interface.
