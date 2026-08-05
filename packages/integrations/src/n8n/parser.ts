@@ -66,9 +66,9 @@ const TRIGGER_NODE = /trigger|webhook|cron|schedule|interval|pollingTrigger/i;
 /**
  * Mascara o identificador do webhook, preservando a forma.
  *
- * `/webhook/abc123def456/lead` vira `/webhook/***/lead`. O inventário registra
- * que existe um webhook e qual o formato do caminho; quem quiser dispará-lo
- * precisa ir ao n8n.
+ * `/webhook/abc123def456/lead` vira `/webhook/xxx/lead`. O inventário
+ * registra que existe um webhook e qual o formato do caminho; quem quiser
+ * dispará-lo precisa ir ao n8n.
  */
 export function sanitizeWebhookPath(path: string): string {
   return path

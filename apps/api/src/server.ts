@@ -15,6 +15,7 @@ import type { Config } from '../../../packages/shared/src/config.js';
 import { describePosture } from '../../../packages/shared/src/config.js';
 import type { Logger } from '../../../packages/shared/src/logger.js';
 import type { ActionRegistry } from '../../../packages/domain/src/action.js';
+import { handleWhatsAppWebhook, type WhatsAppRouteDependencies } from './routes/whatsapp/webhook.js';
 
 export interface ServerDependencies {
   readonly config: Config;
@@ -22,6 +23,13 @@ export interface ServerDependencies {
   readonly registry: ActionRegistry;
   /** Injetável para teste. */
   readonly env?: Record<string, string | undefined>;
+  /**
+   * Opcional: quando ausente, POST /whatsapp/webhook cai no 405 padrão como
+   * qualquer outra rota POST. O módulo em si já é seguro por padrão (ver
+   * docs/architecture/whatsapp-evolution.md) — esta flag só decide se a rota
+   * existe, não se ela pode escrever.
+   */
+  readonly whatsapp?: WhatsAppRouteDependencies;
 }
 
 export interface ReadinessState {
@@ -56,8 +64,18 @@ export function createApiServer(deps: ServerDependencies): {
     const method = req.method ?? 'GET';
     const path = (req.url ?? '/').split('?')[0] ?? '/';
 
+    if (method === 'POST' && path === '/whatsapp/webhook' && deps.whatsapp !== undefined) {
+      handleWhatsAppWebhook(req, res, deps.whatsapp).catch((err: unknown) => {
+        logger.error('whatsapp: erro nao tratado no webhook', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+        if (!res.headersSent) json(res, 500, { error: 'internal_error' });
+      });
+      return;
+    }
+
     if (method !== 'GET') {
-      json(res, 405, { error: 'method_not_allowed', detail: 'Somente GET nesta fase.' });
+      json(res, 405, { error: 'method_not_allowed', detail: 'Somente GET nesta fase, exceto /whatsapp/webhook.' });
       return;
     }
 
