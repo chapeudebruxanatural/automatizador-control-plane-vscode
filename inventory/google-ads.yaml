@@ -59,6 +59,31 @@ structure:
       ID da chave e client ID OAuth NAO sao segredos — identificam a chave, nao
       autorizam nada. O material privado (o JSON) permanece fora deste repo.
 
+apiCenterConfirmed:
+  observedAt: 2026-08-05
+  source: "Central de API do Google Ads, conta contato.automatizadoria@gmail.com"
+  verificationStatus: verified
+  mccName: "Automatizador Ia"
+  mccId: "399-259-4849"
+  apiContactEmail: contato.automatizadoria@gmail.com
+  companyName: Automatizador IA
+  companyUrl: https://automatizadoria.cloud
+  businessType: Agencia/SEM
+  headquarters: Brasil
+  accessLevel: "Acesso basico"
+  accessLevelNote: >-
+    Acesso Basico permite uso pleno da API em contas gerenciadas, com limite
+    diario de operacoes. Suficiente para toda a leitura deste ciclo. Se o
+    volume crescer, "Solicitar acesso padrao" esta disponivel na mesma tela.
+  pendingPlatformChange: >-
+    O Google avisa na Central de API que em breve sera necessaria uma "chave de
+    acesso" para autorizar acoes sensiveis (adicionar usuarios, vincular
+    contas). Nao afeta leitura, mas afeta qualquer automacao futura de escrita.
+  resolvesOpenQuestion: >-
+    CONFIRMA automatizadoria.cloud como dominio oficial da empresa — questao
+    que estava aberta em inventory/cloudflare.yaml desde o Ciclo 1, onde
+    constava apenas como `discovered` a partir de uma aba de navegador.
+
 liveAccess:
   authMode: unavailable
   credentialReference: null
