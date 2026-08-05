@@ -1,0 +1,119 @@
+# =============================================================================
+# inventory/google-ads.yaml — estrutura de contas do Google Ads
+# =============================================================================
+# TUDO NESTE ARQUIVO E HISTORICO, informado pelo dono em 2026-08-05.
+# NENHUMA consulta a API do Google Ads foi feita. NENHUMA campanha foi criada,
+# alterada, pausada ou reativada.
+#
+# Estados de verificacao usados aqui:
+#   historical_confirmed      — aconteceu, o dono confirma
+#   owner_reported            — o dono afirmou; nao checado contra sistema
+#   strategic_proposal        — proposto, nao necessariamente executado
+#   partially_executed        — parte foi publicada
+#   requires_live_verification— so a plataforma pode confirmar o estado atual
+#   conflicting               — fontes discordam
+#   unknown
+#
+# IDs de conta e de campanha NAO sao segredo. Credenciais nao sao registradas.
+# =============================================================================
+
+meta:
+  importedAt: 2026-08-05
+  source: relato do proprietario
+  apiConnected: false
+  changesMade: 0
+  warning: >-
+    Tudo aqui descreve o PASSADO. Orcamento, status de campanha e entrega mudam
+    sozinhos na plataforma. Nada neste arquivo deve ser tratado como estado
+    atual sem verificacao ao vivo.
+
+# -----------------------------------------------------------------------------
+structure:
+  mcc:
+    id: "399-259-4849"
+    role: conta administradora
+    verificationStatus: owner_reported
+  advertiserAccount:
+    id: "265-696-6896"
+    role: conta anunciante compartilhada
+    currency: BRL
+    timezone: America/Sao_Paulo
+    verificationStatus: owner_reported
+    note: >-
+      Uma unica conta anunciante atende multiplos clientes. Isso significa que
+      o isolamento entre clientes e por CAMPANHA, nao por conta — nao ha
+      barreira estrutural impedindo que uma acao afete o cliente errado.
+      E o principal motivo de campanhas serem Nivel 2 de aprovacao.
+
+  googleCloudProject:
+    id: automatizador-ia-ads
+    verificationStatus: owner_reported
+  serviceAccount:
+    email: google-ads-automation@automatizador-ia-ads.iam.gserviceaccount.com
+    verificationStatus: owner_reported
+    credentialsRegistered: false
+    note: >-
+      Apenas o identificador. Nenhuma chave, token ou developer token e
+      registrado neste repositorio.
+
+# -----------------------------------------------------------------------------
+clients:
+  - slug: gaveta-producoes
+    campaignCount: 1
+    budgetCeilingBRL: 280
+    file: clients/gaveta-producoes/google-ads.yaml
+    verificationStatus: historical_confirmed
+  - slug: cassio-ferraz
+    campaignCount: 2
+    budgetConfiguredBRL: 300
+    file: clients/cassio-ferraz/google-ads.yaml
+    verificationStatus: conflicting
+    note: "Conflito sobre a verba efetivamente recebida. Ver o arquivo do cliente."
+  - slug: garbo-eventos
+    campaignCount: 5
+    budgetLotBRL: 100
+    file: clients/garbo-eventos/google-ads.yaml
+    verificationStatus: historical_confirmed
+  - slug: vivere
+    campaignCount: 0
+    file: clients/vivere/marketing-readiness.yaml
+    verificationStatus: owner_reported
+    note: "Sem campanha. Mensuracao precisa ser validada antes de qualquer midia."
+
+# -----------------------------------------------------------------------------
+# TRAVAS FINANCEIRAS — resumo. Detalhe por cliente.
+# -----------------------------------------------------------------------------
+financialControls:
+  - client: gaveta-producoes
+    ceilingBRL: 280
+    pauseMarginBRL: 275
+    autoReactivate: PROIBIDO
+    rule: >-
+      Ao atingir a trava, pausar e NAO reativar automaticamente em nenhuma
+      hipotese. Reativacao exige decisao humana explicita e nova autorizacao.
+  - client: garbo-eventos
+    lotBRL: 100
+    preventivePauseBRL: 90
+    newLotRequiresAuthorization: true
+  - client: cassio-ferraz
+    configuredBRL: 300
+    receivedBRL: unknown
+    status: conflicting
+    rule: "Nenhuma verba nova deve ser presumida."
+
+globalRules:
+  - "Nenhuma campanha e criada, ativada, pausada ou editada pelo Control Plane."
+  - "Nenhum orcamento e alterado."
+  - "Verba nova exige autorizacao explicita, por cliente, por lote."
+  - "Toda acao de campanha e Nivel 2 do protocolo de aprovacao."
+  - "Trava atingida nunca se auto-reverte."
+
+# -----------------------------------------------------------------------------
+liveVerificationNeeded:
+  - "Status atual de cada campanha (ativa, pausada, removida)"
+  - "Gasto acumulado real por campanha"
+  - "Se as travas de pausa foram atingidas e quando"
+  - "Verba efetivamente recebida na conta do Cassio Ferraz"
+  - "Se a estrategia v2 do Cassio Ferraz esta publicada por completo"
+  - "Se o Google Ads Script da Garbo continua ativo"
+  - "Saude das conversoes e do tagueamento"

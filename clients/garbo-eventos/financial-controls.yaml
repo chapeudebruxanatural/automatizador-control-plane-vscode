@@ -1,0 +1,59 @@
+# Controles financeiros — Garbo Eventos
+# Politica geral: docs/security/advertising-approval-policy.md
+slug: garbo-eventos
+importedAt: 2026-08-05
+
+authorizedBudget:
+  lotBRL: 100
+  currency: BRL
+  scope: unclear
+  scopeNote: >-
+    NAO ESTA CLARO se o lote de R$ 100 e por campanha ou para o conjunto das 5
+    campanhas. Diferenca de ate 5x no gasto total. ESCLARECER antes de tratar
+    qualquer valor como saldo disponivel.
+  verificationStatus: conflicting
+  authorizedBy: proprietario
+
+pauseThresholds:
+  - value: 90
+    type: pausa preventiva
+    action: pausar
+    automatic: permitido
+    scopeNote: "mesma ambiguidade de escopo do lote acima"
+  - value: 100
+    type: teto do lote
+    action: pausar
+    automatic: permitido
+
+reactivation:
+  automatic: PROIBIDO
+  requires:
+    - decisao humana explicita
+    - novo lote autorizado explicitamente
+    - registro em DECISIONS.md
+  approvalLevel: 2
+
+externalAutomation:
+  googleAdsScript: "11999683"
+  concern: >-
+    Uma automacao ja roda nesta conta fora do Control Plane. Se esse script
+    manipula orcamento ou status de campanha, ele pode reverter uma pausa
+    aplicada por nos, ou vice-versa. NAO assumir que o Control Plane e a unica
+    mao na conta ate confirmar o que o script faz.
+
+prohibited:
+  - Reativacao automatica apos pausa, em qualquer condicao
+  - Presumir novo lote sem autorizacao explicita
+  - Tratar o lote como recorrente automatico
+  - Acao em lote junto com outros clientes (conta compartilhada)
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+  reason: Sem adaptador de Google Ads e sem credencial. Kill switch ativo.
+
+liveVerificationNeeded:
+  - Se o lote de R$ 100 e por campanha ou total
+  - Gasto acumulado real por campanha
+  - O que o Google Ads Script 11999683 faz
+  - Se alguma das 5 campanhas foi pausada por verba

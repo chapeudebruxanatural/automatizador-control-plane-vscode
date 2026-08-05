@@ -1,0 +1,59 @@
+# Controles financeiros — Cassio Ferraz
+slug: cassio-ferraz
+importedAt: 2026-08-05
+
+budget:
+  configuredBRL: 300
+  receivedBRL: unknown
+  verificationStatus: conflicting
+  status: CONFLITO ABERTO
+
+conflict:
+  description: >-
+    O orcamento configurado na plataforma foi de R$ 300. Ha divergencia sobre
+    quanto de verba foi efetivamente recebido do cliente. As duas informacoes
+    nao batem e nenhuma foi confirmada contra a fonte.
+  whyItMatters: >-
+    Toda decisao de midia depende de saber quanto ha para gastar. Com o numero
+    incerto, qualquer projecao de custo por lead, qualquer ajuste de lance e
+    qualquer promessa de entrega e construida sobre chao instavel.
+  resolution:
+    - Extrato de gasto real da campanha na plataforma
+    - Comprovante do que foi recebido do cliente
+    - Conciliar e registrar em DECISIONS.md
+  approvalLevel: 2
+
+rules:
+  - id: no-presumed-budget
+    rule: NENHUMA VERBA NOVA E PRESUMIDA
+    scope: absoluto enquanto o conflito estiver aberto
+    detail: >-
+      Nao aumentar orcamento. Nao reativar campanha pausada por verba. Nao
+      projetar gasto futuro. Nao tratar os R$ 300 configurados como saldo
+      disponivel — configurado nao e recebido.
+  - id: no-auto-reactivate
+    rule: Reativacao apos pausa por verba exige decisao humana
+    approvalLevel: 2
+  - id: batch-forbidden
+    rule: Nenhuma acao em lote junto com outros clientes
+    detail: >-
+      A conta anunciante e compartilhada. Acao em lote atinge o cliente errado
+      sem aviso.
+
+prohibited:
+  - Alterar orcamento
+  - Criar campanha
+  - Reativar campanha pausada
+  - Presumir verba
+  - Pausar sem registro
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+  reason: Sem adaptador e sem credencial. Kill switch ativo.
+
+liveVerificationNeeded:
+  - Gasto acumulado real das duas campanhas
+  - Saldo atual da conta
+  - Historico de alteracao de orcamento
+  - Se alguma campanha foi pausada por verba

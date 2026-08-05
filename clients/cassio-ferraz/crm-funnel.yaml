@@ -1,0 +1,76 @@
+# Funil de CRM — Cassio Ferraz
+# HISTORICO / PROPOSTA. Nenhum CRM foi conectado, lido ou alterado.
+slug: cassio-ferraz
+importedAt: 2026-08-05
+crmConnected: false
+
+declaredFunnel:
+  verificationStatus: strategic_proposal
+  source: relato do proprietario
+  stages:
+    - id: click
+      name: Clique no anuncio
+      measuredBy: Google Ads
+      verificationStatus: historical_confirmed
+    - id: micro
+      name: Clique no WhatsApp
+      type: microconversao
+      measuredBy: GTM
+      verificationStatus: historical_confirmed
+    - id: lead
+      name: Lead qualificado (formulario)
+      conversionName: "CASSIO | LEAD QUALIFICADO | FORM"
+      measuredBy: GTM + Google Ads
+      verificationStatus: historical_confirmed
+    - id: proposal
+      name: Proposta enviada
+      measuredBy: unknown
+      verificationStatus: strategic_proposal
+      gap: true
+    - id: close
+      name: Fechamento
+      measuredBy: unknown
+      verificationStatus: strategic_proposal
+      gap: true
+    - id: revenue
+      name: Receita
+      measuredBy: unknown
+      verificationStatus: strategic_proposal
+      gap: true
+
+criticalGap:
+  from: lead
+  to: revenue
+  description: >-
+    As tres etapas finais (proposta, fechamento, receita) foram DECLARADAS como
+    objetivo de mensuracao, mas nao ha confirmacao de sistema que as registre
+    nem de mecanismo que as devolva ao Google Ads.
+  consequence: >-
+    Sem o retorno do resultado, o Google Ads otimiza para LEAD, nao para
+    RECEITA. Para um artista com poucos shows de alto valor, essa diferenca
+    define se a campanha da lucro: cem leads baratos que nao fecham valem menos
+    que tres que contratam.
+  whatWouldClose:
+    - CRM que registre proposta, fechamento e valor
+    - Identificador de clique (GCLID) capturado no formulario e guardado
+    - Import de conversao offline para o Google Ads
+    - Valor monetario associado a conversao
+  verificationStatus: requires_live_verification
+
+unknowns:
+  - Qual CRM e usado, se existe algum
+  - Se o GCLID e capturado e armazenado no lead
+  - Se ha valor monetario associado a conversao
+  - Ciclo medio entre lead e fechamento
+  - Taxa de conversao de cada etapa
+  - Ticket medio
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+
+nextSteps:
+  - Descobrir qual CRM (ou planilha) registra proposta e fechamento
+  - Verificar se o GCLID chega junto com o lead
+  - Avaliar viabilidade do import de conversao offline
+  - Só entao propor otimizacao por receita
