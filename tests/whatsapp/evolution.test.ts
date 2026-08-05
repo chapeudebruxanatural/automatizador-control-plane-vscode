@@ -363,6 +363,47 @@ describe('modulo completo — processIncoming', () => {
     assert.equal(mod.writeActionsEnabled, false);
   });
 
+  it('nenhum comando do WhatsApp alcanca uma acao MUTANTE do registry', async () => {
+    // Guarda estrutural: se alguem adicionar um comando que chame uma acao
+    // mutante, este teste quebra. E a diferenca entre "hoje nao alcanca" e
+    // "nao pode passar a alcancar sem alguem perceber".
+    const registry = createDefaultRegistry(createMockAdapterSet());
+    const mutatingKinds = new Set(registry.listMutating().map((d) => d.kind));
+
+    const invoked: string[] = [];
+    const spyExecutor = {
+      execute: (request: { kind: string }) => {
+        invoked.push(request.kind);
+        return Promise.resolve({
+          status: 'executed' as const,
+          kind: request.kind,
+          dryRun: true,
+          data: [],
+          durationMs: 0,
+        });
+      },
+    } as unknown as ActionExecutor;
+
+    const handler = createCommandHandler({
+      executor: spyExecutor,
+      clients: createEmptyClientDirectory(),
+      githubOwner: 'dadocruz',
+    });
+
+    for (const command of ALLOWED_QUERY_COMMANDS) {
+      await handler({ command, args: [], correlationId: 'guard', maskedFrom: '+55****0000' });
+    }
+
+    assert.ok(invoked.length > 0, 'nenhuma acao foi invocada — o teste nao provaria nada');
+    for (const kind of invoked) {
+      assert.equal(
+        mutatingKinds.has(kind),
+        false,
+        `comando do WhatsApp invocou a acao MUTANTE "${kind}"`,
+      );
+    }
+  });
+
   it('NUNCA envia mensagem real, mesmo com kill switch desligado e aprovacao concedida', async () => {
     // Este e o teste mais importante do arquivo: prova que desligar o freio
     // global do Control Plane NAO acidentalmente libera o WhatsApp.
