@@ -43,7 +43,10 @@ describe('redação por nome de campo', () => {
   });
 
   it('substitui o valor sem alterar a chave', () => {
-    const out = redact({ user: 'dado', password: 'qualquer-coisa' }) as Record<string, unknown>;
+    // "qualquer-coisa" é literalmente isso: o valor que o teste espera ver
+    // redigido. Não é credencial.
+    const input = { user: 'dado', password: 'qualquer-coisa' }; // pragma: allowlist-secret
+    const out = redact(input) as Record<string, unknown>;
     assert.equal(out['user'], 'dado');
     assert.equal(out['password'], REDACTED);
   });
@@ -87,7 +90,10 @@ describe('redação por formato do valor', () => {
   });
 
   it('pega chave privada em formato PEM', () => {
-    const out = redactString('-----BEGIN RSA PRIVATE KEY-----\nMIIE...');
+    // Cabeçalho PEM truncado, sem material de chave. Existe para provar que o
+    // detector reconhece o formato.
+    const pem = '-----BEGIN RSA PRIVATE KEY-----\nMIIE...'; // pragma: allowlist-secret
+    const out = redactString(pem);
     assert.match(out, /\[REDACTED\]/);
   });
 

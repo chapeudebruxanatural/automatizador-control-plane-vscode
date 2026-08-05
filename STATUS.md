@@ -40,10 +40,34 @@ sem Docker. **Nenhuma integração externa executa ação.**
 | Bloqueio | Impacto | O que destrava |
 |---|---|---|
 | API do n8n sem chave | Não dá para contar/listar workflows programaticamente | Gerar API key no n8n e guardar em `.env` local |
-| Docker ausente no Mac | Não há paridade local com a VPS | Decisão consciente: não instalar agora; desenvolver sem container |
-| OAuth Google não configurado | Gmail/Drive/Calendar via código indisponível | Criar credenciais OAuth na conta canônica |
-| Token da Cloudflare ausente | Inventário de DNS/zonas incompleto | Emitir token somente-leitura |
+| Token da Cloudflare ausente | Inventário de DNS/zonas incompleto; sem mapa domínio → cliente | Emitir token somente-leitura |
+| Conta do conector do Drive indeterminada | Bloqueia toda automação Google | Verificar e reconectar os três conectores na mesma conta |
+| OAuth Google não configurado | Gmail/Drive/Calendar via código indisponível | Criar credenciais OAuth por conta |
 | Contas Meta com restrição | 6 de 8 contas não são consultáveis | Regularizar pendência financeira e revisão de segurança na Meta |
+| Docker ausente no Mac | Não há paridade local com a VPS | Decisão consciente: não instalar agora ([ADR 0001](docs/adr/0001-sem-docker-local.md)) |
+
+Passo a passo dos dois primeiros:
+[docs/runbooks/desbloquear-integracoes.md](docs/runbooks/desbloquear-integracoes.md).
+
+## Achados que exigem decisão do dono
+
+Nenhum foi corrigido — corrigir exige aprovação de Nível 2 ou informação que só
+o dono tem.
+
+| ID | Severidade | Achado |
+|---|---|---|
+| V-001 | crítico | Debian 11 encerra o suporte LTS este mês; 193 dias sem reboot |
+| V-002 | alto | Portas 2377 e 7946 do Swarm expostas em todas as interfaces |
+| V-003 | alto | Arquivo com nome de backup de ambiente de produção em `/root` (não foi aberto) |
+| V-004 | alto | Sem backup verificado para 3 PostgreSQL, MinIO e volumes |
+| V-005 | médio | `novacena-music` rodando duplicado (Swarm + Compose) |
+| V-006 | médio | `prune -af` diário elimina a possibilidade de rollback |
+| F-001 | alto | `novacena-motion` é público e tem pipeline de deploy para a VPS |
+| F-006 | médio | `novacena-editais` e `novacena-propostas` em produção sem repositório conhecido |
+| — | alto | Token de acesso visível na URL de uma aba do navegador |
+
+Detalhes em [docs/discovery/vps-inventory.md](docs/discovery/vps-inventory.md) e
+[inventory/repositories.yaml](inventory/repositories.yaml).
 
 ## O que explicitamente **não** foi feito
 
