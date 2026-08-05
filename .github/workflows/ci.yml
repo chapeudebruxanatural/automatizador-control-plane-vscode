@@ -1,0 +1,77 @@
+name: CI
+
+# Valida o Control Plane em toda mudança que possa chegar à main.
+#
+# Este workflow NÃO tem acesso a nenhum sistema externo: sem secrets, sem VPS,
+# sem Cloudflare, sem n8n, sem Google Ads, sem WhatsApp. Ele só executa o que
+# roda em qualquer máquina com o repositório e o package-lock.json — que é
+# exatamente o que a validação precisa ser para ser confiável.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - main
+      - 'feat/**'
+
+# Menor privilégio: o job só precisa ler o código. Nenhuma escrita em nada —
+# nem em issues, nem em packages, nem em deployments, nem em status.
+permissions:
+  contents: read
+
+# Uma execução por ref. Um push novo cancela a validação anterior da mesma
+# branch, que já está obsoleta.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, typecheck, test, build e varredura de segredos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Só o commit em validação. Histórico completo não é necessário e
+          # aumentaria o tempo de clone sem benefício.
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Alinhado ao engines do package.json (>=20.11.0). Versão fixa em
+          # vez de 'lts/*' para que uma mudança de LTS não quebre o CI sem
+          # ninguém ter mudado nada no projeto.
+          node-version: '20.11.0'
+          # Cache do npm chaveado pelo package-lock.json — invalida sozinho
+          # quando a árvore de dependências muda.
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependências
+        # `npm ci` e não `npm install`: respeita o lockfile exatamente e falha
+        # se package.json e package-lock.json estiverem inconsistentes. É a
+        # diferença entre validar o que será instalado e validar outra coisa.
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Varredura de segredos
+        # Última etapa de propósito: se algo falhou antes, o segredo eventual
+        # é o menor dos problemas. Se tudo passou, esta é a porta final.
+        run: npm run scan:secrets:all
