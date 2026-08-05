@@ -1,0 +1,161 @@
+# =============================================================================
+# inventory/cloudflare.yaml
+# =============================================================================
+# ESTADO: PARCIAL. Nenhuma consulta a API da Cloudflare foi feita — nao ha
+# token configurado. As zonas abaixo sao OWNER_REPORTED (o dono leu o painel e
+# transcreveu), nao verificadas.
+#
+# O parser que normalizara a resposta da API ja existe e esta testado:
+# packages/integrations/src/cloudflare/parser.ts
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-05
+  status: BLOQUEADO
+  apiQueried: false
+  verificationStatus: owner_reported
+  blocker: >-
+    Sem token de API. Necessario: Account:Read, Zone:Read, DNS:Read,
+    Pages:Read, Workers:Read. Nunca colar o valor no chat — ver
+    docs/runbooks/desbloquear-integracoes.md.
+
+account:
+  displayName: Estudionovacena
+  accountId: unknown
+  verificationStatus: owner_reported
+  note: >-
+    O nome da conta e "Estudionovacena", mas ela hospeda dominios de VARIOS
+    clientes (Cassio Ferraz, Garbo, Vivere, 4 Cadeiras, Malta Sertaneja,
+    Gabriel Gadelha, Encantaria). Isso e uma observacao de governanca, nao um
+    problema tecnico: a conta pessoal da Novacena e o ponto unico de controle
+    de DNS de toda a carteira. Vale avaliar conta separada por operacao.
+
+# -----------------------------------------------------------------------------
+# ZONAS RELATADAS PELO DONO
+# -----------------------------------------------------------------------------
+zones:
+  - name: 4cadeiras.com
+    likelyClient: null
+    likelyRepository: 4cadeiras
+    verificationStatus: owner_reported
+    note: Repositorio 4cadeiras existe e e site de evento com venda de ingresso.
+
+  - name: cassioferraz.com.br
+    likelyClient: cassio-ferraz
+    likelyRepository: cassio-ferraz
+    verificationStatus: owner_reported
+    note: >-
+      Confirmado indiretamente pelo historico de Google Ads: o site declarado
+      da campanha e cassioferraz.com.br.
+
+  - name: encantariaartesanal.com
+    likelyClient: null
+    likelyRepository: encantaria_artesanal
+    verificationStatus: owner_reported
+    knownSubdomains:
+      - host: painel.encantariaartesanal.com
+        target: "encantaria_directus (VPS)"
+        verificationStatus: verified
+        source: regra de roteamento do Traefik
+
+  - name: encantariaartesanal.com (segunda entrada aparente)
+    likelyClient: null
+    verificationStatus: conflicting
+    hypothesis: >-
+      HIPOTESE PREFERIDA: nao e uma segunda zona, e o subdominio
+      painel.encantariaartesanal.com aparecendo separadamente no painel. O
+      Traefik confirma que esse subdominio existe e aponta para a VPS.
+      HIPOTESE ALTERNATIVA: sao mesmo duas zonas com o mesmo nome, em contas
+      diferentes — o que seria problema real, porque so uma responde e
+      descobrir qual costuma acontecer durante um incidente.
+    howToResolve: >-
+      `findDuplicateZoneNames` em packages/integrations/src/cloudflare/parser.ts
+      distingue os dois casos assim que houver token. Ja testado.
+
+  - name: gabrielgadelhacantor.com
+    likelyClient: null
+    likelyRepository: gabriel-gadelha-casamentos
+    verificationStatus: conflicting
+    openQuestion: >-
+      O dono pergunta se corresponde ao projeto de casamentos ou a outro. O
+      repositorio gabriel-gadelha-casamentos tem descricao "Landing page
+      oficial - shows para casamentos". O dominio diz "cantor", sem mencao a
+      casamento. Pode ser o mesmo artista com posicionamento mais amplo, ou
+      dois projetos distintos. NAO PRESUMIR: resolver com o conteudo servido no
+      dominio, nao com semelhanca de nome.
+
+  - name: garboeventos.com.br
+    likelyClient: garbo-eventos
+    likelyRepository: garbo
+    verificationStatus: owner_reported
+
+  - name: maltasertaneja.com
+    likelyClient: null
+    likelyRepository: malta-sertaneja
+    verificationStatus: owner_reported
+
+  - name: viveremp.com
+    likelyClient: vivere
+    likelyRepository: vivere
+    verificationStatus: owner_reported
+    knownSubdomains:
+      - { host: "www.viveremp.com", role: site institucional }
+      - { host: "gestao.viveremp.com", role: aplicacao VIVERE 360 }
+      - { host: "conteudo.viveremp.com", role: conteudo }
+    note: Subdominios informados no handoff do VIVERE 360; nao verificados.
+
+# -----------------------------------------------------------------------------
+# DOMINIOS QUE NAO APARECERAM NA LISTA
+# -----------------------------------------------------------------------------
+domainsNotInReportedList:
+  - domain: automatizadoria.cloud
+    status: LOCALIZADO (destino), origem ainda desconhecida
+    servedBy: "VPS nvvps, via Traefik"
+    verificationStatus: verified
+    evidence: >-
+      Regra do Traefik em `automatizadoria-site`:
+      Host(`automatizadoria.cloud`) || Host(`www.automatizadoria.cloud`).
+      Alem disso, 10 subdominios de servico foram confirmados: n8n, webhook,
+      chatwoot, evo, tpb, bot, noco, minio, s3, portainer.
+    openQuestion: >-
+      Sabemos para ONDE aponta. Nao sabemos ONDE E GERENCIADO: nao apareceu na
+      lista de zonas que o dono leu. Ou esta em outra conta Cloudflare, ou em
+      outro provedor de DNS, ou o dono nao rolou a lista ate o fim.
+    action: Confirmar o provedor de DNS quando houver token, ou pelo registrador.
+
+  - domain: estudionovacena.com
+    status: LOCALIZADO (destino), origem desconhecida
+    servedBy: "VPS nvvps, via Traefik"
+    verificationStatus: verified
+    evidence: >-
+      Aparece em 4 regras do Traefik, servindo caminhos diferentes:
+      / (novacena-motion), /editais, /music e /leonardo.
+    openQuestion: Mesma situacao de automatizadoria.cloud — nao consta na lista.
+
+  - domain: srv1106082.hstgr.cloud
+    status: hostname padrao da Hostinger
+    servedBy: VPS nvvps
+    verificationStatus: verified
+    note: >-
+      Aparece como alternativa em 3 regras do Traefik. E o nome que a Hostinger
+      atribui a VPS; nao e dominio de cliente e nao precisa de gestao.
+
+# -----------------------------------------------------------------------------
+notQueried:
+  reason: sem token
+  wouldQuery:
+    - accounts
+    - zones (id, status, nameservers, conta dona)
+    - dns_records por zona (com conteudo de TXT redigido)
+    - pages projects e dominios customizados
+    - workers scripts e routes
+    - ssl/tls e certificados
+    - redirect rules
+    - r2 buckets
+    - d1 databases
+    - kv namespaces
+    - turnstile widgets
+    - analytics
+    - vinculos com GitHub (deployments de Pages)
+
+changesMade: 0

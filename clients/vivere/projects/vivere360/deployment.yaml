@@ -1,0 +1,55 @@
+# Deploy — VIVERE 360
+# Nenhum deploy foi executado, inspecionado por acesso direto, ou alterado.
+slug: vivere360
+client: vivere
+importedAt: 2026-08-05
+
+platform:
+  provider: cloudflare-workers
+  adapter: "@opennextjs/cloudflare"
+  verificationStatus: verified
+  source: package.json
+
+environments:
+  production:
+    urls: [www.viveremp.com, gestao.viveremp.com, conteudo.viveremp.com]
+    branchSource: unknown
+    verificationStatus: owner_reported
+    liveStatus: requires_live_verification
+
+  homologation:
+    url: vivere-homologacao.estudionovacena.workers.dev
+    workerName: vivere-homologacao
+    branchSource: unknown
+    hostedUnder: estudionovacena.workers.dev
+    hostedUnderNote: >-
+      O worker de homologacao esta sob o subdominio workers.dev da conta
+      Novacena (estudionovacena), nao da AutomatizadorIA. Isso e OBSERVACAO,
+      nao violacao da regra de separacao de contas Google — workers.dev e
+      Cloudflare, nao Google — mas vale registrar como ponto de atencao: um
+      projeto de cliente da AutomatizadorIA hospedado sob infraestrutura
+      nomeada como Novacena.
+    verificationStatus: owner_reported
+    liveStatus: requires_live_verification
+
+pipeline:
+  ciConfigured: unknown
+  deployTrigger: unknown
+  note: >-
+    Nao verificado se ha GitHub Actions ou outro CI configurado para deploy
+    automatico deste repositorio. O padrao observado em outros projetos
+    (novacena-motion) usa GitHub Actions ou systemd timer na VPS; o Vivere,
+    sendo Cloudflare Workers, provavelmente usa `wrangler deploy` manual ou
+    Cloudflare Pages/Workers CI proprio — NAO CONFIRMADO.
+
+domainDnsManagement: >-
+  Ver inventory/domains.yaml e inventory/cloudflare.yaml — viveremp.com consta
+  na lista de zonas relatadas pelo dono, mas nao foi consultado via API (sem
+  token).
+
+controlPlaneCapability:
+  canDeploy: false
+  canReadDeploymentStatus: false
+  reason: Sem credencial Cloudflare e fora de escopo de qualquer forma — repositorio de cliente.
+
+changesMade: 0

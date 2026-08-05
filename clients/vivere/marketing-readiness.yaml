@@ -1,0 +1,70 @@
+# Prontidao de midia — VIVERE
+# HISTORICO/OWNER_REPORTED. Nenhuma campanha existe. Nenhuma consulta a
+# plataforma de anuncios foi feita.
+slug: vivere
+importedAt: 2026-08-05
+apiConnected: false
+
+status: campaign_not_ready
+verificationStatus: owner_reported
+
+readinessChecklist:
+  - item: WhatsApp
+    ready: unknown
+    verificationStatus: requires_live_verification
+    note: >-
+      Se o WhatsApp de contato nao estiver configurado e testado, todo clique
+      de anuncio que vira "mensagem" cai em um buraco. Verificar antes de
+      qualquer midia.
+
+  - item: dominio
+    ready: unknown
+    verificationStatus: requires_live_verification
+    domain: viveremp.com
+    note: Ver inventory/domains.yaml — nao servido pela VPS, provavelmente Workers.
+
+  - item: landing page
+    ready: unknown
+    verificationStatus: requires_live_verification
+    note: >-
+      Precisa existir pagina de destino coerente com o anuncio, com tempo de
+      carregamento aceitavel e captura de lead funcionando.
+
+  - item: GTM
+    ready: unknown
+    verificationStatus: requires_live_verification
+    note: Container do Google Tag Manager nao informado para este cliente.
+
+  - item: GA4
+    ready: unknown
+    verificationStatus: requires_live_verification
+
+  - item: eventos de conversao
+    ready: unknown
+    verificationStatus: requires_live_verification
+    note: >-
+      Nenhum evento de conversao foi declarado. Sem eles, uma campanha nao tem
+      como saber se gerou resultado — so gasto.
+
+rule: >-
+  NAO CRIAR CAMPANHA ate que os itens acima estejam validados. Publicar midia
+  sem mensuracao funcionando e o pior tipo de gasto: parece atividade, nao
+  produz aprendizado nem resultado auditavel.
+
+blockedBy:
+  - Confirmar WhatsApp de contato
+  - Confirmar dominio e landing ao vivo
+  - Instalar e validar GTM
+  - Instalar e validar GA4
+  - Definir e testar eventos de conversao
+
+relationToVivere360: >-
+  Este e o cliente comercial VIVERE. O projeto tecnico VIVERE 360
+  (clients/vivere/projects/vivere360/) e a plataforma de gestao do negocio —
+  sao coisas relacionadas mas distintas: uma e o sistema de gestao, a outra e
+  a aquisicao de clientes via midia paga.
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+  reason: Sem adaptador de Google Ads e sem credencial.

@@ -62,6 +62,19 @@ known_hosts
 .ssh/
 
 # --- Dumps e backups ---------------------------------------------------------
+# ATENCAO: `backup/` e `backups/` sem barra inicial casam em QUALQUER
+# profundidade — inclusive diretorios de CODIGO/DOCS que se chamam "backup"
+# por coincidencia, como scripts/backup/ e docs/runbooks/backup/.
+#
+# Isso ja causou um incidente real duas vezes: os arquivos desses dois
+# diretorios foram escritos, testados e believed-committed, mas o .gitignore
+# os engoliu em silencio — `git add -A` nao avisa sobre arquivo ignorado.
+# Corrigido com as negacoes explicitas logo abaixo.
+#
+# Antes de adicionar qualquer novo diretorio chamado backup/backups ao
+# projeto (codigo ou doc), rode `git check-ignore -v <caminho>` e negue aqui
+# se for codigo/doc versionavel. O padrao so deve bloquear DADO de backup em
+# runtime, nunca os scripts ou a documentacao que os produzem.
 *.sql
 *.sql.gz
 *.dump
@@ -69,6 +82,10 @@ known_hosts
 dumps/
 backup/
 backups/
+!scripts/backup/
+!scripts/backup/**
+!docs/runbooks/backup/
+!docs/runbooks/backup/**
 *.bak
 *.backup
 *.tar

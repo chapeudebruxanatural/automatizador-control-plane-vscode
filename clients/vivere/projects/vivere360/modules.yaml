@@ -1,0 +1,97 @@
+# Modulos — VIVERE 360
+# Lista informada pelo dono, cruzada com evidencia de estrutura do repositorio
+# onde possivel. Nenhum conteudo de arquivo foi lido.
+slug: vivere360
+client: vivere
+importedAt: 2026-08-05
+
+modules:
+  - id: cadastros
+    verificationStatus: owner_reported
+  - id: crm
+    verificationStatus: owner_reported
+  - id: vendas
+    verificationStatus: owner_reported
+  - id: financeiro
+    verificationStatus: owner_reported
+    relatedTo: [omie]
+  - id: fiscal
+    verificationStatus: owner_reported
+    relatedTo: [omie]
+  - id: compras
+    verificationStatus: owner_reported
+  - id: estoque
+    verificationStatus: owner_reported
+  - id: producao
+    verificationStatus: owner_reported
+  - id: servicos
+    verificationStatus: owner_reported
+  - id: contador
+    verificationStatus: owner_reported
+    note: >-
+      Modulo declarado "contador" — provavel interface/relatorio para o
+      contador do cliente. Coerente com "planilha do contador" mencionada nos
+      commits recentes de RH.
+
+  - id: omie
+    verificationStatus: verified
+    evidence: "41 arquivos relacionados, incluindo docs de matriz de paridade e plano de transicao"
+    status: em migracao
+    detail: omie-migration.md
+
+  - id: promob
+    verificationStatus: verified
+    evidence: "23 arquivos, incluindo endpoint de webhook"
+    status: integrado
+
+  - id: rh
+    verificationStatus: verified
+    evidence: "src/app/api/rh/employees, upsert"
+
+  - id: ponto
+    verificationStatus: verified
+    evidence: "20 arquivos relacionados a acponto + timesheet-closing-panel.tsx"
+    detail: rh-timesheet.md
+
+  - id: afd
+    verificationStatus: verified
+    evidence: "src/features/rh/afd-parser.ts"
+    note: "Modulo tecnico especifico, nao apenas conceitual — arquivo dedicado existe."
+
+  - id: homologacao
+    verificationStatus: verified
+    evidence: "worker vivere-homologacao no Cloudflare"
+
+  - id: seguranca
+    verificationStatus: verified
+    evidence: "src/app/seguranca no path do App Router"
+
+  - id: mfa
+    verificationStatus: requires_live_verification
+    note: >-
+      Declarado como modulo, e relevante pelo incidente de TOTP registrado em
+      ../security.yaml. Estrutura de codigo especifica de MFA nao foi
+      localizada na busca de arquivos — pode estar dentro de auth/ ou
+      seguranca/ sem nome distintivo.
+
+  - id: migracao
+    verificationStatus: owner_reported
+    note: "Termo guarda-chuva, provavelmente referente ao processo Omie -> VIVERE 360."
+
+  - id: cutover
+    verificationStatus: verified
+    evidence: "docs/CHECKLIST_TIAGO_CUTOVER_OMIE.md"
+    note: "Nome do responsavel (Tiago) no proprio nome do arquivo de checklist."
+
+notFoundInCodeSearch:
+  - note: >-
+      Os nomes de funcao citados no handoff original (matchEmployeesByAfdRegistry,
+      interpretManualEntryPhoto) NAO foram encontrados por busca textual direta
+      via API do GitHub. Isso nao significa que nao existam: a busca de codigo
+      do GitHub tem limitacoes conhecidas (indexacao, escopo). A FUNCIONALIDADE
+      foi confirmada por via indireta: mensagem do commit HEAD
+      ("casar funcionario pelo registro do AFD e ler folha manual por foto (IA)")
+      e existencia de src/features/rh/afd-parser.ts.
+    verificationStatus: discovered
+
+changesMade: 0

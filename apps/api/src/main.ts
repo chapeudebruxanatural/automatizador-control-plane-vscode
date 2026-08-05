@@ -8,16 +8,27 @@
 import { loadConfig } from '../../../packages/shared/src/config.js';
 import { createLogger } from '../../../packages/shared/src/logger.js';
 import { createDefaultRegistry } from '../../../packages/domain/src/actions.js';
+import { ActionExecutor } from '../../../packages/domain/src/executor.js';
 import { createMockAdapterSet } from '../../../packages/integrations/src/adapters/mock.js';
+import { createKillSwitch } from '../../../packages/security/src/kill-switch.js';
+import { createDenyAllApprovalProvider } from '../../../packages/security/src/approval.js';
 import {
   createMemoryAuditProvider,
   createFileAuditProvider,
   createCompositeAuditProvider,
   type AuditProvider,
 } from '../../../packages/audit/src/audit.js';
+import { createWhatsAppModule } from '../../../packages/integrations/src/evolution/index.js';
 import { createApiServer } from './server.js';
 
 const HOST = '127.0.0.1';
+
+function parseAllowedNumbers(raw: string | undefined): readonly string[] {
+  return (raw ?? '')
+    .split(',')
+    .map((n) => n.trim())
+    .filter(Boolean);
+}
 
 function main(): void {
   const config = loadConfig();
@@ -34,7 +45,37 @@ function main(): void {
         ])
       : createMemoryAuditProvider();
 
-  const { server, readiness } = createApiServer({ config, logger, registry });
+  // Sem endpoint de execução de ação nesta fase — o executor existe para o
+  // módulo WhatsApp poder responder consultas (status, listagens) pelo mesmo
+  // caminho protegido (kill switch + auditoria) usado por qualquer outra ação.
+  const executor = new ActionExecutor({
+    registry,
+    killSwitch: createKillSwitch({ engaged: config.killSwitch }),
+    approval: createDenyAllApprovalProvider(),
+    audit,
+    logger,
+    dryRun: config.executionMode === 'dry-run',
+  });
+
+  // Mock por padrão: sem EVOLUTION_API_URL/EVOLUTION_API_KEY configurados,
+  // não há chamada de rede real. `sendMessage` permanece bloqueado de
+  // qualquer forma — ver packages/integrations/src/evolution/adapter.ts.
+  const whatsapp = createWhatsAppModule({
+    allowedNumbers: parseAllowedNumbers(process.env['WHATSAPP_ALLOWED_NUMBERS']),
+    rateLimitPerMinute: Number(process.env['WHATSAPP_RATE_LIMIT_PER_MINUTE'] ?? '20') || 20,
+    executor,
+    logger: logger.child({ module: 'whatsapp' }),
+    githubOwner: process.env['GITHUB_OWNER'] ?? 'dadocruz',
+  });
+
+  const webhookSecret = process.env['EVOLUTION_WEBHOOK_SECRET'] ?? '';
+
+  const { server, readiness } = createApiServer({
+    config,
+    logger,
+    registry,
+    whatsapp: { module: whatsapp, webhookSecret, logger: logger.child({ route: 'whatsapp' }) },
+  });
 
   server.listen(config.port, HOST, () => {
     logger.info('control plane no ar', {
@@ -46,6 +87,8 @@ function main(): void {
       auditSink: audit.name,
       actions: registry.list().length,
       mutatingActions: registry.listMutating().length,
+      whatsappWriteActionsEnabled: whatsapp.writeActionsEnabled,
+      whatsappAllowlistSize: whatsapp.allowlist.size,
     });
 
     if (!config.killSwitch) {

@@ -1,0 +1,50 @@
+# Campanhas — Gaveta Producoes
+# HISTORICO. Nada foi criado, alterado, pausado ou reativado.
+slug: gaveta-producoes
+importedAt: 2026-08-05
+apiConnected: false
+
+campaigns:
+  - id: "24079586567"
+    name: unknown
+    type: video (inferido do ativo)
+    status: requires_live_verification
+    statusNote: >-
+      O dono nao informou o status atual. Pode estar ativa, pausada por trava
+      de verba, ou encerrada. So a plataforma sabe.
+    objective: visualizacoes
+    targetViewsApprox: 28000
+    asset:
+      type: youtube-video
+      videoId: idiawAK9HdQ
+    budget:
+      ceilingBRL: 280
+      pauseAtBRL: 275
+      verificationStatus: historical_confirmed
+    pauseRules:
+      - trigger: "gasto acumulado >= R$ 275"
+        action: pausar
+        automatic: permitido
+      - trigger: "gasto acumulado >= R$ 280 (teto)"
+        action: pausar
+        automatic: permitido
+      - trigger: "apos pausa por trava"
+        action: reativar
+        automatic: PROIBIDO
+        rationale: >-
+          Regra explicita do dono. Reativacao exige decisao humana e nova
+          autorizacao de verba. Nenhum cron, gatilho ou workflow pode reverter
+          uma trava.
+    verificationStatus: historical_confirmed
+    lastVerifiedAt: 2026-08-05
+
+    unknownFields:
+      - nome da campanha
+      - data de inicio e de fim
+      - segmentacao (geografica, demografica, interesse)
+      - lance e estrategia de lance
+      - gasto acumulado
+      - visualizacoes entregues
+      - CPV medio
+
+changesMade: 0

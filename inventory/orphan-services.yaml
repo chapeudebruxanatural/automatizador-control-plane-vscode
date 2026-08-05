@@ -1,0 +1,157 @@
+# =============================================================================
+# inventory/orphan-services.yaml — servicos sem dono, sem repositorio ou duplicados
+# =============================================================================
+# Origem: leitura da VPS em 2026-08-05 (roteamento Traefik + metadados).
+# NENHUM servico foi interrompido, removido ou alterado.
+# Analise: docs/discovery/service-ownership.md
+# =============================================================================
+
+meta:
+  collectedAt: 2026-08-05
+  verificationStatus: verified
+
+# -----------------------------------------------------------------------------
+# SEM REPOSITORIO CONHECIDO
+# -----------------------------------------------------------------------------
+withoutRepository:
+  - service: novacena-editais_web
+    stack: novacena-editais
+    image: novacena-editais:v3
+    appDir: /opt/novacena-editais
+    route: "estudionovacena.com/editais"
+    uptime: ~2 semanas
+    client: novacena
+    severity: alta
+    detail: >-
+      Aplicacao propria em producao, com imagem versionada (v3) e healthcheck
+      funcionando. Nenhum repositorio de dadocruz corresponde. Se o codigo nao
+      estiver versionado em lugar nenhum, ele existe apenas dentro da imagem
+      Docker — num host sem backup deste item.
+    hypothesis: >-
+      Pode haver relacao tematica com o diretorio editais/ do repositorio
+      cassio-ferraz (editais de incentivo cultural), mas sao coisas diferentes:
+      um e site estatico de artista, outro e aplicacao com worker. NAO PRESUMIR.
+    action: Localizar o codigo-fonte e versiona-lo
+    approval: nivel-0
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+  - service: novacena-editais_worker
+    stack: novacena-editais
+    image: novacena-editais-tools:v2
+    memoryLimit: 512MiB
+    client: novacena
+    severity: alta
+    detail: Worker da aplicacao acima. Mesma situacao.
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+  - service: novacena-propostas
+    stack: null
+    image: nginx:1.27-alpine
+    appDir: /opt/novacena-propostas
+    route: "estudionovacena.com/leonardo"
+    uptime: ~5 semanas
+    client: novacena
+    severity: media
+    detail: >-
+      Site estatico. O caminho /leonardo indica proposta comercial publicada
+      para um cliente especifico, nao um produto. Sendo estatico, o conteudo
+      vive no diretorio do host e NAO esta coberto por backup.
+    action: Versionar o conteudo e incluir /opt no backup
+    approval: nivel-0
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+# -----------------------------------------------------------------------------
+# CONTAINER FORA DE GESTAO
+# -----------------------------------------------------------------------------
+orphanContainers:
+  - name: determined_neumann
+    image: novacena-editais-tools:v2
+    state: running
+    uptime: ~2 semanas
+    memoryUse: ~152MiB
+    stack: null
+    route: nenhuma
+    severity: media
+    detail: >-
+      Nome gerado automaticamente pelo Docker: assinatura de `docker run`
+      manual que ficou. Mesma imagem do worker do novacena-editais. Nao
+      pertence a stack, entao nao reinicia sozinho, nao e versionado e nao e
+      monitorado.
+    action: Descobrir o proposito e encerrar se for tarefa pontual esquecida
+    approval: nivel-2
+    rollback: "sim — pode ser recriado com o mesmo comando, se conhecido"
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+# -----------------------------------------------------------------------------
+# DUPLICACAO
+# -----------------------------------------------------------------------------
+duplicated:
+  - workload: novacena-music
+    severity: media
+    resolvedBy: "regras de roteamento do Traefik"
+    live:
+      deployment: swarm
+      stack: novacena_music
+      services: [novacena_music_backend, novacena_music_frontend, novacena_music_nginx]
+      traefikRouter: "novacena_music -> Host(estudionovacena.com) && PathPrefix(/music)"
+      volume: novacena_music_novacena_music_data
+      volumeSize: 59MB
+      receivesTraffic: true
+    residual:
+      deployment: compose
+      configFile: /opt/novacena-music/docker-compose.yml
+      containers: [novacena-music-backend-1, novacena-music-frontend-1, novacena-music-nginx-1]
+      traefikRouter: nenhum
+      exposure: "127.0.0.1:8088 apenas"
+      volume: novacena-music_novacena_music_data
+      volumeSize: 766MB
+      receivesTraffic: false
+    finding: >-
+      O par que NAO recebe trafego tem 13x MAIS dados (766MB contra 59MB).
+      Hipotese: o Compose foi a instalacao original e acumulou dados; o stack
+      Swarm foi criado depois, comecou do zero e assumiu o roteamento.
+    correction: >-
+      Isto CORRIGE a inferencia registrada em inventory/containers.yaml no
+      Ciclo 1, que sugeria o Compose como provavel ativo por ter mais dados.
+      Volume maior nao significa servico ativo.
+    action: >-
+      Comparar o conteudo dos dois volumes ANTES de desligar. A pergunta nao e
+      "posso desligar?" (posso, o trafego nao passa por la) e sim "esses 766MB
+      fazem falta?".
+    approval: nivel-2
+    rollback: "sim — `docker compose up -d` recria"
+    wastedMemory: ~75MiB
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+# -----------------------------------------------------------------------------
+# SERVICO DE HOST INATIVO
+# -----------------------------------------------------------------------------
+inactiveHostServices:
+  - name: nginx.service
+    state: failed
+    since: 2026-06-20
+    enabled: false
+    severity: baixa
+    detail: >-
+      Sem impacto funcional: o Traefik atende 80/443 e os nginx que importam
+      rodam em container. Residuo de topologia anterior. Existe configuracao
+      novacena-motion em /etc/nginx/sites-enabled.
+    risk: Gera alarme falso em qualquer monitoramento que olhe systemctl
+    action: Remover ou documentar como inativo intencional
+    approval: nivel-1
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+
+summary:
+  withoutRepository: 3
+  orphanContainers: 1
+  duplicatedWorkloads: 1
+  inactiveHostServices: 1
+  servicesStopped: 0
+  servicesRemoved: 0
+  changesMade: 0

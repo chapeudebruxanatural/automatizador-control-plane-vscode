@@ -1,0 +1,84 @@
+# Especificacao de relatorio — Cassio Ferraz
+# PROPOSTA. Nenhum relatorio foi gerado; nao ha acesso a dados ao vivo.
+slug: cassio-ferraz
+importedAt: 2026-08-05
+dataSourceConnected: false
+
+purpose: >-
+  Definir o que um relatorio deste cliente precisa mostrar, ANTES de existir
+  acesso aos dados. Escrever a especificacao primeiro evita o relatorio que
+  mostra o que e facil de extrair em vez do que orienta decisao.
+
+principles:
+  - id: state-the-source
+    rule: >-
+      Todo numero declara data de extracao e fonte. Metrica de midia muda de
+      hora em hora; numero sem data e ficcao com aparencia de fato.
+  - id: no-blank-for-missing
+    rule: >-
+      Metrica indisponivel aparece como "nao mensurado", nunca como zero.
+      Zero significa "aconteceu zero vezes"; em branco significa "nao sabemos".
+      Confundir os dois leva a conclusao errada.
+  - id: money-over-volume
+    rule: >-
+      Priorizar custo por lead qualificado e receita sobre volume de cliques.
+      Impressao e clique sao insumo, nao resultado.
+  - id: separate-micro
+    rule: >-
+      Microconversao (clique no WhatsApp) reportada SEPARADA de lead
+      qualificado. Somar as duas infla o numero e esconde o custo real.
+
+sections:
+  - id: summary
+    name: Resumo do periodo
+    metrics:
+      - { key: spend, label: Investimento, unit: BRL, required: true }
+      - { key: qualified_leads, label: Leads qualificados, required: true }
+      - { key: cost_per_qualified_lead, label: Custo por lead qualificado, unit: BRL, required: true }
+      - { key: whatsapp_clicks, label: Cliques no WhatsApp, note: microconversao, required: true }
+      - { key: budget_remaining, label: Verba restante, unit: BRL, required: false,
+          blocked: "conflito de verba em aberto — ver financial-controls.yaml" }
+
+  - id: by_campaign
+    name: Por campanha
+    breakdown: [search_24073903393, demandgen_24066140634]
+    metrics: [spend, impressions, clicks, ctr, qualified_leads, cost_per_qualified_lead]
+    note: >-
+      Comparar Pesquisa e Demand Gen no mesmo indicador exige cuidado: sao
+      canais com intencao diferente. CPL maior na Demand Gen nao significa pior
+      desempenho — significa estagio diferente do funil.
+
+  - id: funnel
+    name: Funil
+    stages: [clicks, whatsapp_clicks, qualified_leads, proposals, closes, revenue]
+    status: parcialmente indisponivel
+    note: >-
+      proposals, closes e revenue dependem de integracao de CRM que nao existe.
+      Devem aparecer como "nao mensurado". Ver crm-funnel.yaml.
+
+  - id: health
+    name: Saude da mensuracao
+    checks:
+      - GTM GTM-5JGMZBKZ respondendo
+      - conversao primaria registrando
+      - qual conversao esta marcada como primaria
+      - discrepancia entre cliques e sessoes
+    note: >-
+      Esta secao existe porque relatorio bonito sobre mensuracao quebrada e
+      pior que relatorio nenhum: ele produz confianca sem produzir verdade.
+
+cadence:
+  proposed: semanal
+  rationale: >-
+    Semanal acompanha o ritmo de ajuste de midia. Diario, com esse volume de
+    verba, produz ruido: variacao normal e lida como tendencia.
+
+blockers:
+  - Sem adaptador de Google Ads e sem credencial
+  - Sem CRM conectado para as tres etapas finais
+  - Conflito de verba impede reportar saldo
+  - Nao se sabe se o import de conversao offline existe
+
+controlPlaneCapability:
+  canGenerate: false
+  reason: Nenhuma fonte de dados conectada.

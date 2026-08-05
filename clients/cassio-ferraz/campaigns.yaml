@@ -1,0 +1,61 @@
+# Campanhas — Cassio Ferraz
+# HISTORICO. Nada criado, alterado, pausado ou reativado.
+slug: cassio-ferraz
+importedAt: 2026-08-05
+apiConnected: false
+
+campaigns:
+  - id: "24073903393"
+    channel: search
+    name: unknown
+    status: requires_live_verification
+    geoScope: regional
+    geoDetail: unknown
+    role: >-
+      Captura de demanda existente. Quem pesquisa ja esta procurando — volume
+      menor, intencao maior.
+    verificationStatus: historical_confirmed
+    adGroups:
+      - id: "201808946354"
+        name: unknown
+        verificationStatus: owner_reported
+        note: >-
+          O dono informou o ad group junto das campanhas, sem dizer a qual
+          pertence. Atribuido a Pesquisa por ser o canal onde ad group tem
+          esse papel, mas NAO CONFIRMADO.
+    unknownFields:
+      - palavras-chave e correspondencias
+      - estrategia de lance
+      - anuncios e extensoes
+      - gasto e conversoes
+
+  - id: "24066140634"
+    channel: demand-gen
+    name: unknown
+    status: requires_live_verification
+    geoScope: nacional
+    priority: prioritaria
+    role: >-
+      Geracao de demanda. Alcanca quem ainda nao procura — volume maior,
+      intencao menor, dependencia forte de criativo.
+    verificationStatus: historical_confirmed
+    unknownFields:
+      - publicos e segmentacao
+      - criativos
+      - estrategia de lance
+      - gasto e conversoes
+
+strategicNote: >-
+  A combinacao e coerente: Pesquisa regional captura quem ja procura na regiao
+  de atuacao; Demand Gen nacional amplia alcance para contratacao de shows fora
+  dela. A escolha de Demand Gen como prioritaria indica aposta em expansao, nao
+  em colheita.
+  Isso e leitura da estrutura, nao declaracao do dono.
+
+budget:
+  configuredBRL: 300
+  scope: "nao esclarecido se por campanha ou total"
+  verificationStatus: conflicting
+  note: "Ver budgetConflict em google-ads.yaml."
+
+changesMade: 0

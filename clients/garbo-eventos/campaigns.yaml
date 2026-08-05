@@ -1,0 +1,49 @@
+# Campanhas — Garbo Eventos
+# HISTORICO. Nada criado, alterado, pausado ou reativado.
+slug: garbo-eventos
+importedAt: 2026-08-05
+apiConnected: false
+
+campaigns:
+  - { id: "24016194642", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
+  - { id: "24016194645", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
+  - { id: "24016194648", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
+  - { id: "24016194651", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
+  - { id: "24016194654", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
+
+sharedAttributes:
+  budgetLotBRL: 100
+  preventivePauseBRL: 90
+  microConversion: clique no WhatsApp
+  verificationStatus: historical_confirmed
+  budgetScopeUnknown: >-
+    NAO ESTA CLARO se o lote de R$ 100 e por campanha ou para o conjunto das
+    cinco. A diferenca e de 5x no gasto total (R$ 100 contra R$ 500) e muda
+    completamente o significado da trava de R$ 90.
+    ESCLARECER ANTES de qualquer automacao de pausa.
+
+idPattern:
+  observation: "IDs sequenciais com passo 3: 642, 645, 648, 651, 654"
+  inference: >-
+    Criacao em bloco, na mesma sessao. Indica estrutura planejada — cinco
+    variacoes de um desenho — e nao acumulo ao longo do tempo.
+  verificationStatus: discovered
+  note: Inferencia a partir do padrao dos IDs, nao declaracao do dono.
+
+unknownFields:
+  - nomes das campanhas
+  - canal de cada uma (Pesquisa, Display, Video, PMax?)
+  - criterio de divisao entre elas
+  - segmentacao geografica
+  - estrategia de lance
+  - gasto e conversoes por campanha
+  - datas de inicio e fim
+
+externalAutomation:
+  googleAdsScript: "11999683"
+  status: requires_live_verification
+  risk: >-
+    Automacao que ja opera esta conta, fora do Control Plane e fora do kill
+    switch. Ver google-ads.yaml.
+
+changesMade: 0

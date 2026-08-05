@@ -1,0 +1,76 @@
+# Google Ads — Cassio Ferraz
+# HISTORICO. Nenhuma consulta a plataforma. Nenhuma campanha alterada.
+slug: cassio-ferraz
+importedAt: 2026-08-05
+apiConnected: false
+
+account:
+  mcc: "399-259-4849"
+  advertiserAccount: "265-696-6896"
+  currency: BRL
+  timezone: America/Sao_Paulo
+  verificationStatus: owner_reported
+
+site:
+  domain: cassioferraz.com.br
+  verificationStatus: owner_reported
+  crossReference: >-
+    O dominio consta nas zonas Cloudflare relatadas e o repositorio
+    dadocruz/cassio-ferraz tem estrutura de site de artista. Nao foi verificado
+    que o site no ar corresponde ao repositorio.
+
+campaigns:
+  - id: "24073903393"
+    channel: search
+    scope: regional
+  - id: "24066140634"
+    channel: demand-gen
+    scope: nacional
+    priority: prioritaria
+adGroup:
+  id: "201808946354"
+  belongsTo: "24073903393 (a confirmar)"
+  verificationStatus: owner_reported
+
+detail: clients/cassio-ferraz/campaigns.yaml
+tracking: clients/cassio-ferraz/tracking.yaml
+financialControls: clients/cassio-ferraz/financial-controls.yaml
+strategy: clients/cassio-ferraz/strategy-v2.md
+funnel: clients/cassio-ferraz/crm-funnel.yaml
+reporting: clients/cassio-ferraz/reporting-spec.yaml
+
+# -----------------------------------------------------------------------------
+# CONFLITO ABERTO
+# -----------------------------------------------------------------------------
+budgetConflict:
+  configuredBRL: 300
+  receivedBRL: unknown
+  verificationStatus: conflicting
+  detail: >-
+    O orcamento HISTORICO configurado na plataforma foi de R$ 300. Ha conflito
+    sobre quanto de verba foi efetivamente recebido. As duas informacoes nao
+    batem e nenhuma das duas foi confirmada contra a fonte.
+  consequence: >-
+    Enquanto o conflito estiver aberto, NENHUMA VERBA NOVA E PRESUMIDA. Nao se
+    aumenta orcamento, nao se reativa campanha pausada por verba, e nao se
+    projeta gasto futuro sobre um numero incerto.
+  howToResolve:
+    - Extrato de gasto real da campanha na plataforma
+    - Comprovante do que foi recebido do cliente
+    - Conciliar os dois e registrar em DECISIONS.md
+
+strategyStatus:
+  version: v2
+  publishedAt: 2026-07-28
+  verificationStatus: partially_executed
+  detail: >-
+    Publicada PARCIALMENTE em 28/07/2026. O que exatamente foi ao ar e o que
+    ficou pendente nao foi detalhado. Ver strategy-v2.md.
+
+liveVerificationNeeded:
+  - Status das duas campanhas
+  - Gasto real contra os R$ 300 configurados
+  - Quais partes da estrategia v2 estao publicadas
+  - Se a conversao "CASSIO | LEAD QUALIFICADO | FORM" esta registrando
+  - Se o GTM e o conversion ID estao ativos no site
+  - Volume de leads e qualidade

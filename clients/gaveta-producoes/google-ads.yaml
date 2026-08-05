@@ -1,0 +1,60 @@
+# Google Ads — Gaveta Producoes
+# HISTORICO. Nenhuma consulta a plataforma. Nenhuma campanha alterada.
+slug: gaveta-producoes
+importedAt: 2026-08-05
+apiConnected: false
+
+account:
+  mcc: "399-259-4849"
+  advertiserAccount: "265-696-6896"
+  currency: BRL
+  timezone: America/Sao_Paulo
+  dedicatedAccount: false
+  verificationStatus: owner_reported
+  note: >-
+    Conta compartilhada com outros clientes. O isolamento e por campanha.
+
+project:
+  name: Leao e Lorenzo
+  type: divulgacao de video
+  verificationStatus: historical_confirmed
+  note: >-
+    "Leao e Lorenzo" e o projeto/artista atendido sob a Gaveta Producoes.
+    Relacao entre a produtora e o artista nao detalhada pelo dono.
+
+asset:
+  type: youtube-video
+  videoId: idiawAK9HdQ
+  verificationStatus: historical_confirmed
+  note: >-
+    ID do video usado na campanha. Nao verificado se ainda esta publico nem se
+    a campanha ainda o referencia.
+
+objective:
+  metric: visualizacoes
+  targetApprox: 28000
+  verificationStatus: historical_confirmed
+  note: Meta aproximada informada pelo dono. Nao verificado se foi atingida.
+
+campaigns:
+  - id: "24079586567"
+    file: clients/gaveta-producoes/campaigns.yaml
+    verificationStatus: historical_confirmed
+
+financialControls:
+  file: clients/gaveta-producoes/financial-controls.yaml
+  ceilingBRL: 280
+  pauseMarginBRL: 275
+  autoReactivate: PROIBIDO
+
+liveVerificationNeeded:
+  - Status atual da campanha
+  - Gasto acumulado real e se a trava de R$ 275 foi atingida
+  - Visualizacoes entregues contra a meta de ~28.000
+  - Se o video ainda esta publico e vinculado
+  - Quem e o contato responsavel do lado do cliente
+
+openQuestions:
+  - Gaveta Producoes e Leao e Lorenzo sao o mesmo cliente comercial?
+  - O repositorio gaveta-monitor tem relacao com esta operacao de midia?
+  - Ha novo lote de verba previsto?

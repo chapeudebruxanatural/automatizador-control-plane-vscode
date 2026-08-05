@@ -1,0 +1,62 @@
+# Google Ads — Garbo Eventos
+# HISTORICO. Nenhuma consulta a plataforma. Nenhuma campanha alterada.
+slug: garbo-eventos
+importedAt: 2026-08-05
+apiConnected: false
+
+account:
+  mcc: "399-259-4849"
+  advertiserAccount: "265-696-6896"
+  currency: BRL
+  timezone: America/Sao_Paulo
+  verificationStatus: owner_reported
+
+site:
+  domain: garboeventos.com.br
+  verificationStatus: owner_reported
+  likelyRepository: garbo
+
+campaigns:
+  count: 5
+  ids: ["24016194642", "24016194645", "24016194648", "24016194651", "24016194654"]
+  detail: clients/garbo-eventos/campaigns.yaml
+  verificationStatus: historical_confirmed
+  observation: >-
+    Os cinco IDs sao sequenciais com passo 3 (…642, …645, …648, …651, …654),
+    o que indica criacao em bloco, na mesma sessao. Sugere estrutura planejada
+    — cinco variacoes de um mesmo desenho, e nao cinco campanhas avulsas
+    acumuladas ao longo do tempo. O criterio de divisao (servico, regiao,
+    publico?) nao foi informado.
+
+automation:
+  googleAdsScript:
+    id: "11999683"
+    verificationStatus: historical_confirmed
+    liveStatus: requires_live_verification
+    purpose: unknown
+    concern: >-
+      IMPORTANTE: um Google Ads Script e automacao que JA RODA na plataforma,
+      fora do Control Plane e fora do kill switch. Se ele altera orcamento,
+      lance ou status de campanha, existe uma segunda mao operando a conta.
+      Descobrir o que ele faz e pre-requisito de qualquer automacao nossa —
+      duas automacoes que se desconhecem podem se anular ou se somar.
+
+conversions:
+  - name: clique no WhatsApp
+    type: microconversao
+    verificationStatus: historical_confirmed
+    note: Mesmo cuidado do Cassio Ferraz — nao confundir com lead qualificado.
+
+financialControls:
+  file: clients/garbo-eventos/financial-controls.yaml
+  lotBRL: 100
+  preventivePauseBRL: 90
+  newLotRequiresAuthorization: true
+
+liveVerificationNeeded:
+  - Status das 5 campanhas
+  - O que o Google Ads Script 11999683 faz, e se ainda roda
+  - Gasto acumulado por campanha contra o lote de R$ 100
+  - Se a pausa preventiva de R$ 90 foi atingida
+  - Criterio de divisao entre as 5 campanhas
+  - Se ha conversao primaria alem do clique no WhatsApp

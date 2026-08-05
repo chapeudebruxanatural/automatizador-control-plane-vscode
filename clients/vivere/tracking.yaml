@@ -1,0 +1,49 @@
+# Mensuracao — VIVERE (cliente comercial / midia)
+# HISTORICO/OWNER_REPORTED. Nenhuma tag foi instalada, alterada ou verificada.
+slug: vivere
+importedAt: 2026-08-05
+
+status: not_configured
+verificationStatus: requires_live_verification
+
+site:
+  domain: viveremp.com
+  verificationStatus: owner_reported
+  servedBy: "provavelmente Cloudflare Workers — nao e a VPS (ver inventory/domains.yaml)"
+
+tagManager:
+  container: unknown
+  verificationStatus: unknown
+  note: Nao informado. Precisa ser criado ou localizado antes de qualquer midia.
+
+analytics:
+  ga4: unknown
+  verificationStatus: unknown
+
+conversions:
+  defined: []
+  verificationStatus: unknown
+  note: >-
+    Nenhum evento de conversao foi declarado para este cliente. E o oposto da
+    situacao de Cassio Ferraz e Garbo, que ja tem conversao definida mesmo com
+    lacunas. Aqui o ponto de partida e zero.
+
+whatsapp:
+  configured: unknown
+  verificationStatus: requires_live_verification
+  note: >-
+    Pre-requisito operacional antes de mensuracao fazer sentido: se o canal de
+    contato nao existe, nao ha o que medir.
+
+dependency: clients/vivere/marketing-readiness.yaml
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+
+nextSteps:
+  - Confirmar canal de contato (WhatsApp) funcionando
+  - Criar ou localizar container GTM
+  - Instalar GA4
+  - Definir eventos de conversao com o cliente
+  - So entao avaliar Google Ads

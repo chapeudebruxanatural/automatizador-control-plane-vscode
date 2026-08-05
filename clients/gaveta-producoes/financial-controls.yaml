@@ -1,0 +1,59 @@
+# Controles financeiros — Gaveta Producoes
+# Politica geral: docs/security/advertising-approval-policy.md
+slug: gaveta-producoes
+importedAt: 2026-08-05
+
+authorizedBudget:
+  ceilingBRL: 280
+  currency: BRL
+  scope: "campanha 24079586567"
+  authorizedBy: proprietario
+  verificationStatus: historical_confirmed
+  note: >-
+    Teto HISTORICO autorizado. Nao autoriza gasto futuro. Nova verba exige
+    nova autorizacao explicita.
+
+pauseThresholds:
+  - value: 275
+    type: margem de seguranca
+    action: pausar
+    automatic: permitido
+    rationale: >-
+      Pausar 5 reais antes do teto absorve o atraso de sincronizacao do gasto
+      na plataforma. A margem e estreita: R$ 5 sobre R$ 280 e 1,8%. Se a
+      sincronizacao atrasar mais que isso, o teto pode ser ultrapassado antes
+      de a pausa chegar. Considerar margem maior no proximo lote.
+  - value: 280
+    type: teto absoluto
+    action: pausar
+    automatic: permitido
+
+reactivation:
+  automatic: PROIBIDO
+  requires:
+    - decisao humana explicita
+    - nova autorizacao de verba, com valor declarado
+    - registro em DECISIONS.md
+  approvalLevel: 2
+  rationale: >-
+    Assimetria: pausar cedo demais custa horas de entrega; reativar sem
+    autorizacao gasta dinheiro que ninguem aprovou. A automacao falha para o
+    lado barato.
+
+prohibited:
+  - Reativacao automatica apos trava, em qualquer condicao
+  - Aumento de orcamento sem autorizacao
+  - Presumir novo lote por virada de mes ou de periodo
+  - Acao em lote junto com outros clientes
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+  reason: >-
+    Nao ha adaptador de Google Ads. Nenhuma credencial configurada. Kill switch
+    ativo. Este arquivo e registro de politica, nao configuracao executavel.
+
+liveVerificationNeeded:
+  - Gasto acumulado real
+  - Se a trava foi atingida, e quando
+  - Se houve reativacao apos trava (e por quem)

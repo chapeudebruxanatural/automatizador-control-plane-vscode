@@ -1,0 +1,70 @@
+# Mensuracao — Cassio Ferraz
+# HISTORICO. Nenhuma tag foi instalada, alterada ou verificada ao vivo.
+slug: cassio-ferraz
+importedAt: 2026-08-05
+
+site:
+  domain: cassioferraz.com.br
+  verificationStatus: owner_reported
+
+tagManager:
+  container: GTM-5JGMZBKZ
+  verificationStatus: historical_confirmed
+  liveStatus: requires_live_verification
+  note: >-
+    ID de container do GTM nao e segredo — fica no HTML de qualquer pagina que
+    o use. Registrar aqui e seguro e util.
+
+googleAds:
+  conversionId: "18088952203"
+  verificationStatus: historical_confirmed
+  liveStatus: requires_live_verification
+
+conversions:
+  - name: "CASSIO | LEAD QUALIFICADO | FORM"
+    type: primaria
+    trigger: envio de formulario
+    countingNote: unknown
+    verificationStatus: historical_confirmed
+    liveStatus: requires_live_verification
+    role: >-
+      Conversao principal. E o sinal que a otimizacao de lance deve perseguir.
+
+  - name: clique no WhatsApp
+    type: microconversao
+    trigger: clique em link de WhatsApp
+    verificationStatus: historical_confirmed
+    liveStatus: requires_live_verification
+    role: >-
+      Microconversao. Indica intencao, nao lead qualificado.
+    caution: >-
+      Clique em WhatsApp e barato e frequente; lead qualificado e caro e raro.
+      Se as duas forem marcadas como conversao primaria, o algoritmo otimiza
+      para a barata e o custo por lead real sobe sem que o painel demonstre.
+      Verificar ao vivo qual esta marcada como primaria.
+
+measurementDepth:
+  declared:
+    - proposta enviada
+    - fechamento
+    - receita
+  verificationStatus: strategic_proposal
+  liveStatus: requires_live_verification
+  note: >-
+    Medir ate receita exige devolver o resultado do CRM ao Google Ads (import
+    de conversao offline). NAO foi confirmado que isso esta implementado. E a
+    diferenca entre otimizar por lead e otimizar por dinheiro.
+    Ver clients/cassio-ferraz/crm-funnel.yaml.
+
+gaps:
+  - Existencia e configuracao do GA4 (nao mencionada)
+  - Se o import de conversao offline esta implementado
+  - Janela de atribuicao
+  - Se ha deduplicacao entre GTM e tag nativa
+  - Consentimento de cookies / Consent Mode
+  - Se as conversoes registram valor monetario
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+  reason: Sem adaptador e sem credencial de Google Ads.

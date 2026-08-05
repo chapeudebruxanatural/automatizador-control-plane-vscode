@@ -1,0 +1,81 @@
+# Integracoes — VIVERE
+# Nenhuma integracao foi acessada, testada ou alterada por este inventario.
+slug: vivere
+importedAt: 2026-08-05
+
+integrations:
+  - id: omie
+    name: Omie
+    role: ERP legado, sendo substituido
+    status: em migracao
+    verificationStatus: verified
+    evidence: >-
+      41 arquivos relacionados no repositorio, incluindo
+      docs/MATRIZ_PARIDADE_OMIE.md, docs/PLANO_TRANSICAO_OMIE_VIVERE360.md,
+      docs/CHECKLIST_TIAGO_CUTOVER_OMIE.md, endpoints de sync e status.
+    modules: [financeiro, fiscal, cadastros]
+    detail: clients/vivere/projects/vivere360/omie-migration.md
+    risk: >-
+      Migracao de ERP em andamento e o tipo de projeto onde um erro de
+      sincronizacao gera divergencia financeira real. O checklist de cutover
+      com nome do responsavel (Tiago) sugere processo formal de corte —
+      indicio de maturidade do plano, positivo.
+
+  - id: promob
+    name: Promob
+    role: "software de projetos de moveis planejados"
+    status: integrado
+    verificationStatus: verified
+    evidence: >-
+      23 arquivos, incluindo import, status, test-connection e webhook
+      (src/app/api/integrations/promob/webhook/route.ts).
+    hasWebhook: true
+    webhookNote: >-
+      Existencia de webhook confirmada pelo nome do arquivo. Conteudo, URL e
+      segredo do webhook NAO foram lidos.
+
+  - id: acponto
+    name: AC Ponto
+    role: "relogio de ponto eletronico"
+    status: integrado
+    verificationStatus: verified
+    evidence: >-
+      20 arquivos: sync, status, test-connection, normalizer, client, access,
+      alem de 2 migrations especificas de fechamento de ponto
+      (0056_timesheet_closing.sql, 0057_timesheet_unregistered_report.sql).
+    detail: clients/vivere/projects/vivere360/rh-timesheet.md
+
+  - id: anthropic-api
+    name: "Anthropic API (@anthropic-ai/sdk)"
+    role: "leitura assistida por IA de folha de ponto manuscrita"
+    status: dependencia adicionada, NAO homologada
+    verificationStatus: verified
+    evidence: "@anthropic-ai/sdk@^0.115.0 no package.json da branch de trabalho"
+    credentialRequired: ANTHROPIC_API_KEY
+    credentialConfigured: unknown
+    detail: clients/vivere/projects/vivere360/pending-dependencies.yaml
+    risk: >-
+      IA lendo documento manuscrito para lancamento de ponto/folha de pagamento
+      e superficie sensivel: erro de leitura pode gerar pagamento incorreto.
+      O proprio handoff exige revisao humana obrigatoria — postura correta,
+      registrada e reforcada em pending-dependencies.yaml.
+
+  - id: supabase
+    name: Supabase
+    role: "banco de dados, autenticacao"
+    status: em uso
+    verificationStatus: owner_reported
+    projectRef: wuaavhtwtidkdxxexzug
+
+  - id: cloudflare-workers
+    name: Cloudflare Workers
+    role: hospedagem via open-next
+    status: em uso
+    verificationStatus: verified
+
+controlPlaneCapability:
+  canRead: false
+  canWrite: false
+  reason: Nenhuma credencial configurada para nenhuma destas integracoes.
+
+changesMade: 0

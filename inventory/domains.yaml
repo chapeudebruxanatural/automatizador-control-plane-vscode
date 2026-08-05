@@ -1,105 +1,158 @@
 # =============================================================================
-# inventory/domains.yaml — dominios e DNS
+# inventory/domains.yaml — dominios, DNS e roteamento
 # =============================================================================
-# Inventario MUITO INCOMPLETO, e isso e um achado, nao um descuido.
+# ATUALIZADO em 2026-08-05 com o roteamento REAL do Traefik. O que antes era
+# lacuna total agora tem duas camadas:
 #
-# O mapeamento dominio -> cliente e a maior lacuna do catalogo. Ele exige a API
-# da Cloudflare (zonas e registros DNS), para a qual nao ha token, ou a leitura
-# da configuracao do Traefik na VPS.
+#   - DESTINO (dominio -> servico): VERIFICADO, lido das regras do Traefik.
+#   - ORIGEM (dominio -> zona DNS):  BLOQUEADO, exige token da Cloudflare.
+#
+# Zonas relatadas pelo dono: inventory/cloudflare.yaml
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-04
-  status: PARCIAL
-  verificationStatus: unknown
-  blocker: >-
-    Sem token da Cloudflare nao e possivel listar zonas nem registros DNS.
-    Um token SOMENTE LEITURA (Zone:Read + DNS:Read) resolve, e nao permite
-    alterar nada.
-  impact: >-
-    Sem esse mapeamento nao se sabe qual dominio aponta para qual servico da
-    VPS, nem qual cliente e afetado se um servico cair. E o que transforma um
-    incidente em adivinhacao.
+  collectedAt: 2026-08-05
+  routingSource: "regras de roteamento do Traefik (projecao fixa, apenas labels)"
+  dnsSource: "nao consultado — sem token da Cloudflare"
+  changesMade: 0
 
 # -----------------------------------------------------------------------------
-domains:
+# PLATAFORMA INTERNA — automatizadoria.cloud
+# -----------------------------------------------------------------------------
+platformDomains:
   - domain: automatizadoria.cloud
     client: automatizadoria
-    purpose: unknown
-    registrar: unknown
     dnsProvider: unknown
-    pointsTo: unknown
-    tlsProvider: unknown
-    verificationStatus: discovered
-    lastVerifiedAt: 2026-08-04
-    source: >-
-      Observado como aba aberta no navegador durante o diagnostico de acessos
-      em 2026-08-04, com titulo "Automatizador IA". Indicio, nao confirmacao:
-      nao foi checado contra registrador, DNS, Cloudflare nem Traefik.
-    action: Confirmar propriedade e para onde aponta.
+    servedBy: VPS nvvps (Traefik)
+    tls: "Traefik, volume volume_swarm_certificates"
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+    subdomains:
+      - { host: "automatizadoria.cloud", service: automatizadoria-site, role: site institucional/conformidade, exposure: publico }
+      - { host: "www.automatizadoria.cloud", service: automatizadoria-site, role: alias }
+      - { host: "n8n.automatizadoria.cloud", service: n8n_n8n_editor, role: editor de workflows, exposure: "publico — deveria ser restrito" }
+      - { host: "webhook.automatizadoria.cloud", service: n8n_n8n_webhook, role: recepcao de webhooks, path: /webhook, exposure: "publico por necessidade" }
+      - { host: "chatwoot.automatizadoria.cloud", service: chatwoot_chatwoot_app, role: atendimento }
+      - { host: "evo.automatizadoria.cloud", service: evolution_evolution_api, role: "gateway de WhatsApp", exposure: "publico — deveria ser restrito" }
+      - { host: "tpb.automatizadoria.cloud", service: typebot_typebot_builder, role: construtor de chatbot }
+      - { host: "bot.automatizadoria.cloud", service: typebot_typebot_viewer, role: chatbot publicado, exposure: publico }
+      - { host: "noco.automatizadoria.cloud", service: nocodb_nocodb, role: banco no-code }
+      - { host: "minio.automatizadoria.cloud", service: minio_minio, role: console do MinIO, exposure: "publico — deveria ser restrito" }
+      - { host: "s3.automatizadoria.cloud", service: minio_minio, role: endpoint S3 }
+      - { host: "portainer.automatizadoria.cloud", service: portainer_portainer, role: painel de containers, exposure: "publico — deveria ser restrito" }
+
+    securityObservation: >-
+      Cinco paineis administrativos estao em subdominio publico: n8n, Portainer,
+      MinIO console, Typebot builder e a Evolution API. Cada um deles, se
+      comprometido, da controle amplo — o Portainer da controle total do Docker,
+      e a Evolution API fala com clientes por WhatsApp.
+      NAO foi verificado se ha autenticacao adicional (Basic Auth, Cloudflare
+      Access, allowlist de IP) na frente deles. Verificar e, se nao houver,
+      tratar como prioridade.
 
 # -----------------------------------------------------------------------------
-# O que se sabe sobre a entrada de trafego, sem conhecer os dominios.
+# NOVACENA — um dominio, quatro aplicacoes por caminho
 # -----------------------------------------------------------------------------
-ingress:
-  reverseProxy: traefik
-  version: v3.4.0
-  location: VPS (nvvps), stack traefik
-  publicPorts: [80, 443]
-  tlsCertificates:
-    storage: volume Docker `volume_swarm_certificates`
-    domains: unknown
-    expiry: unknown
+  - domain: estudionovacena.com
+    client: novacena
+    dnsProvider: unknown
+    servedBy: VPS nvvps (Traefik)
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-05
+    aliases: ["www.estudionovacena.com", "srv1106082.hstgr.cloud"]
+    pathRouting:
+      - { path: "/", service: novacena-motion, repository: novacena-motion }
+      - { path: "/editais", service: novacena-editais_web, repository: null, note: "SEM repositorio conhecido" }
+      - { path: "/music", service: novacena_music_nginx, repository: novacena-music, note: "stack Swarm; o Compose nao recebe trafego" }
+      - { path: "/leonardo", service: novacena-propostas, repository: null, note: "proposta comercial; SEM repositorio conhecido" }
+    observation: >-
+      Quatro aplicacoes distintas compartilham um dominio por prefixo de
+      caminho. Funciona, mas acopla o ciclo de vida delas: uma mudanca de
+      roteamento afeta todas, e nao ha isolamento de cookie ou de origem entre
+      elas.
+
+# -----------------------------------------------------------------------------
+# CLIENTES
+# -----------------------------------------------------------------------------
+clientDomains:
+  - domain: encantariaartesanal.com
+    client: null
+    clientNote: "Projeto em producao sem cliente atribuido no catalogo."
+    zoneVerification: owner_reported
+    subdomains:
+      - host: painel.encantariaartesanal.com
+        service: encantaria_directus
+        role: CMS headless (Directus 11)
+        servedBy: VPS nvvps
+        verificationStatus: verified
+        lastVerifiedAt: 2026-08-05
+    apex:
+      target: unknown
+      note: >-
+        O apex nao aparece em nenhuma regra do Traefik. Ou e servido fora da
+        VPS (Cloudflare Pages, outro provedor), ou nao esta publicado.
+    duplicateZoneQuestion: >-
+      O dono relatou ver duas entradas para este dominio. Ver hipoteses em
+      inventory/cloudflare.yaml. O subdominio painel. confirmado aqui reforca a
+      hipotese de que a "segunda entrada" e o subdominio, nao uma segunda zona.
+
+  - domain: viveremp.com
+    client: vivere
+    zoneVerification: owner_reported
+    subdomains:
+      - { host: "www.viveremp.com", role: site institucional, verificationStatus: owner_reported }
+      - { host: "gestao.viveremp.com", role: "aplicacao VIVERE 360", verificationStatus: owner_reported }
+      - { host: "conteudo.viveremp.com", role: conteudo, verificationStatus: owner_reported }
+    servedBy: "provavelmente Cloudflare Workers (open-next)"
     note: >-
-      Nao existe /etc/letsencrypt no host. Os certificados sao gerenciados pelo
-      Traefik dentro do volume. Ler dominios e validade exigiria inspecionar o
-      volume ou o container — bloqueado por conter chaves privadas.
-  cloudflareTunnel: false
-  cloudflareTunnelNote: >-
-    Nao ha cloudflared instalado no host. O Traefik recebe trafego diretamente
-    nas portas 80 e 443. Se a Cloudflare estiver no caminho, e como proxy de
-    DNS, nao como tunel.
-  verificationStatus: verified
-  lastVerifiedAt: 2026-08-04
+      NAO aparece em nenhuma regra do Traefik: nao e servido pela VPS. Coerente
+      com open-next.config.ts no repositorio, que indica deploy em Workers.
+
+  - domain: cassioferraz.com.br
+    client: cassio-ferraz
+    zoneVerification: owner_reported
+    servedBy: "nao e a VPS — ausente das regras do Traefik"
+    likelyPlatform: "Cloudflare Pages ou Workers (_headers, .assetsignore no repo)"
+    note: "Site declarado nas campanhas de Google Ads. Ver clients/cassio-ferraz/tracking.yaml."
+
+  - domain: garboeventos.com.br
+    client: garbo-eventos
+    zoneVerification: owner_reported
+    servedBy: "nao e a VPS"
+    likelyPlatform: "Cloudflare Pages (_redirects no repo)"
+
+  - domain: 4cadeiras.com
+    client: null
+    zoneVerification: owner_reported
+    servedBy: "nao e a VPS"
+    likelyRepository: 4cadeiras
+
+  - domain: maltasertaneja.com
+    client: null
+    zoneVerification: owner_reported
+    servedBy: "nao e a VPS"
+    likelyRepository: malta-sertaneja
+
+  - domain: gabrielgadelhacantor.com
+    client: null
+    zoneVerification: conflicting
+    servedBy: "nao e a VPS"
+    likelyRepository: gabriel-gadelha-casamentos
+    openQuestion: "Casamentos ou outro projeto? Ver inventory/cloudflare.yaml."
 
 # -----------------------------------------------------------------------------
-# Servicos que necessariamente tem dominio, mas cujo dominio e desconhecido.
-# Cada linha aqui e uma pergunta em aberto.
-# -----------------------------------------------------------------------------
-servicesNeedingDomainMapping:
-  - { service: automatizadoria-site, client: automatizadoria, domain: unknown }
-  - { service: n8n_n8n_editor, client: automatizadoria, domain: unknown }
-  - { service: n8n_n8n_webhook, client: automatizadoria, domain: unknown,
-      note: "Webhooks tem URL publica. Nunca registrar aqui a URL com token." }
-  - { service: chatwoot_chatwoot_app, client: automatizadoria, domain: unknown }
-  - { service: evolution_evolution_api, client: automatizadoria, domain: unknown }
-  - { service: typebot_typebot_builder, client: automatizadoria, domain: unknown }
-  - { service: typebot_typebot_viewer, client: automatizadoria, domain: unknown }
-  - { service: nocodb_nocodb, client: automatizadoria, domain: unknown }
-  - { service: minio_minio, client: automatizadoria, domain: unknown }
-  - { service: portainer_portainer, client: automatizadoria, domain: unknown }
-  - { service: encantaria_directus, client: null, domain: unknown }
-  - { service: novacena-motion, client: novacena, domain: unknown }
-  - { service: novacena-editais_web, client: novacena, domain: unknown }
-  - { service: novacena-propostas, client: novacena, domain: unknown }
-  - { service: novacena_music_nginx, client: novacena, domain: unknown }
+summary:
+  routedByVps: 3          # automatizadoria.cloud, estudionovacena.com, encantariaartesanal.com (subdominio)
+  routedElsewhere: 5      # viveremp, cassioferraz, garboeventos, 4cadeiras, maltasertaneja, gabrielgadelhacantor
+  totalHostRules: 21
+  domainsWithoutClient: 4 # 4cadeiras, maltasertaneja, gabrielgadelhacantor, encantariaartesanal
+  dnsZonesVerified: 0
 
-# -----------------------------------------------------------------------------
-# Repositorios com artefatos de deploy na borda: cada um sugere um dominio.
-# -----------------------------------------------------------------------------
-staticSitesLikelyOnEdge:
-  - { repository: cassio-ferraz, evidence: "_headers, .assetsignore", platform: cloudflare, domain: unknown }
-  - { repository: garbo, evidence: "_redirects, sitemap.xml", platform: cloudflare, domain: unknown }
-  - { repository: 4cadeiras, evidence: "_headers, _redirects, sitemap.xml", platform: cloudflare, domain: unknown }
-  - { repository: gabriel-gadelha-casamentos, evidence: "_headers, sitemap.xml", platform: cloudflare, domain: unknown }
-  - { repository: chay-portal, evidence: "wrangler.toml, functions/", platform: cloudflare-workers, domain: unknown }
-  - { repository: vivere, evidence: "open-next.config.ts", platform: cloudflare-workers, domain: unknown }
-  - { repository: malta-sertaneja, evidence: "site estatico", platform: unknown, domain: unknown }
-
-# -----------------------------------------------------------------------------
-nextSteps:
-  - Emitir token somente leitura da Cloudflare (Zone:Read, DNS:Read)
-  - Listar zonas e registros, e cruzar com servicos da VPS e repositorios
-  - Ler as rotas do Traefik para mapear dominio -> servico (aprovacao Nivel 1)
-  - Registrar validade dos certificados e criar alerta de expiracao
-  - Atribuir cada dominio a um cliente do catalogo
+remainingGaps:
+  - Provedor de DNS de automatizadoria.cloud e estudionovacena.com
+  - Registros DNS reais de todas as zonas
+  - Validade dos certificados (vivem no volume do Traefik)
+  - Se ha autenticacao adicional nos paineis administrativos publicos
+  - Se o apex de encantariaartesanal.com esta publicado
+  - Quais dominios usam Pages e quais usam Workers
+  - Resolucao da duvida sobre gabrielgadelhacantor.com

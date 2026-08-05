@@ -1,0 +1,88 @@
+# Seguranca — VIVERE
+# Registro de postura e do incidente pendente. NENHUM segredo e registrado
+# aqui. NENHUM fator de autenticacao foi revogado por este processo.
+slug: vivere
+importedAt: 2026-08-05
+
+# -----------------------------------------------------------------------------
+# INCIDENTE PENDENTE
+# -----------------------------------------------------------------------------
+incidents:
+  - id: totp-exposure-automatizadoria
+    severity: alta
+    status: requires_live_verification
+    reportedAt: 2026-08-05
+    reportedBy: proprietario
+    summary: >-
+      Um segredo TOTP (chave de configuracao de MFA) da conta
+      contato.automatizadoria@gmail.com teria sido exposto em uma captura de
+      tela anterior, feita em algum momento do trabalho neste cliente.
+    scope: >-
+      A conta exposta e contato.automatizadoria@gmail.com — a conta
+      CANONICA da AutomatizadorIA, nao uma conta do cliente Vivere. Este
+      incidente e registrado no contexto do Vivere porque foi relatado durante
+      o handoff deste projeto, mas o IMPACTO REAL e sobre a operacao
+      AutomatizadorIA como um todo, nao especificamente sobre este cliente.
+      Ver docs/security/access-matrix.md para o registro da conta.
+    secretRegistered: false
+    secretRegisteredNote: >-
+      O valor do TOTP NAO foi registrado em nenhum lugar deste repositorio,
+      nem parcialmente, nem mascarado. Por instrucao explicita: nao registrar
+      o segredo.
+    actionsTaken: nenhuma
+    actionsTakenNote: >-
+      Por instrucao explicita: NAO revogar o fator nesta fase. O incidente e
+      apenas REGISTRADO para tratamento posterior deliberado.
+    whyNotRevokedNow: >-
+      Revogar um fator MFA e acao com efeito colateral real sobre acesso a
+      conta — pode bloquear quem depende dele legitimamente se feito sem
+      coordenacao. Trata-se de decisao humana, Nivel 2, nao de reflexo
+      automatico a uma mencao de incidente.
+    recommendedAction:
+      - Confirmar com o dono se a captura de tela ainda existe e onde
+      - Se confirmada a exposicao, revogar o TOTP e reconfigurar o MFA
+      - Verificar historico de acesso da conta contato.automatizadoria@gmail.com
+        por atividade incomum
+      - Registrar a resolucao em DECISIONS.md
+    approvalLevel: 2
+    verificationStatus: requires_live_verification
+
+# -----------------------------------------------------------------------------
+# DEPENDENCIA SENSIVEL PENDENTE
+# -----------------------------------------------------------------------------
+sensitiveDependencies:
+  - id: anthropic-sdk-manual-entry
+    package: "@anthropic-ai/sdk"
+    version: "^0.115.0"
+    purpose: "interpretacao de folha de ponto manuscrita por foto"
+    requiredCredential: ANTHROPIC_API_KEY
+    credentialConfigured: unknown
+    humanReviewRequired: true
+    humanReviewRequiredNote: >-
+      O proprio design do recurso exige revisao humana obrigatoria antes de
+      lancamento. Essa e a salvaguarda correta para IA lendo documento fonte
+      de folha de pagamento — o erro de leitura tem custo financeiro direto.
+    homologationStatus: NAO homologado com dados reais
+    detail: clients/vivere/projects/vivere360/pending-dependencies.yaml
+
+# -----------------------------------------------------------------------------
+# OBSERVACOES GERAIS DE SEGURANCA
+# -----------------------------------------------------------------------------
+observations:
+  - topic: multiplas integracoes com sistemas financeiros/RH
+    detail: >-
+      Omie (financeiro/fiscal), AC Ponto (folha) e a nova leitura por IA de
+      folha manuscrita compartilham o mesmo projeto. Erro em qualquer uma tem
+      potencial de impacto em pagamento a funcionarios ou em dado fiscal.
+  - topic: credenciais de integracao
+    detail: >-
+      Nao foi possivel (nem tentado) verificar onde as credenciais de Omie,
+      Promob e AC Ponto sao armazenadas dentro da aplicacao. Presumir que
+      seguem o padrao de variavel de ambiente do Next.js ate confirmacao.
+
+controlPlaneCapability:
+  canReadSecrets: false
+  canRevokeFactors: false
+  reason: Fora de escopo por design. Acoes de seguranca sobre contas sao Nivel 2/humanas.
+
+changesMade: 0

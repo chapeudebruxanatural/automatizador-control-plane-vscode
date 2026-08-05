@@ -19,13 +19,22 @@ SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-
 
 # --- Verbos proibidos --------------------------------------------------------
 # Mutacao de estado.
-DENY_MUTATION='(^|[^a-z])(rm|rmdir|mv|cp|dd|mkfs|chmod|chown|truncate|tee|shutdown|reboot|halt|poweroff)([^a-z]|$)'
+# Verbos destrutivos EM POSICAO DE COMANDO: inicio da linha ou logo apos um
+# separador de shell. Sem essa ancora, um caminho como
+# /var/run/reboot-required faz a consulta ser recusada — e o guarda passa a
+# atrapalhar a leitura que deveria permitir.
+DENY_MUTATION='(^|[;&|(`][[:space:]]*|[[:space:]]&&[[:space:]]*|[[:space:]]\|\|[[:space:]]*)(rm|rmdir|mv|cp|dd|mkfs|chmod|chown|truncate|tee|shutdown|reboot|halt|poweroff)([[:space:]]|$)'
 DENY_MUTATION+='|docker[[:space:]]+(run|exec|start|stop|restart|kill|rm|rmi|prune|build|pull|push|create|update|commit|cp|load|import|tag|login)'
 DENY_MUTATION+='|docker[[:space:]]+(system|image|container|volume|network|builder)[[:space:]]+prune'
 DENY_MUTATION+='|docker[[:space:]]+compose[[:space:]]+(up|down|restart|stop|start|pull|build|rm|exec|run)'
 DENY_MUTATION+='|systemctl[[:space:]]+(start|stop|restart|reload|enable|disable|mask|unmask|kill|edit|set-)'
 DENY_MUTATION+='|(apt|apt-get|yum|dnf|apk|snap|pip|pip3|npm|yarn|pnpm)[[:space:]]+(install|remove|purge|upgrade|update)'
-DENY_MUTATION+='|(ufw|iptables|nft|firewall-cmd)[[:space:]]+'
+# Apenas os subcomandos que ALTERAM regra. `ufw status`, `iptables -S/-L` e
+# `nft list` sao leitura e precisam continuar disponiveis para o inventario.
+DENY_MUTATION+='|ufw[[:space:]]+(allow|deny|reject|limit|delete|insert|enable|disable|reset|default)'
+DENY_MUTATION+='|iptables[[:space:]]+(-[AIDRFXZPN]([[:space:]]|$)|--(append|insert|delete|replace|flush|new-chain|delete-chain|policy|zero))'
+DENY_MUTATION+='|nft[[:space:]]+(add|delete|flush|insert|replace|create)'
+DENY_MUTATION+='|firewall-cmd[[:space:]]+--(add|remove|reload|permanent)'
 # A flag precisa ser um token isolado: sem isso, o "-c" dentro de "redis-cli"
 # faz a propria deteccao de runtimes ser recusada.
 DENY_MUTATION+='|(psql|mysql|mongosh?|redis-cli)[[:space:]]([^|;]*[[:space:]])?(-c|--eval|--command)([[:space:]=]|$)'
@@ -37,7 +46,10 @@ DENY_MUTATION+='|>[^>]|>>|\bsed\b[[:space:]]+-i|\bkill\b|\bpkill\b'
 # Exposicao de segredo.
 DENY_SECRET='(cat|less|more|head|tail|grep|awk|strings|xxd|base64)[^|;]*\.env'
 DENY_SECRET+='|\b(printenv|env)\b[[:space:]]*$|^[[:space:]]*env[[:space:]]'
-DENY_SECRET+='|docker[[:space:]]+inspect'
+# Todas as variantes de inspect, nao apenas `docker inspect`: `docker service
+# inspect` e `docker container inspect` expoem variaveis de ambiente do mesmo
+# jeito. Leitura de labels tem funcao dedicada com projecao fixa.
+DENY_SECRET+='|docker[[:space:]]+(service|container|image|volume|network|node|secret|config|plugin|stack)?[[:space:]]*inspect'
 DENY_SECRET+='|docker[[:space:]]+compose[[:space:]]+config'
 DENY_SECRET+='|id_rsa|id_ed25519|authorized_keys|shadow|privkey|\.key'
 # Certificado publico (cert.pem) pode ter validade lida com `openssl -noout`,
