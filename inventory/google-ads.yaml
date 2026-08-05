@@ -85,11 +85,20 @@ apiCenterConfirmed:
     constava apenas como `discovered` a partir de uma aba de navegador.
 
 liveAccess:
-  authMode: unavailable
-  credentialReference: null
-  developerTokenConfigured: false
+  authMode: service_account
+  credentialReference: "~/Documents/Codex/.secrets/google-ads/service-account.json (modo 600)"
+  developerTokenConfigured: true
   loginCustomerIdConfigured: true
-  liveReadVerified: false
+  liveReadVerified: true
+  liveReadVerifiedAt: 2026-08-05
+  apiVersion: v21
+  firstCallRequestId: p8kvVJZJoP3rc-5FuD58Jw
+  domainWideDelegationNeeded: false
+  domainWideDelegationNote: >-
+    A ressalva registrada antes (conta de servico exigiria Google Workspace)
+    NAO se materializou: o e-mail da conta de servico ja esta vinculado como
+    usuario da conta do Ads, e a autenticacao funcionou sem delegacao.
+  findings: docs/discovery/google-ads-live-2026-08-05.md
   reason: >-
     O projeto google-ads-automation e o diretorio .secrets/google-ads vivem no
     notebook do dono, nao nesta maquina. Confirmado por busca: ~/Documents/Codex
