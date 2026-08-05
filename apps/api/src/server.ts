@@ -1,0 +1,112 @@
+/**
+ * API HTTP mínima.
+ *
+ * Usa o módulo `http` nativo — sem framework. A justificativa está em
+ * `DECISIONS.md`: menos dependência de terceiros no processo que segurará
+ * credenciais de produção.
+ *
+ * A API **não tem autenticação** e escuta apenas em `127.0.0.1`. Isso é
+ * suficiente enquanto ela só expõe postura e saúde. Antes de expor qualquer
+ * ação, autenticação passa a ser obrigatória.
+ */
+
+import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'node:http';
+import type { Config } from '../../../packages/shared/src/config.js';
+import { describePosture } from '../../../packages/shared/src/config.js';
+import type { Logger } from '../../../packages/shared/src/logger.js';
+import type { ActionRegistry } from '../../../packages/domain/src/action.js';
+
+export interface ServerDependencies {
+  readonly config: Config;
+  readonly logger: Logger;
+  readonly registry: ActionRegistry;
+  /** Injetável para teste. */
+  readonly env?: Record<string, string | undefined>;
+}
+
+export interface ReadinessState {
+  ready: boolean;
+  reason: string;
+}
+
+export function createApiServer(deps: ServerDependencies): {
+  server: Server;
+  readiness: ReadinessState;
+} {
+  const { config, logger, registry } = deps;
+  const startedAt = Date.now();
+
+  // A prontidão é mutável de propósito: o processo pode subir e só depois ficar
+  // apto (ou deixar de ficar). Liveness e readiness respondem a perguntas
+  // diferentes, e um único sinal não serve para as duas.
+  const readiness: ReadinessState = { ready: true, reason: 'inicializado' };
+
+  const json = (res: ServerResponse, status: number, body: unknown): void => {
+    const payload = JSON.stringify(body, null, 2);
+    res.writeHead(status, {
+      'content-type': 'application/json; charset=utf-8',
+      'content-length': Buffer.byteLength(payload),
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+    });
+    res.end(payload);
+  };
+
+  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+    const method = req.method ?? 'GET';
+    const path = (req.url ?? '/').split('?')[0] ?? '/';
+
+    if (method !== 'GET') {
+      json(res, 405, { error: 'method_not_allowed', detail: 'Somente GET nesta fase.' });
+      return;
+    }
+
+    switch (path) {
+      case '/health':
+        json(res, 200, {
+          status: 'ok',
+          service: config.serviceName,
+          uptimeSeconds: Math.floor((Date.now() - startedAt) / 1000),
+        });
+        return;
+
+      case '/ready':
+        json(res, readiness.ready ? 200 : 503, {
+          status: readiness.ready ? 'ready' : 'not_ready',
+          reason: readiness.reason,
+          service: config.serviceName,
+        });
+        return;
+
+      case '/status':
+        json(res, 200, {
+          service: config.serviceName,
+          environment: config.nodeEnv,
+          posture: describePosture(config, deps.env ?? process.env),
+          actions: {
+            total: registry.list().length,
+            mutating: registry.listMutating().length,
+            kinds: registry.list().map((d) => ({
+              kind: d.kind,
+              domain: d.domain,
+              mutating: d.mutating,
+            })),
+          },
+        });
+        return;
+
+      default:
+        json(res, 404, {
+          error: 'not_found',
+          available: ['/health', '/ready', '/status'],
+        });
+    }
+  });
+
+  server.on('clientError', (err: Error, socket) => {
+    logger.warn('erro de cliente HTTP', { error: err.message });
+    if (!socket.destroyed) socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+  });
+
+  return { server, readiness };
+}
