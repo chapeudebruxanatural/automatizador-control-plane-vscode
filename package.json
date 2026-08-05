@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test": "node --import tsx --test $(find tests -name '*.test.ts' | sort)",
     "scan:secrets": "bash scripts/scan-secrets.sh",
     "scan:secrets:all": "bash scripts/scan-secrets.sh --all",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build"

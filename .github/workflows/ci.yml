@@ -28,9 +28,20 @@ concurrency:
 
 jobs:
   validate:
-    name: Lint, typecheck, test, build e varredura de segredos
+    name: Validação (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    strategy:
+      # Uma versão quebrada não deve esconder o resultado da outra.
+      fail-fast: false
+      matrix:
+        # Os dois extremos da faixa declarada em `engines` do package.json.
+        # Testar só uma ponta já custou caro: o script de teste usava glob do
+        # `node --test`, que só existe a partir do Node 21 — passava no Node 24
+        # do desenvolvedor e quebrava no mínimo declarado. Bug encontrado pelo
+        # próprio CI, na primeira execução.
+        node: ['20.11.0', '24']
 
     steps:
       - name: Checkout
@@ -41,13 +52,12 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Configurar Node.js
+      - name: Configurar Node.js ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
-          # Alinhado ao engines do package.json (>=20.11.0). Versão fixa em
-          # vez de 'lts/*' para que uma mudança de LTS não quebre o CI sem
-          # ninguém ter mudado nada no projeto.
-          node-version: '20.11.0'
+          # Versões fixas em vez de 'lts/*': uma mudança de LTS não pode
+          # quebrar o CI sem ninguém ter mexido no projeto.
+          node-version: ${{ matrix.node }}
           # Cache do npm chaveado pelo package-lock.json — invalida sozinho
           # quando a árvore de dependências muda.
           cache: npm
