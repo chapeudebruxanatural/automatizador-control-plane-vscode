@@ -11,6 +11,7 @@ export * from './types.js';
 export * from './allowlist.js';
 export * from './rate-limit.js';
 export * from './webhook-auth.js';
+export * from './normalize.js';
 export * from './adapter.js';
 export * from './client-directory.js';
 export * from './command-handler.js';

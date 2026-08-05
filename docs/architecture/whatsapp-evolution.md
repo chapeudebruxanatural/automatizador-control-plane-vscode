@@ -54,20 +54,32 @@ switch — este ciclo não muda essa parte.
 requisição HTTP
       │
       ▼
-verifyWebhookSignature   ──✗──▶ 401, log sanitizado
+tamanho do corpo ≤ 64 KB   ──✗──▶ 413 + Connection: close
+      │ ✓
+      ▼
+verifyWebhookSignature     ──✗──▶ 401, log sanitizado
    (HMAC, tempo constante)
       │ ✓
       ▼
-JSON válido, campos obrigatórios ──✗──▶ 400
+JSON válido                ──✗──▶ 400
       │ ✓
       ▼
-allowlist.isAllowed(from)   ──✗──▶ silêncio (não revela que existe)
+normalizeEvolutionWebhook  ──✗──▶ 200 + reason (não é erro; ver abaixo)
+   · fromMe        → from_self          ← PREVENÇÃO DE LOOP
+   · @g.us         → group_message
+   · @broadcast    → broadcast_or_status
+   · evento ≠ messages.upsert → not_a_message_event
+   · sem texto     → no_text_content
+   · sem id        → malformed
+      │ ✓
+      ▼
+allowlist.isAllowed(from)     ──✗──▶ silêncio (não revela que existe)
       │ ✓
       ▼
 deduplicator.isNew(messageId) ──✗──▶ ignorado (idempotência de webhook)
       │ ✓
       ▼
-rateLimiter.check(from)    ──✗──▶ "aguarde um momento"
+rateLimiter.check(from)       ──✗──▶ "aguarde um momento"
       │ ✓
       ▼
 command-handler (switch fechado sobre 10 comandos)
@@ -76,8 +88,41 @@ command-handler (switch fechado sobre 10 comandos)
 CommandResponse (texto curto, sanitizado)
 ```
 
-Seis portões antes de qualquer lógica de negócio rodar. Nenhum deles depende
-de disciplina de quem escreve o próximo comando — são checagens estruturais.
+Nenhum destes portões depende de disciplina de quem escreve o próximo comando
+— são checagens estruturais.
+
+### Por que a normalização responde 200 e não 4xx
+
+`connection.update`, mensagem de grupo e eco do próprio número são **tráfego
+normal** da Evolution, não erro do cliente. Responder 4xx faria a Evolution
+reenfileirar indefinidamente um evento que nunca será aceito. O 200 carrega
+`processed: false` e o `reason`, que é o que um operador precisa para
+diagnosticar.
+
+### `fromMe` é o portão mais importante
+
+A Evolution reenvia as mensagens que o próprio número conectado envia. Sem
+descartá-las, um bot que responde a si mesmo entra em loop infinito **no
+instante em que o envio for habilitado** — e o envio está desligado hoje
+justamente para que esse tipo de defeito seja encontrado antes, não depois.
+
+Por isso `fromMe` é checado **antes** de grupo: um eco dentro de um grupo deve
+ser reportado como `from_self`, que é a causa raiz, e não como
+`group_message`, que esconderia o problema real. Há teste específico para essa
+ordem.
+
+## Duas limitações conhecidas
+
+**O formato do payload não foi verificado contra a instância real.**
+`REAL_PAYLOAD_VERIFIED = false` em `normalize.ts`. O formato veio da
+documentação da Evolution v2 (Baileys); nenhuma amostra foi capturada da VPS,
+porque isso exigiria ler tráfego de conversa.
+
+**`x-webhook-signature` é convenção deste projeto, não da Evolution.** A
+Evolution v2 não assina o corpo com HMAC — envia a `apikey` dentro do payload,
+o que é mais fraco. Fazer a verificação funcionar de verdade exige proxy
+reverso, mudança para validar `apikey`, ou versão com assinatura nativa. Ver
+[`docs/runbooks/whatsapp-homologation.md`](../runbooks/whatsapp-homologation.md).
 
 ### Por que a ordem importa
 
