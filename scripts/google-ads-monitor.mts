@@ -87,6 +87,13 @@ if (last !== undefined && last.clicks > 0) {
 if (last !== undefined && last.cost > SPEND_WITHOUT_CONTACT_BRL && last.all === 0) {
   alerts.push(`R$ ${last.cost.toFixed(2)} gastos em ${last.date} sem nenhum contato novo.`);
 }
+if (total.cost > SPEND_ALERT_BRL) {
+  alerts.push(
+    `Gasto acumulado de R$ ${total.cost.toFixed(2)} passou o alerta de ` +
+      `R$ ${SPEND_ALERT_BRL.toFixed(2)}. Restam R$ ${(BUDGET_CAP_BRL - total.cost).toFixed(2)} ` +
+      'até o teto, onde a campanha para sozinha.',
+  );
+}
 
 const status = String(info['campaign']?.['status'] ?? '?');
 const primary = String(info['campaign']?.['primaryStatus'] ?? '?');
