@@ -68,3 +68,53 @@ controlPlaneCapability:
   canRead: false
   canWrite: false
   reason: Sem adaptador e sem credencial de Google Ads.
+
+# =============================================================================
+# LEITURA AO VIVO — 2026-08-05 (historico acima PRESERVADO)
+# =============================================================================
+liveConversionActions:
+  source: live_api
+  observedAt: 2026-08-05
+  customerId: "2656966896"
+  changesMade: 0
+  verificationStatus: verified
+
+  accountActionsEnabled:
+    - { name: "CASSIO | LEAD QUALIFICADO | FORM", category: SUBMIT_LEAD_FORM, primaryForGoal: true,  client: cassio-ferraz, type: lead_qualificado }
+    - { name: "WHATSAPP - CÁSSIO",                category: REQUEST_QUOTE,    primaryForGoal: false, client: cassio-ferraz, type: microconversao }
+    - { name: "WHATSAPP - GARBO",                 category: REQUEST_QUOTE,    primaryForGoal: false, client: garbo-eventos }
+    - { name: "Begin Checkout - NovaCena Motion", category: BEGIN_CHECKOUT,   primaryForGoal: true,  client: novacena }
+    - { name: "WhatsApp Click - NovaCena Motion", category: CONTACT,          primaryForGoal: true,  client: novacena }
+    - { name: "Purchase - Assinatura NovaCena Motion", category: PURCHASE,    primaryForGoal: true,  client: novacena }
+
+  correctByDesign: >-
+    WHATSAPP - CASSIO esta como NAO primaria e LEAD QUALIFICADO como primaria.
+    Conceitualmente certo: a microconversao nao infla a otimizacao, que era o
+    risco registrado na estrategia v2.
+
+  consequenceOfDesign: >-
+    Justamente por ser nao primaria, WHATSAPP - CASSIO NAO entra em
+    metrics.conversions — so em metrics.all_conversions. Foi isso que produziu
+    o "0 conversoes" que parecia fracasso. Qualquer relatorio deste cliente
+    precisa ler all_conversions, ou a acao precisa virar primaria.
+
+  crossClientRisk:
+    severity: media
+    detail: >-
+      Tres acoes da NovaCena estao PRIMARIAS na mesma conta que atende Cassio
+      e Garbo. Nao prova que a campanha do Cassio use essas metas, mas e risco
+      de contaminacao de leitura.
+    rule: >-
+      NUNCA usar "todas as conversoes da conta" como resultado do Cassio.
+      Sempre filtrar por segments.conversion_action_name.
+    verificationStatus: requires_verification
+
+  tagStatus: funcionando
+  tagEvidence: "5 acoes de WHATSAPP - CASSIO atribuidas em 2026-07-29."
+
+requiresVerification:
+  - Landing page e URL final atuais
+  - Se o evento dispara em todos os pontos de contato de WhatsApp
+  - Se a campanha usa metas especificas ou metas padrao da conta
+  - Janela de atribuicao configurada
+  - Se houve mudanca na configuracao da conversao entre 29/07 e 04/08

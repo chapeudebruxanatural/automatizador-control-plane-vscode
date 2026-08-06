@@ -57,3 +57,30 @@ liveVerificationNeeded:
   - Saldo atual da conta
   - Historico de alteracao de orcamento
   - Se alguma campanha foi pausada por verba
+
+# =============================================================================
+# ATUALIZACAO — 2026-08-05 (leitura ao vivo)
+# =============================================================================
+liveSpendSnapshot:
+  source: live_api
+  observedAt: 2026-08-05
+  campaignId: "24066140634"
+  changesMade: 0
+  spentBRL30d: 172.94
+  budgetChangedManually:
+    source: user_reported
+    endDateChangedFrom: "2026-07-29"
+    endDateChangedTo: "2026-08-08"
+    totalBudgetChangedFromBRL: 150.00
+    totalBudgetChangedToBRL: 203.20
+    verificationStatus: user_reported
+  remainingApprox: "R$ 30,26 do total de R$ 203,20 relatado"
+  conflictStatus: ABERTO
+  conflictNote: >-
+    O conflito NAO bloqueia leitura e diagnostico — bloqueia aumento de
+    orcamento, reativacao, nova campanha, extensao de periodo, publicacao e
+    qualquer mutate financeiro. NAO presumir R$ 300 autorizados.
+  estimatedRecoveryBudgetBRL: 65.00
+  estimatedRecoveryNote: >-
+    ~500 cliques a R$ 0,13 (CPC observado no melhor dia) gerariam ~4-5
+    WhatsApp na taxa de 0,9%. ESTIMATIVA, nao autorizacao.

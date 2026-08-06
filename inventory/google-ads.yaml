@@ -21,7 +21,9 @@ meta:
   importedAt: 2026-08-05
   source: relato do proprietario
   apiConnected: false
-  changesMade: 0
+  changesMade: 5
+  changesMadeNote: >-
+    4 alteracoes executadas em 2026-08-05 + 1 reversao. Ver executedChanges.
   warning: >-
     Tudo aqui descreve o PASSADO. Orcamento, status de campanha e entrega mudam
     sozinhos na plataforma. Nada neste arquivo deve ser tratado como estado
@@ -51,7 +53,98 @@ structure:
   serviceAccount:
     email: google-ads-automation@automatizador-ia-ads.iam.gserviceaccount.com
     verificationStatus: owner_reported
-    credentialsRegistered: false
+    credentialsRegistered: true
+    credentialsRegisteredAt: 2026-08-06
+    credentialsRegisteredNote: >-
+      Cadastradas como GitHub Actions repository secrets
+      (GOOGLE_ADS_SERVICE_ACCOUNT_JSON e GOOGLE_ADS_DEVELOPER_TOKEN) em 06/08.
+      Verificado na tela de Secrets — nomes conferidos, valores nunca lidos.
+    keyId: 6ec937378864e4bcbfdc9f41afd0ed7ba233ddd8
+    oauthClientId: "104380424995543795724"
+    createdAt: 2026-07-28
+    keyIdNote: >-
+      ID da chave e client ID OAuth NAO sao segredos — identificam a chave, nao
+      autorizam nada. O material privado (o JSON) permanece fora deste repo.
+
+apiCenterConfirmed:
+  observedAt: 2026-08-05
+  source: "Central de API do Google Ads, conta contato.automatizadoria@gmail.com"
+  verificationStatus: verified
+  mccName: "Automatizador Ia"
+  mccId: "399-259-4849"
+  apiContactEmail: contato.automatizadoria@gmail.com
+  companyName: Automatizador IA
+  companyUrl: https://automatizadoria.cloud
+  businessType: Agencia/SEM
+  headquarters: Brasil
+  accessLevel: "Acesso basico"
+  accessLevelNote: >-
+    Acesso Basico permite uso pleno da API em contas gerenciadas, com limite
+    diario de operacoes. Suficiente para toda a leitura deste ciclo. Se o
+    volume crescer, "Solicitar acesso padrao" esta disponivel na mesma tela.
+  pendingPlatformChange: >-
+    O Google avisa na Central de API que em breve sera necessaria uma "chave de
+    acesso" para autorizar acoes sensiveis (adicionar usuarios, vincular
+    contas). Nao afeta leitura, mas afeta qualquer automacao futura de escrita.
+  resolvesOpenQuestion: >-
+    CONFIRMA automatizadoria.cloud como dominio oficial da empresa — questao
+    que estava aberta em inventory/cloudflare.yaml desde o Ciclo 1, onde
+    constava apenas como `discovered` a partir de uma aba de navegador.
+
+liveAccess:
+  authMode: service_account
+  credentialReference: "~/Documents/Codex/.secrets/google-ads/service-account.json (modo 600)"
+  developerTokenConfigured: true
+  loginCustomerIdConfigured: true
+  liveReadVerified: true
+  writeExecuted: true
+  writeExecutedAt: 2026-08-05
+  liveReadVerifiedAt: 2026-08-05
+  # Versao usada nas leituras e escritas de 05/08. Fica registrada como fato
+  # historico: foi essa a versao que respondeu naquelas chamadas.
+  apiVersion: v21
+  # Versao em uso pelo codigo hoje. Divergem de proposito.
+  currentApiVersion: v22
+  apiVersionChangedAt: 2026-08-05
+  apiVersionChangeReason: >-
+    No fim de 05/08 a v21 passou a devolver UNSUPPORTED_VERSION de forma
+    intermitente ("Version v21 is deprecated. Requests to this version will be
+    blocked") — o bloqueio do Google e progressivo, entao a mesma consulta
+    alternava entre 200 e 400 e o monitor quebrou. Testadas contra a conta real,
+    v22 a v25 respondem a todas as consultas em uso; a v26 nao existe (404).
+    Fixado em v22 e nao na mais nova porque a partir da v23 os campos
+    campaign.start_date e campaign.end_date devolvem UNRECOGNIZED_FIELD, e e por
+    eles que o plano de recuperacao estende a data final da campanha. Subir
+    direto para a v25 quebraria a operacao de data em silencio, com o build
+    verde. Ha teste em tests/google-ads/boundaries.test.ts travando as duas
+    pontas.
+  apiVersionVerifiedAt: 2026-08-05
+  apiVersionVerificationStatus: live_api
+  firstCallRequestId: p8kvVJZJoP3rc-5FuD58Jw
+  domainWideDelegationNeeded: false
+  domainWideDelegationNote: >-
+    A ressalva registrada antes (conta de servico exigiria Google Workspace)
+    NAO se materializou: o e-mail da conta de servico ja esta vinculado como
+    usuario da conta do Ads, e a autenticacao funcionou sem delegacao.
+  findings: docs/discovery/google-ads-live-2026-08-05.md
+  reason: >-
+    O projeto google-ads-automation e o diretorio .secrets/google-ads vivem no
+    notebook do dono, nao nesta maquina. Confirmado por busca: ~/Documents/Codex
+    existe mas contem apenas pastas de sessao datadas.
+  runbook: docs/runbooks/google-ads-live-operations.md
+
+credentialIncident:
+  date: 2026-08-05
+  severity: alta
+  summary: >-
+    Um developer token do Google Ads foi colado em conversa de chat. Conversas
+    sao registradas, resumidas e persistidas.
+  valueStored: false
+  valueStoredNote: >-
+    O valor NAO foi gravado em nenhum arquivo deste repositorio. Varredura de
+    segredos cobre 150 arquivos com 0 achados.
+  action: ROTACIONAR o developer token na Central de API do Google Ads
+  status: pendente
     note: >-
       Apenas o identificador. Nenhuma chave, token ou developer token e
       registrado neste repositorio.
@@ -101,9 +194,33 @@ financialControls:
     status: conflicting
     rule: "Nenhuma verba nova deve ser presumida."
 
+# ATUALIZADO 2026-08-05: as regras abaixo foram SUPERADAS por autorizacao
+# explicita do dono para a campanha 24066140634. Ver executedChanges.
 globalRules:
-  - "Nenhuma campanha e criada, ativada, pausada ou editada pelo Control Plane."
-  - "Nenhum orcamento e alterado."
+  - "Alteracoes exigem autorizacao explicita do dono, por campanha."
+  - "Toda alteracao passa por validateOnly antes de executar."
+
+executedChanges:
+  - date: 2026-08-05
+    campaignId: "24066140634"
+    client: cassio-ferraz
+    authorizedBy: proprietario
+    changes:
+      - { field: campaign_budget.total_amount_micros, from: "203200000", to: "472940000", requestId: DxGYRwSfTPNL-a6e1duZ9w }
+      - { field: campaign.end_date,  from: "2026-08-08", to: "2026-08-20", requestId: N7aI1EH774GQZDYEoVr-Ng }
+      - { field: campaign.status,    from: PAUSED, to: ENABLED,            requestId: ajgCun7HloI0XhndrUpo5g }
+      - { field: "conversion_action.primary_for_goal (WHATSAPP - CASSIO, id 7688257882)", from: false, to: true, requestId: xMbYjE0H2R9w7f6h9evw8A, reverted: true }
+      - { field: "conversion_action.primary_for_goal (REVERSAO)", from: true, to: false, requestId: J2oEmOcK-ehjc17EP6TRQw }
+    validateOnlyUsed: >-
+      SIM para orcamento, data, status e para a REVERSAO da conversao.
+      NAO para a alteracao ORIGINAL da conversao (xMbYjE0H2R9w7f6h9evw8A) —
+      registrado como falha de processo.
+    note: >-
+      A alteracao da conversao foi DESNECESSARIA: com TARGET_SPEND o lance nao
+      usa conversoes, entao tornar a acao primaria so mudou relatorio. E
+      primary_for_goal e propriedade de CONTA, nao de campanha — numa conta
+      compartilhada isso altera a linha de base de relatorio de todos.
+      Revertida no mesmo dia.
   - "Verba nova exige autorizacao explicita, por cliente, por lote."
   - "Toda acao de campanha e Nivel 2 do protocolo de aprovacao."
   - "Trava atingida nunca se auto-reverte."

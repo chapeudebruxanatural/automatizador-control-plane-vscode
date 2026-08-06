@@ -117,10 +117,17 @@ domainsNotInReportedList:
       Host(`automatizadoria.cloud`) || Host(`www.automatizadoria.cloud`).
       Alem disso, 10 subdominios de servico foram confirmados: n8n, webhook,
       chatwoot, evo, tpb, bot, noco, minio, s3, portainer.
+    ownershipConfirmed: true
+    ownershipConfirmedAt: 2026-08-05
+    ownershipConfirmedBy: >-
+      Central de API do Google Ads declara https://automatizadoria.cloud como
+      "URL da empresa" da conta Automatizador IA. Promove de `discovered`
+      (aba de navegador) para propriedade confirmada pelo proprio dono na
+      plataforma.
     openQuestion: >-
-      Sabemos para ONDE aponta. Nao sabemos ONDE E GERENCIADO: nao apareceu na
-      lista de zonas que o dono leu. Ou esta em outra conta Cloudflare, ou em
-      outro provedor de DNS, ou o dono nao rolou a lista ate o fim.
+      PROPRIEDADE confirmada. Permanece desconhecido apenas ONDE O DNS E
+      GERENCIADO: o dominio nao apareceu na lista de zonas Cloudflare lida
+      pelo dono. Ou esta em outra conta Cloudflare, ou em outro provedor.
     action: Confirmar o provedor de DNS quando houver token, ou pelo registrador.
 
   - domain: estudionovacena.com

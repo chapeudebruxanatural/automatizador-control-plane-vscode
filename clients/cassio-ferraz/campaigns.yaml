@@ -59,3 +59,98 @@ budget:
   note: "Ver budgetConflict em google-ads.yaml."
 
 changesMade: 0
+
+# =============================================================================
+# LEITURA AO VIVO — 2026-08-05
+# Historico manual acima PRESERVADO. Nada foi sobrescrito.
+# =============================================================================
+liveSnapshot:
+  source: live_api
+  observedAt: 2026-08-05
+  customerId: "2656966896"
+  loginCustomerId: "3992594849"
+  apiVersion: v21
+  requestId: p8kvVJZJoP3rc-5FuD58Jw
+  changesMade: 5
+  changesMadeNote: 'ALTERACOES EXECUTADAS em 2026-08-05 — ver inventory/google-ads.yaml executedChanges'
+  verificationStatus: verified
+
+  campaign:
+    campaignId: "24066140634"
+    name: "CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | BRASIL_PRIORITARIO"
+    status: PAUSED
+    primaryStatus: PAUSED
+    primaryStatusReasons: [CAMPAIGN_PAUSED]
+    biddingStrategyType: TARGET_SPEND
+    startDate: "2026-07-27"
+    endDate: "2026-08-08"
+    budgetResource: "customers/2656966896/campaignBudgets/15746425389"
+
+  metrics30d:
+    costBRL: 172.94
+    impressions: 10859
+    clicks: 642
+    ctrApprox: "5.9%"
+    avgCpcBRL: 0.27
+    conversions: 0
+    allConversions: 5
+
+  # ACHADO CENTRAL
+  measurement_discrepancy: true
+  measurementFinding: >-
+    conversions=0 e allConversions=5 NAO se contradizem: `conversions` conta so
+    acoes PRIMARIAS, e WHATSAPP - CASSIO esta como nao primaria. As 5 acoes
+    EXISTEM e foram atribuidas corretamente. O "0 conversoes" era artefato de
+    configuracao, nao ausencia de resultado. A tag funciona.
+
+  dailyBreakdown:
+    - { date: "2026-07-27", costBRL: 0.19,  clicks: 0,   whatsapp: 0 }
+    - { date: "2026-07-28", costBRL: 74.91, clicks: 23,  whatsapp: 0, cpcBRL: 3.26 }
+    - { date: "2026-07-29", costBRL: 72.84, clicks: 554, whatsapp: 5, cpcBRL: 0.13 }
+    - { date: "2026-08-01", costBRL: 1.37,  clicks: 0,   whatsapp: 0 }
+    - { date: "2026-08-02", costBRL: 8.01,  clicks: 2,   whatsapp: 0, cpcBRL: 4.01 }
+    - { date: "2026-08-03", costBRL: 8.04,  clicks: 4,   whatsapp: 0, cpcBRL: 2.01 }
+    - { date: "2026-08-04", costBRL: 7.58,  clicks: 59,  whatsapp: 0, cpcBRL: 0.13 }
+  dailyNote: >-
+    Sem gasto em 30-31/07: a campanha terminou na data original (29/07) e so
+    voltou em 01/08 apos alteracao manual. ANTES da reabertura: R$ 147,94,
+    577 cliques, 5 WhatsApp. DEPOIS: R$ 25,00, 65 cliques, 0 WhatsApp — bate
+    com o relato do dono (~R$ 26,02 e ~83 cliques).
+
+  byDevice:
+    - { device: MOBILE,       costBRL: 171.76, clicks: 642, allConversions: 5 }
+    - { device: DESKTOP,      costBRL: 0.42,   clicks: 0,   allConversions: 0 }
+    - { device: TABLET,       costBRL: 0.47,   clicks: 0,   allConversions: 0 }
+    - { device: CONNECTED_TV, costBRL: 0.28,   clicks: 0,   allConversions: 0 }
+  deviceNote: "100% do resultado veio de mobile."
+
+  conversionsByAction:
+    - { date: "2026-07-29", action: "WHATSAPP - CÁSSIO", allConversions: 5, type: microconversao }
+
+hypotheses:
+  A_mensuracao_quebrada:
+    status: REFUTADA
+    evidence: "5 conversoes registradas em all_conversions, acao e data corretas."
+  B_problema_pos_clique:
+    status: PARCIAL
+    evidence: "Taxa de 5/554 = 0,9% em 29/07. Baixa para intencao de contratacao, mas nao zero."
+  C_reabertura_degradou:
+    status: CONFIRMADA
+    evidence: >-
+      Aritmetica decisiva: com taxa de 0,9%, os 65 cliques pos-reabertura
+      deveriam gerar ~0,6 conversoes. Zero NAO e anomalia — e volume
+      insuficiente. Entrega caiu de 554 cliques em 1 dia para 65 em 4 dias
+      (~97% de queda). Causa provavel: volta ao aprendizado apos mudanca de
+      data e orcamento, CPC instavel, e orcamento total quase esgotado
+      (R$ 172,94 de R$ 203,20).
+
+otherCassioCampaigns:
+  source: live_api
+  observedAt: 2026-08-05
+  note: "NAO ativar nenhuma. Configuracao ainda nao inspecionada."
+  campaigns:
+    - { campaignId: "24100207887", name: "CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | BRASIL_PRIORITARIO #3", status: PAUSED, verificationStatus: requires_verification }
+    - { campaignId: "24103008676", name: "CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | BRASIL_PRIORITARIO #2", status: PAUSED, verificationStatus: requires_verification }
+    - { campaignId: "24073903393", name: "CASSIO | SEARCH | LEADS_SHOW | REGIONAL_SP | PILOTO", status: PAUSED, verificationStatus: verified }
+
+recoveryPlan: docs/operations/cassio-campaign-recovery-plan.md

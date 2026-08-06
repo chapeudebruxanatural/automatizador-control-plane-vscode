@@ -98,3 +98,96 @@ kill switch estiverem exercitados em canais de menor risco.
 Motivo: há serviços de produção rodando e nenhum inventário prévio. Ler antes de
 tocar. Consequência: qualquer mudança na VPS exige aprovação específica e um
 runbook, não um comando avulso.
+
+---
+
+## 2026-08-05 — Plataforma de agente
+
+**Versão da Google Ads API fixada em v22, não na mais nova.**
+Motivo: a v21 passou a ser bloqueada em rollout progressivo e a integração
+quebrou sozinha, com o build verde. Testadas contra a conta real, v22 a v25
+respondem a tudo em uso — mas a partir da v23 `campaign.start_date` e
+`campaign.end_date` devolvem `UNRECOGNIZED_FIELD`, e é por eles que o plano de
+recuperação estende a data final da campanha. Consequência: subir além da v22
+exige antes descobrir o substituto dos campos de data e ajustar o
+`write-adapter`. Há teste travando as duas pontas.
+
+**O modelo não chama API; escolhe entre ações declaradas.**
+Motivo: um modelo com HTTP direto faz qualquer coisa que a credencial permita, e
+a credencial permite muito. Consequência: toda ação alcançável por agente precisa
+de definição no `ActionRegistry` e de capacidade no `CapabilityCatalog` — duas
+decisões separadas, engenharia e operação, que não devem acontecer pelo mesmo
+gesto.
+
+**Escrita por WhatsApp exige código de confirmação derivado do plano.**
+Motivo: comando por celular sem confirmação é imprudente; com código sorteado,
+o código não prova qual plano foi lido. Consequência: o código é prefixo do
+SHA-256 do plano, então só confere para aquele plano exato — se algo mudar entre
+planejar e confirmar, a execução é recusada sozinha.
+
+**Ambiguidade de cliente é recusa, não escolha do mais provável.**
+Motivo: `garbo-eventos` e `gaveta-producoes` colidem, assim como `cassio-ferraz`
+e `chapeu-de-bruxa`. Um resolvedor que chuta mexeria na conta errada.
+Consequência: o agente pergunta, e perguntar custa uma mensagem.
+
+**Confirmação pendente fica em memória, não em banco.**
+Motivo: um plano é foto do estado. Se o serviço caiu entre o plano e a
+confirmação, o estado fotografado já não é confiável. Consequência: reinício
+invalida pendências, e o dono pede de novo em vez de confirmar às cegas.
+
+**Fase de WhatsApp somente leitura antes de qualquer escrita.**
+Motivo: é onde se descobre, sem risco financeiro, se o agente confunde um
+cliente com outro. Consequência: erros de interpretação aparecem baratos.
+
+---
+
+## 2026-08-06 — Landing do Cássio verificada; `primary_for_goal` refeito e revertido
+
+**A landing do Cássio está aprovada. A campanha não é limitada por ela.**
+Motivo: era a lacuna registrada em §6.1 do HANDOFF — verba liberada sem teste.
+Testada com os UTMs do anúncio: carregamento OK, HTTPS OK, sem redirect, bolha
+flutuante do WhatsApp 54×54 px sempre visível, número `5515991320687` idêntico
+nos três pontos de entrada, mensagem pré-preenchida correta. Clique real disparou
+`whatsapp_click` **exatamente uma vez**, com uma requisição de conversão para
+`AW-18088952203`. O WhatsApp abriu na tela anterior ao envio; nada foi enviado.
+Consequência: a hipótese B (problema pós-clique) segue parcial pela taxa de 0,9%,
+mas não por defeito técnico da página. `MONITOR_NOT_DEPLOYED` e a queda de entrega
+(hipótese C) continuam sendo a causa principal.
+
+**Conversão de teste a descontar: 05/08/2026, 23:09:24–23:09:27 BRT.**
+Clique meu, com UTMs da campanha ativa, autorizado pelo dono. Não é contato real.
+
+**`primary_for_goal` foi reativado por engano e revertido no mesmo dia.**
+Motivo: a sessão rodou sem acesso ao repositório — o HANDOFF não pôde ser lido, e
+a divergência `conversions` 0 × `all_conversions` 5 foi apresentada como achado
+novo quando já estava documentada em §7.1. A alteração de 05/08 (request-id
+`xMbYjE0H2R9w7f6h9evw8A`) e sua reversão deliberada foram refeitas às cegas.
+O risco de conta compartilhada foi levantado com o dono e autorizado, mas sem a
+decisão anterior à vista. Consequência: revertido em 06/08 para *Ação secundária*,
+restaurando o estado que a sessão de 05/08 deixou de propósito. **Regra reforçada:
+sem `HANDOFF.md` lido, não se altera propriedade de conta compartilhada.**
+
+**A rota cirúrgica para escopar a conversão à campanha não existe.**
+Motivo: aplicar a meta personalizada `CÁSSIO | WHATSAPP | CONTRATAÇÃO DE SHOW`
+só à campanha `24066140634` exigiria trocar `Meta da campanha` de `Cliques` para
+`Conversões` — Demand Gen com objetivo de cliques não expõe seção de metas de
+conversão. Isso é mudança de estratégia de lance, proibida pela restrição vigente,
+e resetaria o aprendizado a 15 dias do fim. Consequência: em conta compartilhada,
+`conversions` × `all_conversions` se resolve **no leitor, não na conta**. O monitor
+deve ler `all_conversions` e segmentar por ação, conforme já manda a regra §3.4.
+
+**Os links de WhatsApp da landing são injetados por JavaScript.**
+Motivo: no HTML servido pelo servidor eles são `href="#"`, e a bolha flutuante não
+existe — `assets/site.js` reescreve em runtime. Consequência: se o JS falhar ou
+demorar, os botões morrem e a conversão some sem deixar rastro. Em 3G ruim é perda
+silenciosa. Candidato mais plausível a explicar clique que não vira contato.
+Correção proposta, não aplicada: renderizar os `wa.me` no HTML do servidor.
+
+**`CASSIO | LEAD QUALIFICADO | FORM` está inativo, mas a cadeia parece íntegra.**
+Motivo: `site.js` empurra `form_submit` pelo mesmo helper que empurra
+`whatsapp_click`, e o container `GTM-5JGMZBKZ` referencia `form_submit` no mesmo
+padrão — este provado ponta a ponta. "Inativo" no Ads significa nenhuma conversão
+em 30 dias. Consequência: a hipótese principal não é tag quebrada, é **ninguém
+completar o formulário** — 11 campos, 5 obrigatórios, com `input[type=date]`, para
+tráfego de vídeo em celular. Em 680 cliques: 5 no WhatsApp, 0 no formulário.
+Não confirmado: exigiria submissão real, que geraria pedido à produção.
