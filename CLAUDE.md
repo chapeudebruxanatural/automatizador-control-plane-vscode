@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## Idioma
+
+Todas as respostas — no chat, em commits, em documentação e em qualquer saída
+gerada — devem ser em português do Brasil. Código, nomes de identificadores e
+termos técnicos sem tradução consagrada podem permanecer em inglês.
+
 ## Objetivo
 
 Plano de controle privado da AutomatizadorIA. Centraliza inventário, contexto de
