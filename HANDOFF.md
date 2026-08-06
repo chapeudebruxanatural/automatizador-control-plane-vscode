@@ -446,6 +446,33 @@ Para tornar real: `launchd` no Mac, cron na VPS, ou GitHub Actions agendado
 (o repositório já tem CI; o developer token iria para Actions secrets).
 **Provar com PID, serviço ou registro de execução** — não declarar pronto.
 
+### 9.1 Verificado em 06/08 — são DOIS bloqueios, não um
+
+O `.github/workflows/monitor.yml` existe e está bem escrito, mas **não roda**, e
+o motivo não é só o que estava registrado aqui.
+
+**Bloqueio A — o workflow não está na branch padrão.**
+`monitor.yml` existe apenas em `feat/google-ads-live-operations-v1`. A `main`
+(HEAD `d91a670`, branch padrão) só tem `ci.yml`. O GitHub **só registra
+`schedule` e `workflow_dispatch` de arquivos presentes na branch padrão** —
+confirmado na aba Actions: a barra lateral lista apenas **CI**, e "Monitor de
+campanhas" não aparece. Portanto o cron das 09:00/21:00 UTC nunca disparou e não
+há como disparar à mão.
+*Saída sugerida, sem mesclar o PR #2:* PR pequeno e dedicado levando **somente**
+`.github/workflows/monitor.yml` para a `main`.
+
+**Bloqueio B — os secrets não estão cadastrados.**
+Em `Settings → Secrets and variables → Actions`, em 06/08:
+`Repository secrets: This repository has no secrets.` e
+`Environment secrets: This environment has no secrets.`
+Nem `GOOGLE_ADS_DEVELOPER_TOKEN` nem `GOOGLE_ADS_SERVICE_ACCOUNT_JSON` existem.
+O dono relatou tê-los cadastrado; **a verificação contradiz o relato**. Registrado
+como `owner_reported` × `verified` em conflito — vale `conflicting`.
+Passo a passo: `docs/runbooks/ativar-monitor.md`.
+
+**Ordem correta:** B depois A, ou o primeiro `workflow_dispatch` falha no passo
+"Preparar credencial". Os dois são necessários; nenhum é suficiente sozinho.
+
 ---
 
 ## 10. RESTO DA OPERAÇÃO
@@ -570,7 +597,7 @@ bater e a execução é recusada sozinha.
 | # | Fase | Estado |
 |---|---|---|
 | 0 | Destravar (v22, credencial por caminho) | ✅ |
-| 1 | Tornar contínuo (monitor agendado) | ◐ **bloqueado no dono** — 2 secrets |
+| 1 | Tornar contínuo (monitor agendado) | ◐ **bloqueado — 2 secrets AUSENTES + `monitor.yml` fora da `main`.** Ver §9.1 |
 | 2 | Banco na VPS | ✗ |
 | 3 | WhatsApp somente leitura | ✗ |
 | 4 | Escrita com confirmação | ✗ |
@@ -586,9 +613,13 @@ confunde Garbo com Gaveta.
 
 ### Nesta ordem
 
-**0. Cadastrar os dois secrets do monitor.** É a única coisa bloqueada no dono,
-custa dois minutos, e enquanto não for feita a campanha segue gastando sem
-vigilância. Passo a passo em `docs/runbooks/ativar-monitor.md`.
+**0. Destravar o monitor — são DUAS coisas, não uma.** Ver §9.1, verificado em
+06/08. **(a)** Cadastrar os dois secrets: em 06/08 o repositório não tinha
+**nenhum** secret cadastrado, apesar do relato em contrário. Passo a passo em
+`docs/runbooks/ativar-monitor.md`. **(b)** Levar `monitor.yml` para a `main` num
+PR pequeno e dedicado — enquanto o arquivo estiver só nesta branch, o GitHub não
+registra o workflow e nem o cron nem o disparo manual existem. Enquanto as duas
+não forem feitas, a campanha segue gastando sem vigilância.
 
 **1. ~~Testar a landing do Cássio.~~ ✅ FEITO em 06/08 — ver §7.6.** Aprovada.
 Campanha não foi pausada. Restam três pendências menores dali: conferir
