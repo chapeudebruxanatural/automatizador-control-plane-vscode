@@ -446,7 +446,41 @@ Para tornar real: `launchd` no Mac, cron na VPS, ou GitHub Actions agendado
 (o repositório já tem CI; o developer token iria para Actions secrets).
 **Provar com PID, serviço ou registro de execução** — não declarar pronto.
 
-### 9.1 Verificado em 06/08 — são DOIS bloqueios, não um
+### 9.0 RESOLVIDO em 06/08 — o monitor está no ar
+
+`MONITOR_NOT_DEPLOYED` **encerrado**. Execução #2 do workflow "Monitor de campanhas",
+manual, na `main`, **Success em 35s**, autenticada pela conta de serviço via Actions
+secrets. Saída real:
+
+```
+=== Cássio Ferraz — campanha 24066140634 ===
+status: ENABLED / ELIGIBLE   orçamento: R$ 472.94
+
+  2026-08-01 | R$ 1.37 |  0 cliques | CPC   -  | WhatsApp 0
+  2026-08-02 | R$ 8.01 |  2 cliques | CPC 4.00 | WhatsApp 0
+  2026-08-03 | R$ 8.04 |  4 cliques | CPC 2.01 | WhatsApp 0
+  2026-08-04 | R$ 7.58 | 59 cliques | CPC 0.13 | WhatsApp 0
+  2026-08-05 | R$ 4.55 | 38 cliques | CPC 0.12 | WhatsApp 0
+
+7 dias: R$ 29.56 | 103 cliques | 0 contatos
+Sem alertas.
+```
+
+O cron de 09:00/21:00 UTC passa a valer sozinho a partir daqui.
+
+**Bug encontrado na primeira execução real e corrigido no mesmo dia.**
+O script somava só a janela de 7 dias e comparava esse total contra o teto
+**vitalício**: imprimiu `restante até o teto: R$ 443,38` quando o gasto acumulado
+já era R$ 177,47 e o restante verdadeiro, ~R$ 295. Pior que o número errado:
+o alerta de `gasto acumulado > R$ 400` comparava janela curta com teto longo e
+**nunca dispararia**. O monitor vigiava com o alarme de verba surdo.
+
+Corrigido com uma segunda consulta usando `campaign.start_date` — campo que só
+existe até a v22, mais um motivo para a versão estar fixada (§5.1). A saída agora
+separa `7 dias` de `acumulado`, e se `start_date` vier vazio o próprio monitor
+alerta que está cego em vez de imprimir número errado.
+
+### 9.1 Os dois bloqueios que existiam (histórico)
 
 O `.github/workflows/monitor.yml` existe e está bem escrito, mas **não roda**, e
 o motivo não é só o que estava registrado aqui.
@@ -597,7 +631,7 @@ bater e a execução é recusada sozinha.
 | # | Fase | Estado |
 |---|---|---|
 | 0 | Destravar (v22, credencial por caminho) | ✅ |
-| 1 | Tornar contínuo (monitor agendado) | ◐ **bloqueado — 2 secrets AUSENTES + `monitor.yml` fora da `main`.** Ver §9.1 |
+| 1 | Tornar contínuo (monitor agendado) | ✅ **06/08** — secrets cadastrados, PR #2 mesclado, workflow rodou com Success. Ver §9.0 |
 | 2 | Banco na VPS | ✗ |
 | 3 | WhatsApp somente leitura | ✗ |
 | 4 | Escrita com confirmação | ✗ |
@@ -613,13 +647,10 @@ confunde Garbo com Gaveta.
 
 ### Nesta ordem
 
-**0. Destravar o monitor — são DUAS coisas, não uma.** Ver §9.1, verificado em
-06/08. **(a)** Cadastrar os dois secrets: em 06/08 o repositório não tinha
-**nenhum** secret cadastrado, apesar do relato em contrário. Passo a passo em
-`docs/runbooks/ativar-monitor.md`. **(b)** Levar `monitor.yml` para a `main` num
-PR pequeno e dedicado — enquanto o arquivo estiver só nesta branch, o GitHub não
-registra o workflow e nem o cron nem o disparo manual existem. Enquanto as duas
-não forem feitas, a campanha segue gastando sem vigilância.
+**0. ~~Destravar o monitor.~~ ✅ FEITO em 06/08 — ver §9.0.** Secrets cadastrados,
+PR #2 mesclado, workflow rodou com Success, cron ativo. Sobrou uma verificação:
+confirmar na próxima execução que o gasto acumulado aparece correto (~R$ 177 e não
+~R$ 30) depois da correção do bug de janela.
 
 **1. ~~Testar a landing do Cássio.~~ ✅ FEITO em 06/08 — ver §7.6.** Aprovada.
 Campanha não foi pausada. Restam três pendências menores dali: conferir
@@ -669,3 +700,15 @@ Só reporte **`CASSIO_CONVERTING`** após novo `WHATSAPP - CÁSSIO` confirmado
 secundária** — ou seja, `metrics.conversions` continua devolvendo 0 e
 `metrics.all_conversions` devolve 5. Isso é o esperado e deliberado. **O monitor
 precisa ler `all_conversions` segmentado por ação, nunca `conversions`.**
+(Já lê — ver `scripts/google-ads-monitor.mts`.)
+
+**Leitura da API em 06/08, pelo monitor:** 103 cliques em 7 dias, **0 contatos
+novos**. Os 5 continuam sendo os de 29/07. Com p=0,9%, zero em 103 tem ~39% de
+chance de ser acaso — muito abaixo do limiar de investigação de 300 (§7.5).
+CPC em R$ 0,12–0,13 nos dias de volume: regime bom.
+
+**A conversão de teste de 05/08 23:09 NÃO apareceu** na leitura da API para
+aquele dia. Hipótese principal, ainda não confirmada: o teste navegou direto
+para a URL, **sem `gclid`** — sem ele o Ads não atribui a conversão à campanha.
+Se estiver certo, o teste provou que a tag dispara **sem sujar o dado da
+campanha**. Conferir na próxima leitura antes de dar como encerrado.

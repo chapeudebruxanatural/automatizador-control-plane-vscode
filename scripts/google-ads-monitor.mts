@@ -72,10 +72,48 @@ const { rows } = await tp.searchStream(
 const st = await tp.searchStream(
   CID,
   `SELECT campaign.status, campaign.primary_status, campaign.primary_status_reasons,
+          campaign.start_date, campaign.end_date,
           campaign_budget.total_amount_micros
    FROM campaign WHERE campaign.id = ${CAMPAIGN}`,
 );
 const info = (st.rows[0] ?? {}) as Record<string, Record<string, unknown>>;
+
+/**
+ * Gasto do PERÍODO INTEIRO da campanha, não dos últimos 7 dias.
+ *
+ * Bug corrigido em 06/08: o alerta de estouro de verba e o "restante até o
+ * teto" usavam o total da janela de 7 dias contra um teto que é vitalício.
+ * Na primeira execução real isso imprimiu "restante R$ 443,38" quando o gasto
+ * acumulado já era R$ 177,47 e o restante verdadeiro, ~R$ 295. Pior: o alerta
+ * de R$ 400 comparava uma janela curta com um teto longo, então **nunca
+ * dispararia** — o monitor vigiava sem que o alarme de verba pudesse tocar.
+ *
+ * O `campaign.start_date` só existe até a v22 da API. É mais um motivo para a
+ * versão estar fixada; ver secao 5.1 do HANDOFF.
+ */
+const startDate = String(info['campaign']?.['startDate'] ?? '');
+const today = new Date().toISOString().slice(0, 10);
+
+let lifetimeCost = 0;
+let lifetimeClicks = 0;
+let lifetimeAll = 0;
+let lifetimeKnown = false;
+
+if (startDate !== '') {
+  const lt = await tp.searchStream(
+    CID,
+    `SELECT metrics.cost_micros, metrics.clicks, metrics.all_conversions
+     FROM campaign WHERE campaign.id = ${CAMPAIGN}
+       AND segments.date BETWEEN '${startDate}' AND '${today}'`,
+  );
+  for (const r of lt.rows) {
+    const m = (r as Record<string, Record<string, unknown>>)['metrics'] ?? {};
+    lifetimeCost += Number(m['costMicros'] ?? 0) / 1e6;
+    lifetimeClicks += Number(m['clicks'] ?? 0);
+    lifetimeAll += Number(m['allConversions'] ?? 0);
+  }
+  lifetimeKnown = true;
+}
 
 type Day = { date: string; cost: number; clicks: number; conv: number; all: number };
 const days: Day[] = rows.map((r) => {
@@ -109,11 +147,17 @@ if (last !== undefined && last.clicks > 0) {
 if (last !== undefined && last.cost > SPEND_WITHOUT_CONTACT_BRL && last.all === 0) {
   alerts.push(`R$ ${last.cost.toFixed(2)} gastos em ${last.date} sem nenhum contato novo.`);
 }
-if (total.cost > SPEND_ALERT_BRL) {
+if (lifetimeKnown && lifetimeCost > SPEND_ALERT_BRL) {
   alerts.push(
-    `Gasto acumulado de R$ ${total.cost.toFixed(2)} passou o alerta de ` +
-      `R$ ${SPEND_ALERT_BRL.toFixed(2)}. Restam R$ ${(BUDGET_CAP_BRL - total.cost).toFixed(2)} ` +
+    `Gasto acumulado de R$ ${lifetimeCost.toFixed(2)} passou o alerta de ` +
+      `R$ ${SPEND_ALERT_BRL.toFixed(2)}. Restam R$ ${(BUDGET_CAP_BRL - lifetimeCost).toFixed(2)} ` +
       'até o teto, onde a campanha para sozinha.',
+  );
+}
+if (!lifetimeKnown) {
+  alerts.push(
+    'campaign.start_date veio vazio — o gasto acumulado nao pode ser apurado e o ' +
+      'alerta de teto de verba esta CEGO nesta execucao. Verificar a versao da API.',
   );
 }
 
@@ -132,8 +176,17 @@ for (const d of days) {
   );
 }
 console.log('');
-console.log(`7 dias: R$ ${total.cost.toFixed(2)} | ${total.clicks} cliques | ${total.all} contatos`);
-console.log(`restante até o teto: R$ ${(BUDGET_CAP_BRL - total.cost).toFixed(2)} (aprox.)`);
+console.log(`7 dias:     R$ ${total.cost.toFixed(2)} | ${total.clicks} cliques | ${total.all} contatos`);
+if (lifetimeKnown) {
+  console.log(
+    `acumulado:  R$ ${lifetimeCost.toFixed(2)} | ${lifetimeClicks} cliques | ${lifetimeAll} contatos ` +
+      `(desde ${startDate})`,
+  );
+  console.log(`restante até o teto: R$ ${(BUDGET_CAP_BRL - lifetimeCost).toFixed(2)} (aprox.)`);
+} else {
+  console.log('acumulado:  INDISPONÍVEL — campaign.start_date vazio');
+  console.log('restante até o teto: NÃO APURADO');
+}
 
 if (alerts.length > 0) {
   console.log('\n*** ALERTAS ***');
@@ -145,5 +198,16 @@ if (alerts.length > 0) {
 await mkdir(ROOT + 'audit', { recursive: true });
 await appendFile(
   ROOT + 'audit/google-ads-monitor.jsonl',
-  JSON.stringify({ at: new Date().toISOString(), status, primary, budget, total, days, alerts }) + '\n',
+  JSON.stringify({
+    at: new Date().toISOString(),
+    status,
+    primary,
+    budget,
+    window7d: total,
+    lifetime: lifetimeKnown
+      ? { since: startDate, cost: lifetimeCost, clicks: lifetimeClicks, all: lifetimeAll }
+      : null,
+    days,
+    alerts,
+  }) + '\n',
 );

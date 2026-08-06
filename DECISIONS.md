@@ -183,6 +183,16 @@ demorar, os botões morrem e a conversão some sem deixar rastro. Em 3G ruim é 
 silenciosa. Candidato mais plausível a explicar clique que não vira contato.
 Correção proposta, não aplicada: renderizar os `wa.me` no HTML do servidor.
 
+**O monitor mede gasto acumulado pelo período da campanha, não pela janela de 7 dias.**
+Motivo: na primeira execução real ele imprimiu `restante até o teto: R$ 443,38`
+somando só os últimos 7 dias contra um teto vitalício — o gasto real acumulado era
+R$ 177,47 e o restante, ~R$ 295. O número errado era o sintoma menor; o grave é que
+o alerta de `gasto acumulado > R$ 400` comparava janela curta com teto longo e
+**nunca dispararia**. Consequência: segunda consulta usando `campaign.start_date`,
+campo que só existe até a v22 — mais uma razão para a versão estar fixada. Se
+`start_date` vier vazio, o monitor **alerta que está cego** em vez de imprimir
+número errado. Silêncio agora significa vigilância, não ausência de dado.
+
 **`CASSIO | LEAD QUALIFICADO | FORM` está inativo, mas a cadeia parece íntegra.**
 Motivo: `site.js` empurra `form_submit` pelo mesmo helper que empurra
 `whatsapp_click`, e o container `GTM-5JGMZBKZ` referencia `form_submit` no mesmo
