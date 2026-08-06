@@ -161,3 +161,44 @@ de produção em texto claro fora de qualquer cofre.
 
 Nada acima foi executado. Itens 1 a 4 são escrita na VPS e exigem aprovação
 específica, conforme §3 do HANDOFF.
+
+---
+
+## 7. O item 1 é menor do que parece — os scripts já existem
+
+Verificado em 06/08, depois de quase reescrever do zero o que já estava pronto.
+
+`scripts/backup/` contém `backup-volumes.sh`, `backup-postgres.sh`,
+`backup-configs.sh` e um `lib.sh` compartilhado. `scripts/restore/` contém
+`restore-postgres.sh` e `verify-manifest.sh`. São bem construídos:
+
+- `backup-volumes.sh` **recusa** volumes de banco, com o motivo declarado em cada
+  entrada da lista de exclusão — um `tar` de PGDATA vivo não é backup
+- `backup-postgres.sh` usa `pg_dump` **dentro do container**, que é a única forma
+  de obter dump consistente
+- `backup-configs.sh` **sanitiza** `environment:` antes de arquivar: guarda a
+  topologia, nunca os valores
+- `lib.sh` traz manifesto com checksum, verificação de espaço livre e dry-run
+  por padrão
+
+**Faltam exatamente duas coisas, e nenhuma é construir backup:**
+
+**(a) Não estão instalados na VPS.** Vivem só no repositório.
+
+**(b) Não sobem para lugar nenhum.** Escrevem em `/tmp/control-plane-backup` e
+param ali — backup no mesmo disco que deveria proteger, que é o modo de falha
+que descartamos para o MinIO e que aqui é real. O mecanismo de upload já existe
+funcionando ao lado: `aws cli` em container com `--env-file`, rodando há meses
+no `novacena-backup.sh`. É reaproveitar, não inventar.
+
+**Ordem sugerida para fechar o R-001:**
+
+1. Rodar os três em dry-run **na VPS**, conferindo espaço livre (59 GB) contra o
+   tamanho somado que o próprio script reporta
+2. Rodar com `--apply`, gerando local, e validar com `verify-manifest.sh`
+3. Só então acrescentar o upload, reusando `ENV_FILE` e o bucket do
+   `novacena-backup.sh`
+4. Por último, um `systemd` timer no mesmo molde do `novacena-backup.timer`
+
+Testar o **restore** antes de considerar resolvido. Backup que nunca foi
+restaurado é hipótese, não garantia.
