@@ -25,7 +25,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { assertAuthorizedCustomer, assertCampaignBelongsTo } from './scope.js';
+import { assertAuthorizedCustomer, assertCampaignBelongsTo, assertCampaignMutable } from './scope.js';
 import type { GoogleAdsSearchTransport } from './read-adapter.js';
 
 export type MutationKind = 'campaign.status' | 'campaign.budget';
@@ -78,6 +78,15 @@ export interface GoogleAdsMutateTransport extends GoogleAdsSearchTransport {
   ): Promise<{ response: unknown; requestId: string }>;
 }
 
+/**
+ * Impressão digital do payload para detectar alteração entre planejar e executar.
+ *
+ * São 64 bits — **integridade contra mudança acidental, não autenticação**. Não
+ * é resistente a colisão deliberada, e não precisa ser: quem consegue forjar o
+ * payload já está dentro do processo, onde poderia simplesmente chamar o
+ * transporte direto. O que este hash impede é o caso real — plano montado,
+ * revisado, e alterado no caminho até a aprovação.
+ */
 function hashPayload(payload: unknown): string {
   return createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 16);
 }
@@ -123,12 +132,8 @@ export function createGoogleAdsWriteAdapter(options: WriteAdapterOptions) {
       status: 'ENABLED' | 'PAUSED',
     ): Promise<MutationPlan> {
       const cid = assertAuthorizedCustomer(customerId);
-      const campaign = assertCampaignBelongsTo(campaignId, clientSlug);
-      if (campaign.lifecycle === 'removed_by_owner') {
-        throw new MutationRefusedError(
-          `campanha ${campaignId} está marcada como removed_by_owner — não pode ser reativada`,
-        );
-      }
+      assertCampaignBelongsTo(campaignId, clientSlug);
+      assertCampaignMutable(campaignId);
 
       const current = await readCampaign(cid, campaignId);
       const before = String(current['campaign']?.['status'] ?? 'UNKNOWN');
@@ -177,6 +182,7 @@ export function createGoogleAdsWriteAdapter(options: WriteAdapterOptions) {
     ): Promise<MutationPlan> {
       const cid = assertAuthorizedCustomer(customerId);
       assertCampaignBelongsTo(campaignId, clientSlug);
+      assertCampaignMutable(campaignId);
 
       if (!Number.isFinite(dailyBudgetBRL) || dailyBudgetBRL <= 0) {
         throw new MutationRefusedError('orçamento diário inválido');

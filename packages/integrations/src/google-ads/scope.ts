@@ -13,7 +13,18 @@
 export const AUTHORIZED_CUSTOMER_ID = '2656966896';
 export const AUTHORIZED_LOGIN_CUSTOMER_ID = '3992594849';
 
-export type CampaignLifecycle = 'active_scope' | 'removed_by_owner' | 'discovery_by_name';
+/**
+ * `frozen_by_owner` existe porque "não mexer" precisa ser estrutura, não memória.
+ * Até 06/08 o Buteco só estava protegido por acidente — o ID dele não constava na
+ * allowlist, então qualquer mutate falhava por campanha desconhecida. No dia em
+ * que alguém preenchesse o ID (e ele está documentado no §8 do HANDOFF) a
+ * proteção sumiria em silêncio, sem nenhum teste acusando.
+ */
+export type CampaignLifecycle =
+  | 'active_scope'
+  | 'removed_by_owner'
+  | 'frozen_by_owner'
+  | 'discovery_by_name';
 
 export interface AuthorizedCampaign {
   readonly campaignId: string | null;
@@ -42,14 +53,16 @@ export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
       'qualquer mutate.',
   },
   {
-    campaignId: null,
+    campaignId: '24105770570',
     clientSlug: 'buteco-sertanejo',
     expectedName: 'DG | Buteco Sertanejo | Shorts | Spotify',
-    lifecycle: 'discovery_by_name',
+    lifecycle: 'frozen_by_owner',
     notes:
-      'ID desconhecido: localizar por correspondência EXATA do nome. Há reprovação ' +
-      'por direitos autorais a verificar. Não contestar, não editar anúncio, não ' +
-      'substituir vídeo.',
+      'ID confirmado em 06/08 na interface do Ads — antes constava como desconhecido. ' +
+      'Anúncio 819900433355 REPROVADO por COPYRIGHTED_CONTENT, severidade ' +
+      'FULLY_LIMITED. Instrução vigente do dono: NÃO MEXER. Leitura é permitida ' +
+      '(para confirmar que segue parada); qualquer mutate é recusado em código. ' +
+      'Não contestar, não editar anúncio, não substituir vídeo.',
   },
   {
     campaignId: '24079586567',
@@ -125,4 +138,37 @@ export function isRemovedByOwner(campaignId: string): boolean {
   return AUTHORIZED_CAMPAIGNS.some(
     (c) => c.campaignId === normalized && c.lifecycle === 'removed_by_owner',
   );
+}
+
+/** Campanhas congeladas por instrução do dono. Leitura sim, escrita não. */
+export function isFrozenByOwner(campaignId: string): boolean {
+  const normalized = campaignId.replace(/\D/g, '');
+  return AUTHORIZED_CAMPAIGNS.some(
+    (c) => c.campaignId === normalized && c.lifecycle === 'frozen_by_owner',
+  );
+}
+
+/**
+ * Porta única de escrita: recusa qualquer campanha cujo ciclo de vida proíbe
+ * mutate, seja qual for a operação.
+ *
+ * Existe como função separada porque a guarda estava só no plano de status —
+ * o de orçamento não checava nada, e dava para alterar verba de campanha que o
+ * dono tinha mandado remover. Guarda espalhada por chamador é guarda que um dia
+ * alguém esquece de repetir.
+ */
+export function assertCampaignMutable(campaignId: string): void {
+  const normalized = campaignId.replace(/\D/g, '');
+  const campaign = AUTHORIZED_CAMPAIGNS.find((c) => c.campaignId === normalized);
+
+  if (campaign?.lifecycle === 'removed_by_owner') {
+    throw new ScopeViolationError(
+      `campanha ${normalized} está marcada como removed_by_owner — não pode ser alterada nem reativada`,
+    );
+  }
+  if (campaign?.lifecycle === 'frozen_by_owner') {
+    throw new ScopeViolationError(
+      `campanha ${normalized} está congelada por instrução do dono (frozen_by_owner) — leitura é permitida, alteração não`,
+    );
+  }
 }

@@ -53,7 +53,12 @@ structure:
   serviceAccount:
     email: google-ads-automation@automatizador-ia-ads.iam.gserviceaccount.com
     verificationStatus: owner_reported
-    credentialsRegistered: false
+    credentialsRegistered: true
+    credentialsRegisteredAt: 2026-08-06
+    credentialsRegisteredNote: >-
+      Cadastradas como GitHub Actions repository secrets
+      (GOOGLE_ADS_SERVICE_ACCOUNT_JSON e GOOGLE_ADS_DEVELOPER_TOKEN) em 06/08.
+      Verificado na tela de Secrets — nomes conferidos, valores nunca lidos.
     keyId: 6ec937378864e4bcbfdc9f41afd0ed7ba233ddd8
     oauthClientId: "104380424995543795724"
     createdAt: 2026-07-28

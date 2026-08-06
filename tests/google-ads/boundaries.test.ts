@@ -20,7 +20,9 @@ import {
   assertAuthorizedCustomer,
   assertAuthorizedCampaign,
   assertCampaignBelongsTo,
+  assertCampaignMutable,
   isRemovedByOwner,
+  isFrozenByOwner,
   normalizeCustomerId,
   ScopeViolationError,
   AUTHORIZED_CAMPAIGNS,
@@ -157,11 +159,34 @@ describe('escopo: campanha', () => {
     assert.equal(isRemovedByOwner('24066140634'), false);
   });
 
-  it('o Buteco Sertanejo esta declarado para descoberta por nome exato', () => {
+  it('o Buteco Sertanejo esta congelado por instrucao do dono', () => {
     const buteco = AUTHORIZED_CAMPAIGNS.find((c) => c.clientSlug === 'buteco-sertanejo');
     assert.ok(buteco, 'Buteco ausente da allowlist');
-    assert.equal(buteco?.campaignId, null, 'ID deveria ser desconhecido');
+    assert.equal(buteco?.campaignId, '24105770570', 'ID confirmado em 06/08');
+    assert.equal(buteco?.lifecycle, 'frozen_by_owner');
     assert.equal(buteco?.expectedName, 'DG | Buteco Sertanejo | Shorts | Spotify');
+  });
+
+  it('congelada e removida sao coisas diferentes', () => {
+    assert.equal(isFrozenByOwner('24105770570'), true);
+    assert.equal(isRemovedByOwner('24105770570'), false);
+    assert.equal(isFrozenByOwner('24079586567'), false);
+    assert.equal(isFrozenByOwner('24066140634'), false);
+  });
+
+  it('RECUSA mutate em campanha congelada, e o Cassio segue liberado', () => {
+    assert.throws(() => assertCampaignMutable('24105770570'), /frozen_by_owner/);
+    assert.throws(() => assertCampaignMutable('24079586567'), /removed_by_owner/);
+    assert.doesNotThrow(() => assertCampaignMutable('24066140634'));
+  });
+
+  it('a protecao do Buteco nao depende do ID estar ausente da allowlist', () => {
+    // Regressão de 06/08: antes o Buteco só escapava de mutate porque o ID não
+    // constava na lista. Preencher o ID — que já estava documentado no HANDOFF —
+    // teria removido a proteção sem nenhum teste acusando.
+    const buteco = AUTHORIZED_CAMPAIGNS.find((c) => c.clientSlug === 'buteco-sertanejo');
+    assert.notEqual(buteco?.campaignId, null, 'o ID agora está preenchido');
+    assert.throws(() => assertCampaignMutable(buteco?.campaignId as string));
   });
 });
 
