@@ -537,8 +537,13 @@ publicadas por container e cria falsa proteção; `iptables` direto num nó Swar
 pior, porque o Docker reescreve as próprias cadeias. O lugar do filtro é o
 **firewall do painel da Hostinger**, fora do host.
 
-Scripts prontos e testados, **não instalados**: `scripts/backup/`,
-`scripts/restore/`, `scripts/docker-retention-*.sh`.
+**`scripts/backup/` — instalados em `/root/backup-scripts/` na VPS em 06/08**,
+executados e verificados (ver R-001).
+
+`scripts/restore/` — prontos e testados, **não instalados**. O restore nunca foi
+exercitado contra um dump real; integridade de checksum não é restaurabilidade.
+
+`scripts/docker-retention-*.sh` — prontos, **não instalados**.
 
 ### 10.2 WhatsApp / Evolution API — homologação
 
