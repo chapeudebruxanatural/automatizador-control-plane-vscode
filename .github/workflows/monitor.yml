@@ -1,0 +1,80 @@
+# =============================================================================
+# monitor.yml — vigilância contínua das campanhas ao vivo
+# =============================================================================
+# Resolve o MONITOR_NOT_DEPLOYED registrado na auditoria de 05/08: até aqui o
+# monitor só existia como script que alguém rodava à mão, e por isso a campanha
+# do Cássio gastava dinheiro real sem ninguém olhando entre uma sessão e outra.
+#
+# SOMENTE LEITURA. Nenhum mutate, nenhuma alteração de campanha. O script chama
+# apenas `searchStream`, e `assertReadOnlyQuery` recusa GAQL que não comece com
+# SELECT.
+#
+# Roda a cada 12h e sob demanda. Não roda em push: o objetivo é vigiar a conta,
+# não o repositório.
+# =============================================================================
+
+name: Monitor de campanhas
+
+on:
+  schedule:
+    # 09:00 e 21:00 UTC — 06:00 e 18:00 em Brasília.
+    # O horário importa: 06:00 pega a noite inteira antes do dono acordar.
+    - cron: '0 9,21 * * *'
+  workflow_dispatch:
+
+# Sem permissão de escrita: o job lê a API do Google e imprime. Não commita,
+# não abre issue, não toca no repositório.
+permissions:
+  contents: read
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
+
+jobs:
+  google-ads:
+    name: Google Ads — Cássio Ferraz
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
+          cache: npm
+
+      - run: npm ci
+
+      # A chave da conta de serviço é um JSON inteiro. Vai para um arquivo
+      # temporário fora do checkout, com modo 600, e é lida POR CAMINHO — o
+      # mesmo contrato de `credential-provider.ts`. O valor nunca aparece em
+      # log: `sanitize()` no transporte limpa qualquer erro antes de subir.
+      - name: Preparar credencial
+        id: cred
+        env:
+          KEY_JSON: ${{ secrets.GOOGLE_ADS_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "${KEY_JSON}" ]; then
+            echo "::error::Secret GOOGLE_ADS_SERVICE_ACCOUNT_JSON ausente."
+            exit 1
+          fi
+          KEY_PATH="${RUNNER_TEMP}/google-ads-key.json"
+          umask 077
+          printf '%s' "${KEY_JSON}" > "${KEY_PATH}"
+          chmod 600 "${KEY_PATH}"
+          echo "key_path=${KEY_PATH}" >> "${GITHUB_OUTPUT}"
+
+      - name: Executar monitor
+        env:
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_KEY_PATH: ${{ steps.cred.outputs.key_path }}
+        run: node --import tsx scripts/google-ads-monitor.mts
+
+      # Roda mesmo se o monitor falhar. A credencial não sobrevive ao job de
+      # qualquer forma, mas apagar explicitamente é barato e deixa a intenção
+      # registrada.
+      - name: Remover credencial
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/google-ads-key.json"

@@ -20,9 +20,31 @@ const SPEND_ALERT_BRL = 400;
 const BUDGET_CAP_BRL = 472.94;
 const SPEND_WITHOUT_CONTACT_BRL = 100;
 
-for (const line of (await readFile(ROOT + '.env', 'utf8')).split('\n')) {
-  const m = /^([A-Z_]+)=(.*)$/.exec(line.trim());
-  if (m && m[1] && m[2]) process.env[m[1]] = m[2];
+/**
+ * Carrega o `.env` quando ele existe.
+ *
+ * Ausência não é erro: rodando em CI as credenciais vêm do ambiente (Actions
+ * secrets), e não há nem deve haver `.env` no runner. O que fica valendo em
+ * ambos os casos é a checagem logo abaixo — falta de credencial é erro, falta
+ * de arquivo não.
+ *
+ * Variável já presente no ambiente tem precedência sobre o arquivo: em CI o
+ * segredo injetado é a fonte da verdade.
+ */
+try {
+  for (const line of (await readFile(ROOT + '.env', 'utf8')).split('\n')) {
+    const m = /^([A-Z_]+)=(.*)$/.exec(line.trim());
+    if (m && m[1] && m[2] && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
+  }
+} catch {
+  // sem .env — segue com o que estiver no ambiente
+}
+
+if (!process.env['GOOGLE_ADS_DEVELOPER_TOKEN']) {
+  console.error(
+    'GOOGLE_ADS_DEVELOPER_TOKEN ausente. Defina no .env (local) ou nos secrets (CI).',
+  );
+  process.exit(1);
 }
 
 const { describeCredentials } = await import(

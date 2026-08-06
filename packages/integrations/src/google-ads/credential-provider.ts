@@ -66,7 +66,29 @@ export const ADVERTISER_CUSTOMER_ID = '2656966896';
  * criado em outra máquina e o nome não foi informado. Devolve o primeiro que
  * existir e for legível.
  */
-async function findServiceAccountKey(secretDir: string): Promise<string | null> {
+async function findServiceAccountKey(
+  secretDir: string,
+  explicitPath?: string,
+): Promise<string | null> {
+  // Caminho explícito ganha do diretório padrão.
+  //
+  // Existe para CI: no runner não há `~/Documents/Codex/.secrets`, a chave é
+  // materializada num arquivo temporário e o caminho chega por
+  // GOOGLE_ADS_KEY_PATH. Também serve para quem roda em outra máquina.
+  //
+  // Se o caminho foi declarado e não serve, devolve null em vez de cair no
+  // diretório padrão: cair de volta silenciosamente leria uma credencial que
+  // não é a pedida, e numa conta compartilhada isso é a diferença entre
+  // operar o cliente certo e o errado.
+  if (explicitPath !== undefined && explicitPath !== '') {
+    try {
+      await access(explicitPath, constants.R_OK);
+      return explicitPath;
+    } catch {
+      return null;
+    }
+  }
+
   const candidates = [
     'service-account.json',
     'google-ads-automation.json',
@@ -109,30 +131,42 @@ export async function describeCredentials(
     liveReadVerified: false as const,
   };
 
-  let dirExists = false;
-  try {
-    const info = await stat(secretDir);
-    dirExists = info.isDirectory();
-  } catch {
-    dirExists = false;
+  // O caminho explícito é consultado ANTES da checagem do diretório protegido.
+  //
+  // A ordem importa: em CI não existe `~/Documents/Codex/.secrets` nenhum, e
+  // exigir o diretório primeiro faria a credencial ser declarada indisponível
+  // mesmo com a chave materializada e legível no caminho declarado.
+  const explicitPath = env['GOOGLE_ADS_KEY_PATH'];
+  const hasExplicitPath = explicitPath !== undefined && explicitPath !== '';
+
+  if (!hasExplicitPath) {
+    let dirExists = false;
+    try {
+      const info = await stat(secretDir);
+      dirExists = info.isDirectory();
+    } catch {
+      dirExists = false;
+    }
+
+    if (!dirExists) {
+      return {
+        ...base,
+        authMode: 'unavailable',
+        credentialReference: null,
+        unavailableReason: `diretório protegido não encontrado nesta máquina: ${secretDir}`,
+      };
+    }
   }
 
-  if (!dirExists) {
-    return {
-      ...base,
-      authMode: 'unavailable',
-      credentialReference: null,
-      unavailableReason: `diretório protegido não encontrado nesta máquina: ${secretDir}`,
-    };
-  }
-
-  const keyPath = await findServiceAccountKey(secretDir);
+  const keyPath = await findServiceAccountKey(secretDir, explicitPath);
   if (keyPath === null) {
     return {
       ...base,
       authMode: 'unavailable',
       credentialReference: null,
-      unavailableReason: `nenhuma chave de conta de serviço legível em ${secretDir}`,
+      unavailableReason: hasExplicitPath
+        ? `chave declarada em GOOGLE_ADS_KEY_PATH não é legível: ${explicitPath}`
+        : `nenhuma chave de conta de serviço legível em ${secretDir}`,
     };
   }
 

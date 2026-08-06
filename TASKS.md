@@ -23,6 +23,32 @@ Legenda: `[ ]` aberto · `[~]` em andamento · `[x]` concluído · `[!]` bloquea
 
 ---
 
+## Plataforma de agente — fases
+
+Desenho completo em [docs/architecture/agent-platform.md](docs/architecture/agent-platform.md).
+Ordenadas por dependência. **Não pule a fase 3.**
+
+- [x] **Fase 0 — destravar.** API do Google Ads em v22; credencial por
+      `GOOGLE_ADS_KEY_PATH` para rodar fora do notebook do dono
+- [~] **Fase 1 — tornar contínuo.** Workflow escrito e testado com `HOME` vazio.
+      **Bloqueado no dono:** cadastrar dois secrets —
+      ver [docs/runbooks/ativar-monitor.md](docs/runbooks/ativar-monitor.md)
+- [x] Núcleo de segurança do agente: resolvedor de cliente, confirmação por
+      código, catálogo de capacidades — 52 testes
+- [ ] **Fase 2 — banco na VPS.** Postgres com clientes, contas, histórico. O
+      YAML segue como fonte revisável; o banco é projeção, não o contrário
+- [ ] Capturar payload real da Evolution (`REAL_PAYLOAD_VERIFIED = false`)
+- [ ] **Fase 3 — WhatsApp somente leitura.** Relatório e status. Nenhuma escrita
+- [ ] Interpretador de intenção: texto livre → ação declarada + parâmetros
+- [ ] Alerta do monitor **chegar** ao dono (hoje só imprime no log do Actions)
+- [ ] Decidir a frase de pânico que desliga tudo, e onde é processada
+- [ ] **Fase 4 — escrita com confirmação.** Só depois da 3 sólida
+- [ ] **Fase 5 — página web.** Configuração, histórico, aprovação do que for
+      caro demais para o celular
+- [ ] **Fase 6 — executores.** GitHub, deploy, SaaS dos clientes
+
+---
+
 ## Próximo bloco — consolidar conhecimento
 
 - [ ] Revisar `clients/index.yaml` com o dono e promover entradas de

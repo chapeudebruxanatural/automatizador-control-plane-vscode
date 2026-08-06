@@ -487,9 +487,57 @@ O `slug` é a chave canônica, em `clients/index.yaml`.
 
 ---
 
+## 11-B. PLATAFORMA DE AGENTE — o alvo
+
+O dono pediu um agente comandado por WhatsApp que executa ação nas contas dos
+clientes, mais uma página de configuração, apoiado num banco na VPS.
+
+**Desenho completo: `docs/architecture/agent-platform.md`.** Leia antes de
+mexer em `packages/agent/`.
+
+Princípio que organiza tudo: **o modelo não chama API, escolhe entre ações
+declaradas.** Registrar no `ActionRegistry` é decisão de engenharia; expor no
+`CapabilityCatalog` é decisão de operação. As duas não acontecem pelo mesmo
+gesto.
+
+### O que já está pronto e testado
+
+| Peça | Arquivo |
+|---|---|
+| Resolvedor de cliente — recusa ambiguidade | `packages/agent/src/client-resolver.ts` |
+| Confirmação por código derivado do plano | `packages/agent/src/confirmation.ts` |
+| Catálogo de capacidades com escala de risco | `packages/agent/src/capability.ts` |
+
+52 testes em `tests/agent/`.
+
+O código de confirmação é **prefixo do SHA-256 do plano**, não sorteado: se o
+valor, a campanha ou o cliente mudarem entre planejar e confirmar, ele deixa de
+bater e a execução é recusada sozinha.
+
+### Fases
+
+| # | Fase | Estado |
+|---|---|---|
+| 0 | Destravar (v22, credencial por caminho) | ✅ |
+| 1 | Tornar contínuo (monitor agendado) | ◐ **bloqueado no dono** — 2 secrets |
+| 2 | Banco na VPS | ✗ |
+| 3 | WhatsApp somente leitura | ✗ |
+| 4 | Escrita com confirmação | ✗ |
+| 5 | Página web | ✗ |
+| 6 | Executores (GitHub, deploy, SaaS) | ✗ |
+
+**Não pule a fase 3.** É onde se descobre, sem risco financeiro, se o agente
+confunde Garbo com Gaveta.
+
+---
+
 ## 12. PRÓXIMOS PASSOS
 
 ### Nesta ordem
+
+**0. Cadastrar os dois secrets do monitor.** É a única coisa bloqueada no dono,
+custa dois minutos, e enquanto não for feita a campanha segue gastando sem
+vigilância. Passo a passo em `docs/runbooks/ativar-monitor.md`.
 
 **1. Testar a landing do Cássio.** É a variável que pode invalidar os R$ 300 em
 curso, e nunca foi verificada. Em viewport mobile (100% do resultado é mobile),

@@ -8,6 +8,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 
 import {
   describeCredentials,
@@ -267,6 +268,28 @@ describe('conversoes', () => {
 
   it('lead qualificado NAO e microconversao', () => {
     assert.equal(isMicroConversion('CASSIO | LEAD QUALIFICADO | FORM'), false);
+  });
+});
+
+// -----------------------------------------------------------------------------
+describe('caminho explicito de credencial', () => {
+  it('GOOGLE_ADS_KEY_PATH aponta a chave usada', async () => {
+    // O proprio arquivo de teste serve: so o caminho importa, nao o conteudo.
+    const aqui = fileURLToPath(import.meta.url);
+    const status = await describeCredentials({
+      env: { GOOGLE_ADS_DEVELOPER_TOKEN: 'x', GOOGLE_ADS_KEY_PATH: aqui },
+      secretDir: '/diretorio/que/nao/existe',
+    });
+    assert.equal(status.credentialReference, aqui);
+  });
+
+  it('caminho declarado e invalido NAO cai no diretorio padrao', async () => {
+    // Cair de volta leria a credencial errada numa conta compartilhada.
+    const status = await describeCredentials({
+      env: { GOOGLE_ADS_DEVELOPER_TOKEN: 'x', GOOGLE_ADS_KEY_PATH: '/nao/existe.json' },
+    });
+    assert.equal(status.authMode, 'unavailable');
+    assert.equal(status.credentialReference, null);
   });
 });
 

@@ -98,3 +98,43 @@ kill switch estiverem exercitados em canais de menor risco.
 Motivo: há serviços de produção rodando e nenhum inventário prévio. Ler antes de
 tocar. Consequência: qualquer mudança na VPS exige aprovação específica e um
 runbook, não um comando avulso.
+
+---
+
+## 2026-08-05 — Plataforma de agente
+
+**Versão da Google Ads API fixada em v22, não na mais nova.**
+Motivo: a v21 passou a ser bloqueada em rollout progressivo e a integração
+quebrou sozinha, com o build verde. Testadas contra a conta real, v22 a v25
+respondem a tudo em uso — mas a partir da v23 `campaign.start_date` e
+`campaign.end_date` devolvem `UNRECOGNIZED_FIELD`, e é por eles que o plano de
+recuperação estende a data final da campanha. Consequência: subir além da v22
+exige antes descobrir o substituto dos campos de data e ajustar o
+`write-adapter`. Há teste travando as duas pontas.
+
+**O modelo não chama API; escolhe entre ações declaradas.**
+Motivo: um modelo com HTTP direto faz qualquer coisa que a credencial permita, e
+a credencial permite muito. Consequência: toda ação alcançável por agente precisa
+de definição no `ActionRegistry` e de capacidade no `CapabilityCatalog` — duas
+decisões separadas, engenharia e operação, que não devem acontecer pelo mesmo
+gesto.
+
+**Escrita por WhatsApp exige código de confirmação derivado do plano.**
+Motivo: comando por celular sem confirmação é imprudente; com código sorteado,
+o código não prova qual plano foi lido. Consequência: o código é prefixo do
+SHA-256 do plano, então só confere para aquele plano exato — se algo mudar entre
+planejar e confirmar, a execução é recusada sozinha.
+
+**Ambiguidade de cliente é recusa, não escolha do mais provável.**
+Motivo: `garbo-eventos` e `gaveta-producoes` colidem, assim como `cassio-ferraz`
+e `chapeu-de-bruxa`. Um resolvedor que chuta mexeria na conta errada.
+Consequência: o agente pergunta, e perguntar custa uma mensagem.
+
+**Confirmação pendente fica em memória, não em banco.**
+Motivo: um plano é foto do estado. Se o serviço caiu entre o plano e a
+confirmação, o estado fotografado já não é confiável. Consequência: reinício
+invalida pendências, e o dono pede de novo em vez de confirmar às cegas.
+
+**Fase de WhatsApp somente leitura antes de qualquer escrita.**
+Motivo: é onde se descobre, sem risco financeiro, se o agente confunde um
+cliente com outro. Consequência: erros de interpretação aparecem baratos.
