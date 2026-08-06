@@ -1,6 +1,7 @@
 # HANDOFF — AutomatizadorIA Control Plane
 
-Documento de transferência. **2026-08-05.** Cole inteiro como contexto inicial.
+Documento de transferência. **Atualizado 2026-08-06.** Cole inteiro como contexto
+inicial. O que mudou em 06/08 está nas seções §6, §6.1, §7.6, §12 e §13.
 
 Tudo aqui foi verificado na data acima. Comando documentado é comando executado;
 número foi lido da API, não estimado. Onde não deu para verificar, está escrito
@@ -250,6 +251,13 @@ Campanha do Cássio `24066140634`, autorizado pelo dono:
 | `WHATSAPP - CÁSSIO` `primary_for_goal` | false → true | **não** | `xMbYjE0H2R9w7f6h9evw8A` |
 | ↳ **REVERTIDA** | true → **false** | sim | `J2oEmOcK-ehjc17EP6TRQw` |
 
+**06/08 — a mesma alteração foi refeita por engano e revertida de novo.** Sessão
+rodou sem acesso ao repositório, não leu este documento, e reapresentou a
+divergência do §7.1 como achado novo. Feito pela interface (`Ação secundária` →
+`Ação principal`), revertido no mesmo dia. Estado final: **`Ação secundária`**,
+igual ao que 05/08 deixou. **Regra: sem `HANDOFF.md` lido, não se altera
+propriedade de conta compartilhada.**
+
 Auditoria completa em `audit/google-ads.jsonl` (fora do Git, contém request IDs).
 
 ### 6.1 Falhas de processo — registradas para não repetir
@@ -260,6 +268,7 @@ Auditoria completa em `audit/google-ads.jsonl` (fora do Git, contém request IDs
   afirmado isolamento por raciocínio, sem teste. **Revertida.**
 - **Landing page, botão do WhatsApp e tag: NÃO VERIFICADOS** antes de liberar os
   R$ 300. Falha de sequência — o teste deveria ter vindo antes da verba.
+  **Resolvido em 06/08 — ver §7.6. A landing está aprovada.**
 - **Overclaim de resultado:** "já está funcionando" foi dito comparando cliques
   da interface com dados da API, que estavam em janelas diferentes.
 - **`MONITOR_NOT_DEPLOYED`** — foi dito que havia monitor rodando. Não havia
@@ -342,6 +351,48 @@ para calibrar, e há 5. O caminho é acumular volume com clique barato primeiro.
 | CPC > R$ 1,00 | comprando clique caro — alertar |
 | ~300 cliques sem contato | **investigar** (6,6% de ser acaso) |
 | ~600 cliques sem contato | **defeito** (P ≈ 0,4%) |
+
+### 7.6 Landing testada em 06/08 — APROVADA
+
+Fecha a pendência do §6.1 e o passo 1 do §12.
+
+| Item | Resultado |
+|---|---|
+| Carregamento | OK, HTTP 200 |
+| HTTPS | OK na URL do anúncio |
+| Redirecionamento | nenhum na URL do anúncio |
+| Botão do WhatsApp | bolha flutuante 54×54 px, `fixed`, `z-index:70`, sempre no viewport |
+| Número de destino | **5515991320687** (Viviane), idêntico nos 3 pontos de entrada |
+| Mensagem pré-preenchida | correta |
+| Tela do WhatsApp | aberta até **antes** do envio. Nada enviado. |
+| `WHATSAPP - CÁSSIO` dispara 1× | **SIM, exatamente uma vez** |
+
+Stack: GTM `GTM-5JGMZBKZ` · GA4 `G-8WNMS2XFXR` · Ads `AW-18088952203`.
+Tag GA4 `__gaawe`, evento `whatsapp_click`, `once_per_event: true`, disparada por
+`dataLayer.push` em `assets/site.js`. No clique de teste: `whatsapp_click` 1× ·
+`pagead/conversion/18088952203/` 1× · `ccm/conversion/18088952203/` 1× ·
+viewthrough 4× (remarketing, não é conversão).
+
+> ⚠️ **Conversão de teste a descontar: 05/08/2026, 23:09:24–23:09:27 BRT.**
+> Clique autorizado, com UTMs da campanha. Não contar como contato real.
+
+**Dívida técnica achada:** os links `wa.me` são **injetados por JavaScript**. No
+HTML do servidor são `href="#"` e a bolha flutuante não existe. Se o JS falhar,
+os botões morrem e a conversão some sem rastro. Candidato mais plausível a
+explicar clique que não vira contato. Correção proposta, não aplicada.
+
+**Funil:** o CTA principal (`Consultar data e orçamento`, `Solicitar proposta`)
+aponta para `#formulario`, não para o WhatsApp. O formulário tem 11 campos,
+5 obrigatórios, com `input[type=date]`. `CASSIO | LEAD QUALIFICADO | FORM` está
+**Inativo** — mas a cadeia parece íntegra (`site.js` empurra `form_submit`; o
+container GTM referencia `form_submit` no mesmo padrão do `whatsapp_click`).
+Hipótese principal: **ninguém completa o formulário**, não tag quebrada.
+Não confirmado — exigiria submissão real, que geraria pedido à produção.
+
+**NÃO VERIFICADO no teste:** viewport real de 390 px (rodou a 256×715, sem
+emulação de UA mobile) · redirect HTTP → HTTPS (buscando `http://` o conteúdo
+voltou em http, sem redirect visível — **checar manualmente**) · deep link no app
+nativo · 1 dos 4 scripts do site não pôde ser lido.
 
 ---
 
@@ -539,13 +590,10 @@ confunde Garbo com Gaveta.
 custa dois minutos, e enquanto não for feita a campanha segue gastando sem
 vigilância. Passo a passo em `docs/runbooks/ativar-monitor.md`.
 
-**1. Testar a landing do Cássio.** É a variável que pode invalidar os R$ 300 em
-curso, e nunca foi verificada. Em viewport mobile (100% do resultado é mobile),
-na URL da seção 7: carregamento · botão do WhatsApp visível e clicável · número
-de destino · mensagem pré-preenchida · HTTPS · redirecionamento · e se
-`WHATSAPP - CÁSSIO` dispara **exatamente uma vez**. Abrir o WhatsApp até a tela
-**antes** do envio, sem enviar. Marcar **NÃO VERIFICADO** o que não conseguir.
-**Se estiver quebrado, pausar a campanha e informar o motivo.**
+**1. ~~Testar a landing do Cássio.~~ ✅ FEITO em 06/08 — ver §7.6.** Aprovada.
+Campanha não foi pausada. Restam três pendências menores dali: conferir
+manualmente o redirect HTTP → HTTPS, decidir sobre o formulário de 11 campos, e
+decidir sobre os links `wa.me` injetados por JS. Nenhuma bloqueia a operação.
 
 **2. Tornar o monitor persistente.** Hoje `MONITOR_NOT_DEPLOYED`. Provar com
 PID, serviço ou registro de execução.
@@ -579,7 +627,14 @@ escrita foi `validateOnly` com valor idêntico ao atual.
 ## 13. SITUAÇÃO ATUAL
 
 **`CASSIO_DELIVERING`** — há entrega, sem contato novo confirmado desde a
-reativação.
+reativação. **Reconfirmado em 06/08:** os 5 contatos continuam sendo os de 29/07
+(§7.2). A interface mostrava 680 cliques e R$ 177,47 acumulados, CPC ~R$ 0,26 —
+leitura de interface, não de API.
 
 Só reporte **`CASSIO_CONVERTING`** após novo `WHATSAPP - CÁSSIO` confirmado
 **pela API**, não pela interface.
+
+**Estado de configuração em 06/08:** `WHATSAPP - CÁSSIO` está em **Ação
+secundária** — ou seja, `metrics.conversions` continua devolvendo 0 e
+`metrics.all_conversions` devolve 5. Isso é o esperado e deliberado. **O monitor
+precisa ler `all_conversions` segmentado por ação, nunca `conversions`.**
