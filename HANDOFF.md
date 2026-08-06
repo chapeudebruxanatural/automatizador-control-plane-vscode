@@ -58,7 +58,7 @@ Resultado esperado, verificado em 05/08:
 |---|---|---|
 | `npm run lint` | OK | ESLint |
 | `npm run typecheck` | OK | `tsc --noEmit` |
-| `npm test` | OK | **168 testes, 48 suítes, 0 falhas** |
+| `npm test` | OK | **218 testes, 62 suítes, 11 arquivos, 0 falhas** (contagem conferida no HEAD `3eb706d` em 06/08; o valor anterior, 168/48, era de antes do `packages/agent/`) |
 | `npm run build` | OK | gera `dist/apps/api/src/main.js` |
 | `npm run scan:secrets` | OK | arquivos em stage |
 | `npm run scan:secrets:all` | OK | repositório inteiro |
@@ -128,7 +128,7 @@ packages/
 apps/
   api/          server.ts  main.ts  routes/  ← webhook do WhatsApp
   worker/       main.ts
-tests/          9 arquivos, 168 testes
+tests/          11 arquivos, 218 testes, 62 suítes
 scripts/        17 arquivos
 ```
 
