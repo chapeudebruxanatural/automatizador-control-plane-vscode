@@ -1,0 +1,159 @@
+# =============================================================================
+# saldo-por-cliente.yaml — livro-caixa do modelo pré-pago
+# =============================================================================
+#
+# O PROBLEMA QUE ESTE ARQUIVO EXISTE PARA RESOLVER
+#
+# Google Ads não tem carteira por campanha. O saldo é da CONTA, e a conta
+# `2656966896` é compartilhada entre Cássio, Garbo, NovaCena e Gaveta. Em
+# 07/08/2026 havia R$ 685,44 num único bolso.
+#
+# Consequência que não dá para contornar na plataforma: o clique da Garbo pode
+# ser pago com o dinheiro do Cássio. Não existe trava. O que existe é:
+#
+#   1. ORÇAMENTO DIÁRIO por campanha — a única alavanca real de contenção;
+#   2. ESTE ARQUIVO — a intenção declarada, contra a qual o gasto é conferido.
+#
+# Ou seja: a separação por cliente é CONTÁBIL, não estrutural. Este arquivo é a
+# contabilidade. Se ele divergir do gasto real lido da API, quem está errado é
+# o mundo, não o arquivo — e alguém precisa saber disso no mesmo dia.
+#
+# `saldoRestante` NÃO é lido do Google. É calculado:
+#     depositado - gastoAcumuladoDesdeODeposito
+# O gasto vem de `metrics.cost_micros` por campanha, filtrado pelos IDs do
+# cliente em `packages/integrations/src/google-ads/scope.ts`.
+#
+# TRÊS NÚMEROS, NÃO UM
+#
+# O Pix do cliente chega na conta do dono, que retém a comissão de gestão e
+# deposita o resto no Google. São três valores diferentes e a distinção não é
+# formalidade contábil — é o que faz o governador funcionar:
+#
+#     recebidoDoCliente = comissao + depositadoEmAds
+#
+# Só `depositadoEmAds` dá pista de veiculação. Lançar o valor do Pix como se
+# fosse saldo de anúncio infla os dias calculados: o governador acha que o
+# cliente tem mais pista do que tem e o deixa consumir a fatia de outro —
+# **reportando tudo verde enquanto isso**. O número inflado não engana só o
+# cliente; engana o freio.
+#
+# Comissão de gestão é legítima. O que não sobrevive a auditoria é o relatório
+# de veiculação afirmar um número que o Google não confirma.
+#
+# COMO LANÇAR UM DEPÓSITO
+#   1. cliente manda Pix ao dono;
+#   2. dono retém a comissão e transfere o restante para a conta de anúncios;
+#   3. lance aqui os TRÊS valores, com data;
+#   4. ajuste `orcamentoDiario` para `depositadoEmAds` durar o `horizonteDias`.
+#
+# NUNCA registre chave Pix, comprovante, CPF ou dado bancário aqui. Só data,
+# valor e origem declarada. Ver SECURITY.md.
+# =============================================================================
+
+conta:
+  customerId: '2656966896'
+  compartilhada: true
+  fundosDisponiveis:
+    valor: 685.44
+    em: 2026-08-07
+    verificationStatus: verified # lido da tela de Faturamento em 07/08
+  ultimoPagamento:
+    valor: 2300.00
+    em: 2026-06-19
+    meio: pix_pagamento_manual
+    verificationStatus: verified
+
+# Rateio declarado pelo dono em 07/08/2026 para os R$ 685,44 em caixa.
+# É intenção, não trava: nada no Google impede um cliente de consumir a fatia
+# do outro. A conferência é o item 3 do protocolo.
+rateioDeclarado:
+  em: 2026-08-07
+  total: 685.44
+  porCliente:
+    gaveta-producoes: 300.00
+    garbo-eventos: 100.00
+    cassio-ferraz: 285.44
+
+clientes:
+  - slug: garbo-eventos
+    responsavel: Andréia
+    depositos:
+      - em: 2026-08-07
+        origem: pix_do_cliente_para_o_dono
+        recebidoDoCliente: 100.00
+        # ATENÇÃO: preencher. Enquanto `comissao` for null, `depositadoEmAds`
+        # está assumindo o Pix inteiro — que é exatamente a inflação que o
+        # cabeçalho descreve. O governador vai calcular 7,1 dias de pista; se a
+        # comissão for R$ 30, a pista real é 5,0 dias, e os 2 dias de diferença
+        # saem do saldo do Cássio com o painel todo verde.
+        comissao: null
+        depositadoEmAds: 100.00
+        verificationStatus: unknown # o rateio Pix/comissão não foi informado
+    horizonteDias: 7
+    orcamentoDiarioTotal: 14.00
+    campanhasAtivas:
+      - id: '24016194642' # MOVEIS EVENTOS
+        orcamentoDiario: 6.00
+      - id: '24016194645' # MESAS CADEIRAS
+        orcamentoDiario: 5.00
+      - id: '24016194648' # PRODUTOS ESPECIFICOS
+        orcamentoDiario: 3.00
+    campanhasPausadas:
+      - id: '24016194654' # CASAMENTOS EVENTOS — 2 conversas a R$ 20,11 cada
+      - id: '24016194651' # MARCA — nunca rodou, R$ 0,00 de gasto
+    # Base de comparação: o que as 5 campanhas produziram de 10/07 até
+    # pausarem. É contra isto que o novo ciclo é julgado.
+    historico:
+      periodo: 2026-07-10 a 2026-08-06
+      custo: 221.60
+      cliques: 145
+      conversasWhatsapp: 29
+      custoPorConversa: 7.64
+      verificationStatus: verified
+
+  - slug: cassio-ferraz
+    responsavel: Cássio Ferraz
+    depositos: []
+    # Sem depósito lançado neste ciclo: a fatia de R$ 285,44 vem do caixa que já
+    # estava na conta. O histórico de quem pagou o quê antes de 07/08 não foi
+    # levantado.
+    horizonteDias: null
+    orcamentoDiarioTotal: 50.00
+    campanhasAtivas:
+      - id: '24106867845' # DEMAND_GEN | DIARIO
+        orcamentoDiario: 50.00
+    campanhasPausadas:
+      - id: '24066140634' # BRASIL_PRIORITARIO — substituída em 06/08
+    observacao: >-
+      A R$ 50/dia, a fatia de R$ 285,44 dura cerca de 6 dias. É o cliente que
+      consome mais rápido e o que mais ameaça a fatia dos outros no bolso comum.
+
+  - slug: gaveta-producoes
+    responsavel: Gaveta Produções
+    depositos: []
+    horizonteDias: null
+    orcamentoDiarioTotal: 0.00
+    campanhasAtivas: []
+    campanhasPausadas:
+      - id: '24105770570' # Buteco Sertanejo — frozen_by_owner
+      - id: '24079586567' # removed_by_owner
+    bloqueio: >-
+      Os R$ 300 estão reservados mas PARADOS. O anúncio 819900433355 foi
+      reprovado por COPYRIGHTED_CONTENT com severidade FULLY_LIMITED. O dono vai
+      enviar mídia nova para substituir o short reprovado. Enquanto não chegar,
+      não há para onde mandar a verba — e gastar antes de trocar a mídia seria
+      pagar por veiculação limitada.
+
+  - slug: novacena
+    responsavel: NovaCena Motion (o próprio dono)
+    depositos: []
+    horizonteDias: null
+    orcamentoDiarioTotal: 0.00
+    campanhasAtivas: []
+    campanhasPausadas:
+      - id: '23956482634' # VÍDEO — grupos de anúncios também pausados
+      - id: '23951683643' # VENDAS — Maximizar conversões
+    observacao: >-
+      A VENDAS usa Maximizar conversões. É a única da conta com período de
+      aprendizado de Smart Bidding de verdade a perder — trate a reativação dela
+      com mais cuidado que as de CPC manual.

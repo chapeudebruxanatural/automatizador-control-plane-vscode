@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   google-ads:
-    name: Google Ads — Cássio Ferraz
+    name: Google Ads — desempenho e orçamento
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -71,6 +71,44 @@ jobs:
           GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
           GOOGLE_ADS_KEY_PATH: ${{ steps.cred.outputs.key_path }}
         run: node --import tsx scripts/google-ads-monitor.mts
+
+      # Governador de orçamento — também somente leitura. Cruza o gasto de cada
+      # cliente com a fatia declarada em `inventory/saldo-por-cliente.yaml` e
+      # imprime a recomendação. NÃO aplica nada; aplicar exige o fluxo de
+      # plano-e-hash do write-adapter, que é manual por decisão do dono.
+      #
+      # `continue-on-error` porque o script sai com código 3 quando há decisão
+      # pendente, e 3 é informação, não falha. Sem isso, todo dia em que um
+      # cliente ficasse sem saldo o workflow ficaria vermelho — e workflow que
+      # fica vermelho por rotina é workflow que ninguém lê mais.
+      #
+      # O resumo vai para o Summary da execução, que é onde dá para ler do
+      # celular sem abrir log.
+      - name: Governador de orçamento
+        id: gov
+        continue-on-error: true
+        env:
+          GOOGLE_ADS_DEVELOPER_TOKEN: ${{ secrets.GOOGLE_ADS_DEVELOPER_TOKEN }}
+          GOOGLE_ADS_KEY_PATH: ${{ steps.cred.outputs.key_path }}
+        run: |
+          set +e
+          node --import tsx scripts/governador-orcamento.mts | tee "${RUNNER_TEMP}/gov.txt"
+          echo "codigo=${PIPESTATUS[0]}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publicar resumo do governador
+        if: always()
+        run: |
+          {
+            if [ "${{ steps.gov.outputs.codigo }}" = "3" ]; then
+              echo "## ⚠️ Orçamento: decisão necessária"
+            else
+              echo "## ✅ Orçamento sob controle"
+            fi
+            echo ''
+            echo '```'
+            cat "${RUNNER_TEMP}/gov.txt" 2>/dev/null || echo '(governador não produziu saída)'
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
 
       # Roda mesmo se o monitor falhar. A credencial não sobrevive ao job de
       # qualquer forma, mas apagar explicitamente é barato e deixa a intenção

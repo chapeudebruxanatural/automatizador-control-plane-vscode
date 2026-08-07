@@ -20,8 +20,23 @@ export const AUTHORIZED_LOGIN_CUSTOMER_ID = '3992594849';
  * que alguém preenchesse o ID (e ele está documentado no §8 do HANDOFF) a
  * proteção sumiria em silêncio, sem nenhum teste acusando.
  */
+/**
+ * `read_only_scope` existe porque auditar e poder alterar são coisas diferentes.
+ *
+ * Garbo e NovaCena precisam ser **legíveis** — cada um tem coluna de conversão
+ * própria e o dono quer auditá-los lado a lado. Mas a restrição vigente é
+ * explícita: *"não toque em nenhuma outra campanha"*. Deixá-los como
+ * `active_scope` só para o leitor alcançá-los abriria escrita de brinde, e a
+ * única barreira restante seria alguém lembrar de não usá-la.
+ *
+ * Diferente de `frozen_by_owner`, que descreve uma campanha específica que o
+ * dono mandou congelar por um motivo específico. `read_only_scope` é o estado
+ * normal de um cliente que ainda não foi autorizado para operação — o padrão,
+ * não a exceção.
+ */
 export type CampaignLifecycle =
   | 'active_scope'
+  | 'read_only_scope'
   | 'removed_by_owner'
   | 'frozen_by_owner'
   | 'discovery_by_name';
@@ -35,11 +50,18 @@ export interface AuthorizedCampaign {
 }
 
 /**
- * Campanhas dentro do escopo deste ciclo. Nada além disto é consultado.
+ * Campanhas dentro do escopo. Nada além disto é consultado.
  *
- * Garbo, NovaCena e demais recursos ficam **de fora de propósito**: não estão
- * no escopo autorizado, então uma consulta a eles é erro de programa, não
- * decisão de runtime.
+ * Até 06/08 Garbo e NovaCena ficavam de fora de propósito. Isso deixou de
+ * servir quando cada cliente ganhou coluna de conversão própria: uma coluna de
+ * auditoria que o control plane não consegue ler é auditoria que só existe na
+ * interface. Eles entraram em 07/08 como `read_only_scope` — alcançáveis pelo
+ * leitor, recusados pelo escritor.
+ *
+ * IDs colhidos dos `href` reais das linhas da interface, um a um. Uma primeira
+ * tentativa inferiu a associação por proximidade no HTML e **errou três dos
+ * cinco** nomes da Garbo. Ao adicionar campanha aqui, leia o ID do link da
+ * própria linha; não deduza por vizinhança nem por sequência numérica.
  */
 export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
   {
@@ -76,6 +98,71 @@ export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
       '(para confirmar que segue parada); qualquer mutate é recusado em código. ' +
       'Não contestar, não editar anúncio, não substituir vídeo.',
   },
+  // --- Garbo Eventos (André Ferraz) — 5 campanhas de Search, TODAS pausadas ---
+  //
+  // Verificado em 07/08: nenhuma entrega. Quatro das cinco marcadas pelo próprio
+  // Google como "Limitada pelo orçamento", com verbas de R$ 3 a R$ 12/dia. O
+  // total diário da conta é R$ 50 — que é só o Cássio. A Garbo não gasta nada.
+  //
+  // Isso importa para a leitura da coluna `WhatsApp | GARBO`: ela vai marcar
+  // zero, e zero aqui significa "não rodou", não "rodou e não converteu".
+  {
+    campaignId: '24016194642',
+    clientSlug: 'garbo-eventos',
+    expectedName: 'GARBO | SEARCH | MOVEIS EVENTOS | CAMPINAS',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 10/dia, limitada pelo orçamento.',
+  },
+  {
+    campaignId: '24016194645',
+    clientSlug: 'garbo-eventos',
+    expectedName: 'GARBO | SEARCH | MESAS CADEIRAS | CAMPINAS',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 7/dia, limitada pelo orçamento.',
+  },
+  {
+    campaignId: '24016194648',
+    clientSlug: 'garbo-eventos',
+    expectedName: 'GARBO | SEARCH | PRODUTOS ESPECIFICOS | CAMPINAS',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 3/dia, limitada pelo orçamento.',
+  },
+  {
+    campaignId: '24016194651',
+    clientSlug: 'garbo-eventos',
+    expectedName: 'GARBO | SEARCH | MARCA | CAMPINAS',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 8/dia.',
+  },
+  {
+    campaignId: '24016194654',
+    clientSlug: 'garbo-eventos',
+    expectedName: 'GARBO | SEARCH | CASAMENTOS EVENTOS | CAMPINAS',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 12/dia.',
+  },
+
+  // --- NovaCena Motion (a produtora do próprio dono) — ambas pausadas ---
+  //
+  // Conta Google separada (`estudionovacena@gmail.com`), mas as campanhas vivem
+  // na mesma conta de anúncios compartilhada. A separação de contas Google do
+  // CLAUDE.md vale para arquivos, e-mail e agenda; aqui o isolamento é o mesmo
+  // dos outros clientes, por campanha.
+  {
+    campaignId: '23956482634',
+    clientSlug: 'novacena',
+    expectedName: 'VÍDEO - NOVACENA MOTION',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 100/dia. Todos os grupos de anúncios também pausados.',
+  },
+  {
+    campaignId: '23951683643',
+    clientSlug: 'novacena',
+    expectedName: 'VENDAS - NOVACENA MOTION',
+    lifecycle: 'read_only_scope',
+    notes: 'Pausada, R$ 100/dia.',
+  },
+
   {
     campaignId: '24079586567',
     clientSlug: 'gaveta-producoes',
@@ -181,6 +268,12 @@ export function assertCampaignMutable(campaignId: string): void {
   if (campaign?.lifecycle === 'frozen_by_owner') {
     throw new ScopeViolationError(
       `campanha ${normalized} está congelada por instrução do dono (frozen_by_owner) — leitura é permitida, alteração não`,
+    );
+  }
+  if (campaign?.lifecycle === 'read_only_scope') {
+    throw new ScopeViolationError(
+      `campanha ${normalized} (${campaign.clientSlug}) está em read_only_scope — entrou para auditoria, ` +
+        `não para operação. Para alterá-la, promova a entrada a active_scope com autorização explícita do dono.`,
     );
   }
 }

@@ -273,6 +273,17 @@ Auditoria completa em `audit/google-ads.jsonl` (fora do Git, contém request IDs
   da interface com dados da API, que estavam em janelas diferentes.
 - **`MONITOR_NOT_DEPLOYED`** — foi dito que havia monitor rodando. Não havia
   processo persistente.
+- **Dependência adicionada sem regenerar o `package-lock.json` (07/08).** O
+  `yaml` entrou no `package.json` para o governador ler o livro-caixa. O
+  workflow do monitor roda `npm ci`, que **recusa lock fora de sincronia** — a
+  próxima execução agendada quebraria, e quebraria o monitor que tinha acabado
+  de ser consertado e provado. Nenhum teste local acusaria: `npm test` usa o
+  `node_modules` que já está lá. Regra: **mexeu em `package.json`, regenere o
+  lock e valide com `npm ci` num diretório limpo**, não com `npm install`.
+- **Primeira coleta de ID de campanha por inferência (07/08).** Os IDs da Garbo
+  foram deduzidos por proximidade no HTML da interface; **três dos cinco nomes
+  saíram errados**. Não foram gravados. O `href` de cada linha é a fonte; a
+  coluna `ID da campanha` da própria tabela confirma. Ver `scope.ts`.
 
 ### 6.2 Correção estatística
 
@@ -394,6 +405,29 @@ emulação de UA mobile) · redirect HTTP → HTTPS (buscando `http://` o conte�
 voltou em http, sem redirect visível — **checar manualmente**) · deep link no app
 nativo · 1 dos 4 scripts do site não pôde ser lido.
 
+### 7.7 Site corrigido em 07/08 — repositório `dadocruz/cassio-ferraz`
+
+A dívida técnica acima virou correção. Três commits, todos na mesma família de
+defeito: **link que nasce `href="#"` e só recebe destino se o JS rodar.**
+
+| Commit | O quê |
+|---|---|
+| `90f7509` | 45 links de WhatsApp com `wa.me` real no HTML · CTA do hero vai ao WhatsApp em vez de `#formulario` · formulário de 5 campos obrigatórios para 2 (nome e telefone) |
+| `64fcde6` | asteriscos removidos dos campos que deixaram de ser obrigatórios |
+| `2d8cc6d` | 19 links de redes sociais do rodapé — mesmo defeito, mesma correção |
+
+O JS continua rodando; agora ele apenas confirma um `href` que já está certo.
+É a diferença entre o JS **ser** o link e o JS **enfeitar** o link.
+
+> ⚠️ **`2d8cc6d` está commitado localmente, não publicado.** O sandbox não tem
+> chave SSH nem `CLOUDFLARE_API_TOKEN`; `git push` e `npx wrangler deploy` rodam
+> na máquina do dono. Os dois primeiros commits **já estão no ar** e verificados
+> na URL do anúncio.
+
+Deploy do site é **manual, sem CI** — `npx wrangler deploy`, Worker com assets
+estáticos (`wrangler.jsonc`, `assets.directory: "."`, protegido por
+`.assetsignore` que exclui `.git`). Publicar não é consequência de commitar.
+
 ---
 
 ## 8. GAVETA / BUTECO SERTANEJO — NÃO MEXER
@@ -479,6 +513,42 @@ Corrigido com uma segunda consulta usando `campaign.start_date` — campo que s�
 existe até a v22, mais um motivo para a versão estar fixada (§5.1). A saída agora
 separa `7 dias` de `acumulado`, e se `start_date` vier vazio o próprio monitor
 alerta que está cego em vez de imprimir número errado.
+
+### 9.2 Cron provado e alvo corrigido — 07/08
+
+Duas coisas foram fechadas aqui, e é importante que sejam lidas como duas.
+
+**O cron roda sozinho.** As execuções **#4 (06:52)** e **#5 (19:44)** aparecem
+como `Scheduled`, não `workflow_dispatch`, ambas verdes. É essa a prova de que
+o agendamento existe fora da sessão — o que a §9 exigia e que nenhuma execução
+manual jamais demonstraria.
+
+**Mas a #5 rodou em código velho.** Ela executou no commit `f3acb64`, anterior
+ao merge da correção, então ainda vigiava a **24066140634 — que está pausada**.
+Um workflow verde vigiando a campanha errada é pior que workflow vermelho:
+"Sem alertas" descrevia com precisão uma campanha morta.
+
+Execução **#6**, no merge `62e3617`, fecha a lacuna:
+
+```
+=== Cássio Ferraz — CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | DIARIO (24106867845) ===
+status: ENABLED / LEARNING   orçamento: R$ 50.00/dia
+
+  2026-08-06 | R$ 1.81 | 15 cliques | CPC 0.12 | WhatsApp 0
+
+7 dias:     R$ 1.81 | 15 cliques | 0 contatos
+acumulado:  R$ 1.94 | 16 cliques | 0 contatos (desde 2026-08-06)
+CPC médio:  R$ 0.12   taxa de contato: 0.00% (0 em 16 cliques)
+
+Sem alertas.
+```
+
+Nome, ID, orçamento diário e as duas métricas derivadas conferem.
+
+**Regra que sai daqui:** ao corrigir o monitor, confira em qual commit a
+execução rodou, não só se ela ficou verde. O `schedule` usa a `main` no momento
+do disparo; enquanto a correção está em branch, o cron segue rodando o código
+antigo sem nenhum sinal disso na interface.
 
 ### 9.1 Os dois bloqueios que existiam (histórico)
 
@@ -672,10 +742,34 @@ Campanha não foi pausada. Restam três pendências menores dali: conferir
 manualmente o redirect HTTP → HTTPS, decidir sobre o formulário de 11 campos, e
 decidir sobre os links `wa.me` injetados por JS. Nenhuma bloqueia a operação.
 
-**2. Tornar o monitor persistente.** Hoje `MONITOR_NOT_DEPLOYED`. Provar com
-PID, serviço ou registro de execução.
+**2. ~~Tornar o monitor persistente.~~ ✅ PROVADO em 07/08 — ver §9.2.**
+Execuções #4 e #5 vieram marcadas como `Scheduled`. #6, no merge `62e3617`, já
+reporta a campanha certa.
 
 **3. Acompanhar CPC e contatos** pelos limiares da seção 7.5.
+
+**4. Publicar `2d8cc6d` no site do Cássio** — ver §7.7. Único item do Cássio em
+aberto. Na máquina do dono, dentro de `~/Projetos/cassio-ferraz`:
+
+```bash
+git push origin main
+npx wrangler deploy
+```
+
+**5. ~~Garbo e NovaCena no `scope.ts`.~~ ✅ FEITO em 07/08.** Sete campanhas
+entraram como `read_only_scope` — lifecycle novo: o leitor alcança, o escritor
+recusa. Ver `docs/operations/padrao-medicao-por-cliente.md`.
+
+> **Achado que muda a leitura:** as **cinco** campanhas da Garbo estão
+> **pausadas**, quatro delas `Limitada pelo orçamento` com R$ 3 a R$ 12/dia. As
+> duas da NovaCena também. O total diário da conta é R$ 50 — que é só o Cássio.
+> A coluna `WhatsApp | GARBO` vai marcar zero, e esse zero significa **"não
+> rodou"**, não "rodou e não converteu". Antes de discutir anúncio da Garbo,
+> decidir sobre verba.
+
+**6. Próximo cliente.** Falta tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e
+Encantaria, e o pixel da Meta em todos. Os dois primeiros seguem bloqueados por
+não terem site; Encantaria depende de achar onde mora o conteúdo (§10.3).
 
 ### Curto prazo
 
@@ -698,6 +792,54 @@ Vale até nova autorização explícita. A correção da versão da API (v21 →
 foi feita sob esta restrição por ser **conserto de integração quebrada**, não
 otimização: nenhum parâmetro de campanha foi tocado, e a única chamada de
 escrita foi `validateOnly` com valor idêntico ao atual.
+
+---
+
+## 12-B. GARBO NO AR — 07/08, e o modelo pré-pago
+
+**As campanhas da Garbo nunca foram ruins. Elas estavam sem verba.** De 10/07 a
+06/08, com R$ 3 a R$ 12/dia, produziram **29 conversas de WhatsApp por R$ 221,60**
+— R$ 7,64 por conversa, 145 cliques, CPC médio R$ 1,53.
+
+Reativadas em 07/08 com os R$ 100 da Andréia, rateados pelas conversas geradas:
+
+| Campanha | ID | Conversas | Orçamento |
+|---|---|---|---|
+| MOVEIS EVENTOS | 24016194642 | 11 | R$ 6,00/dia |
+| MESAS CADEIRAS | 24016194645 | 10 | R$ 5,00/dia |
+| PRODUTOS ESPECIFICOS | 24016194648 | 6 | R$ 3,00/dia |
+| CASAMENTOS EVENTOS | 24016194654 | 2 | pausada |
+| MARCA | 24016194651 | 0 | pausada |
+
+R$ 14/dia × 7 dias ≈ R$ 98. Total da conta subiu de R$ 50 para R$ 64/dia.
+
+> **A proporção premia volume, não eficiência.** `PRODUTOS ESPECIFICOS` entrega
+> conversa a R$ 2,36 e `MOVEIS EVENTOS` a R$ 11,07 — quase 5× mais caro. Se a
+> meta virar custo por conversa, a ordem se inverte. Rever no próximo depósito.
+
+**O achado estrutural:** fundos disponíveis são **R$ 685,44 num único bolso**.
+Google Ads não tem carteira por campanha — o clique da Garbo pode ser pago com
+o dinheiro do Cássio, e não há trava possível na plataforma. A separação por
+cliente é **contábil**, não estrutural. Rateio declarado pelo dono: Gaveta
+R$ 300, Garbo R$ 100, Cássio R$ 285,44 — registrado em
+`inventory/saldo-por-cliente.yaml`.
+
+Protocolo completo em `docs/operations/protocolo-campanha-pre-paga.md`. Dois
+pontos que valem repetir aqui:
+
+- **"Perde o aprendizado" tem endereço.** As 5 da Garbo são CPC manual — não há
+  modelo de lance a perder. Quem tem aprendizado caro é `VENDAS - NOVACENA`
+  (Maximizar conversões). Antes de pausar, olhe o tipo de lance.
+- **Piso em vez de pausa.** Saldo acabou, orçamento cai para R$ 1,00/dia e a
+  campanha fica no ar. Custa até ~R$ 30/mês por cliente parado, do bolso do
+  dono. É float deliberado, não descuido.
+
+**Gaveta segue parado.** Os R$ 300 estão reservados mas o anúncio 819900433355
+continua reprovado por COPYRIGHTED_CONTENT. O dono vai enviar mídia nova para
+substituir o short. Não gastar antes da troca.
+
+**Lacuna aberta:** o monitor só vigia o Cássio. A Garbo está no ar e sem
+vigilância, e não há alerta de saldo por cliente. É o próximo passo.
 
 ---
 
