@@ -1,5 +1,10 @@
 # CLAUDE.md
 
+> **Está assumindo este projeto agora?** Leia **`CONTINUAR-AQUI.md`** primeiro.
+> Ele separa o que é fato verificado do que é incerto, lista os erros já
+> cometidos por inferência plausível, e traz a fila de trabalho em ordem.
+> Este arquivo aqui traz as regras; aquele traz o estado.
+
 ## Idioma
 
 Todas as respostas — no chat, em commits, em documentação e em qualquer saída
