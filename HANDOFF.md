@@ -784,6 +784,54 @@ escrita foi `validateOnly` com valor idêntico ao atual.
 
 ---
 
+## 12-B. GARBO NO AR — 07/08, e o modelo pré-pago
+
+**As campanhas da Garbo nunca foram ruins. Elas estavam sem verba.** De 10/07 a
+06/08, com R$ 3 a R$ 12/dia, produziram **29 conversas de WhatsApp por R$ 221,60**
+— R$ 7,64 por conversa, 145 cliques, CPC médio R$ 1,53.
+
+Reativadas em 07/08 com os R$ 100 da Andréia, rateados pelas conversas geradas:
+
+| Campanha | ID | Conversas | Orçamento |
+|---|---|---|---|
+| MOVEIS EVENTOS | 24016194642 | 11 | R$ 6,00/dia |
+| MESAS CADEIRAS | 24016194645 | 10 | R$ 5,00/dia |
+| PRODUTOS ESPECIFICOS | 24016194648 | 6 | R$ 3,00/dia |
+| CASAMENTOS EVENTOS | 24016194654 | 2 | pausada |
+| MARCA | 24016194651 | 0 | pausada |
+
+R$ 14/dia × 7 dias ≈ R$ 98. Total da conta subiu de R$ 50 para R$ 64/dia.
+
+> **A proporção premia volume, não eficiência.** `PRODUTOS ESPECIFICOS` entrega
+> conversa a R$ 2,36 e `MOVEIS EVENTOS` a R$ 11,07 — quase 5× mais caro. Se a
+> meta virar custo por conversa, a ordem se inverte. Rever no próximo depósito.
+
+**O achado estrutural:** fundos disponíveis são **R$ 685,44 num único bolso**.
+Google Ads não tem carteira por campanha — o clique da Garbo pode ser pago com
+o dinheiro do Cássio, e não há trava possível na plataforma. A separação por
+cliente é **contábil**, não estrutural. Rateio declarado pelo dono: Gaveta
+R$ 300, Garbo R$ 100, Cássio R$ 285,44 — registrado em
+`inventory/saldo-por-cliente.yaml`.
+
+Protocolo completo em `docs/operations/protocolo-campanha-pre-paga.md`. Dois
+pontos que valem repetir aqui:
+
+- **"Perde o aprendizado" tem endereço.** As 5 da Garbo são CPC manual — não há
+  modelo de lance a perder. Quem tem aprendizado caro é `VENDAS - NOVACENA`
+  (Maximizar conversões). Antes de pausar, olhe o tipo de lance.
+- **Piso em vez de pausa.** Saldo acabou, orçamento cai para R$ 1,00/dia e a
+  campanha fica no ar. Custa até ~R$ 30/mês por cliente parado, do bolso do
+  dono. É float deliberado, não descuido.
+
+**Gaveta segue parado.** Os R$ 300 estão reservados mas o anúncio 819900433355
+continua reprovado por COPYRIGHTED_CONTENT. O dono vai enviar mídia nova para
+substituir o short. Não gastar antes da troca.
+
+**Lacuna aberta:** o monitor só vigia o Cássio. A Garbo está no ar e sem
+vigilância, e não há alerta de saldo por cliente. É o próximo passo.
+
+---
+
 ## 13. SITUAÇÃO ATUAL
 
 **`CASSIO_DELIVERING`** — há entrega, sem contato novo confirmado desde a
