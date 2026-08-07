@@ -148,10 +148,56 @@ describe('escopo: campanha', () => {
     );
   });
 
-  it('nao aceita cliente fora do escopo (garbo, novacena)', () => {
+  it('a campanha do Cassio nao atende por outro slug', () => {
+    // Garbo e NovaCena agora ESTÃO na allowlist (read_only_scope). O que continua
+    // proibido é pedir a campanha do Cássio declarando outro dono — que é o erro
+    // que vazaria dado entre clientes numa conta compartilhada.
     for (const slug of ['garbo-eventos', 'novacena', 'vivere']) {
       assert.throws(() => assertCampaignBelongsTo('24066140634', slug), ScopeViolationError);
     }
+  });
+
+  it('Garbo e NovaCena sao legiveis e cada campanha responde pelo seu dono', () => {
+    const esperado: Record<string, string> = {
+      '24016194642': 'garbo-eventos',
+      '24016194645': 'garbo-eventos',
+      '24016194648': 'garbo-eventos',
+      '24016194651': 'garbo-eventos',
+      '24016194654': 'garbo-eventos',
+      '23956482634': 'novacena',
+      '23951683643': 'novacena',
+    };
+    for (const [id, slug] of Object.entries(esperado)) {
+      assert.doesNotThrow(() => assertCampaignBelongsTo(id, slug), `${id} deveria ser de ${slug}`);
+    }
+  });
+
+  it('os cinco IDs da Garbo sao distintos', () => {
+    // Regressão de 07/08: a primeira coleta inferiu os IDs por proximidade no
+    // HTML da interface e repetiu o mesmo número em duas linhas. IDs colados
+    // fariam duas campanhas diferentes apontarem para a mesma — silenciosamente.
+    const garbo = AUTHORIZED_CAMPAIGNS.filter((c) => c.clientSlug === 'garbo-eventos');
+    assert.equal(garbo.length, 5);
+    assert.equal(new Set(garbo.map((c) => c.campaignId)).size, 5, 'há ID repetido na Garbo');
+    assert.equal(new Set(garbo.map((c) => c.expectedName)).size, 5, 'há nome repetido na Garbo');
+  });
+
+  it('RECUSA mutate em tudo que entrou so para auditoria', () => {
+    for (const c of AUTHORIZED_CAMPAIGNS.filter((x) => x.lifecycle === 'read_only_scope')) {
+      assert.throws(
+        () => assertCampaignMutable(c.campaignId as string),
+        /read_only_scope/,
+        `${c.clientSlug}/${c.campaignId} aceitou mutate`,
+      );
+    }
+  });
+
+  it('nenhum cliente novo entra como gravavel por descuido', () => {
+    // Só Cássio pode ser alterado. Se um dia outro slug aparecer como
+    // active_scope, foi decisão de alguém — e este teste obriga a decisão a ser
+    // explícita em vez de acidental.
+    const gravaveis = AUTHORIZED_CAMPAIGNS.filter((c) => c.lifecycle === 'active_scope');
+    assert.deepEqual([...new Set(gravaveis.map((c) => c.clientSlug))], ['cassio-ferraz']);
   });
 
   it('campanha da Gaveta esta marcada como removed_by_owner', () => {

@@ -745,11 +745,20 @@ git push origin main
 npx wrangler deploy
 ```
 
-**5. Próximo cliente.** O Cássio está fechado depois do passo 4. O checklist
-para o próximo está em `docs/operations/padrao-medicao-por-cliente.md` — atenção
-para a pendência conhecida: `WhatsApp | GARBO` e `WhatsApp | NOVACENA` têm coluna
-de auditoria mas **não têm entrada no `scope.ts`**, então o control plane não
-alcança as campanhas desses dois.
+**5. ~~Garbo e NovaCena no `scope.ts`.~~ ✅ FEITO em 07/08.** Sete campanhas
+entraram como `read_only_scope` — lifecycle novo: o leitor alcança, o escritor
+recusa. Ver `docs/operations/padrao-medicao-por-cliente.md`.
+
+> **Achado que muda a leitura:** as **cinco** campanhas da Garbo estão
+> **pausadas**, quatro delas `Limitada pelo orçamento` com R$ 3 a R$ 12/dia. As
+> duas da NovaCena também. O total diário da conta é R$ 50 — que é só o Cássio.
+> A coluna `WhatsApp | GARBO` vai marcar zero, e esse zero significa **"não
+> rodou"**, não "rodou e não converteu". Antes de discutir anúncio da Garbo,
+> decidir sobre verba.
+
+**6. Próximo cliente.** Falta tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e
+Encantaria, e o pixel da Meta em todos. Os dois primeiros seguem bloqueados por
+não terem site; Encantaria depende de achar onde mora o conteúdo (§10.3).
 
 ### Curto prazo
 

@@ -50,17 +50,44 @@ escreve naquela campanha — o `assertAuthorizedCampaign` recusa por design.
 
 | Cliente | Ação de conversão | Coluna | scope.ts |
 |---|---|---|---|
-| cassio-ferraz | `WHATSAPP - CÁSSIO` (Ativa, secundária) | `CÁSSIO - WHATSAPP` | ✅ 24066140634 e 24106867845 |
+| cassio-ferraz | `WHATSAPP - CÁSSIO` (Ativa, secundária) | `CÁSSIO - WHATSAPP` | ✅ 24066140634 e 24106867845 (`active_scope`) |
 | cassio-ferraz | `CASSIO \| LEAD QUALIFICADO \| FORM` (Inativa) | `CÁSSIO - FORMULÁRIOS` | ✅ |
-| garbo-eventos | `WHATSAPP - GARBO` (Ativa, secundária) | `WhatsApp \| GARBO` | ❌ **falta** |
-| novacena | `WhatsApp Click - NovaCena Motion` | `WhatsApp \| NOVACENA` (criada 07/08) | ❌ **falta** |
-| gaveta-producoes | — | — | ✅ 24105770570 (frozen_by_owner) |
+| garbo-eventos | `WHATSAPP - GARBO` (Ativa, secundária) | `WhatsApp \| GARBO` | ✅ 5 campanhas (`read_only_scope`) |
+| novacena | `WhatsApp Click - NovaCena Motion` | `WhatsApp \| NOVACENA` (criada 07/08) | ✅ 2 campanhas (`read_only_scope`) |
+| gaveta-producoes | — | — | ✅ 24105770570 (`frozen_by_owner`) |
 | vivere, soulraizes, chapeu-de-bruxa | — | — | ❌ sem tag ainda |
 
-**Duas pendências conhecidas:**
+### `read_only_scope` — o quinto item do checklist, na prática
 
-`WhatsApp | GARBO` e `WhatsApp | NOVACENA` têm coluna mas **não têm entrada no
-`scope.ts`** — o control plane não alcança as campanhas desses clientes.
+Entrar no `scope.ts` **não** é o mesmo que ficar operável. Garbo e NovaCena
+entraram em 07/08 como `read_only_scope`: o leitor alcança, o escritor recusa.
+É o estado padrão de cliente novo. Promover a `active_scope` é decisão do dono,
+uma campanha de cada vez — e há teste que quebra se outro slug virar gravável
+sem que alguém tenha decidido isso.
+
+### Colher o ID da campanha sem errar
+
+Os IDs saem do `href` da própria linha na lista de campanhas. O `href` é
+**preenchido sob demanda**: a linha nasce sem ele e só recebe o endereço depois
+de um clique ou hover real naquela linha.
+
+Isso convida ao atalho errado. A primeira coleta de 07/08 inferiu a associação
+por proximidade no HTML e **errou três dos cinco** nomes da Garbo — sem erro
+visível, porque IDs plausíveis e nomes plausíveis se combinam em silêncio.
+Clique linha por linha. É `verificationStatus: verified` contra `discovered`.
+
+### O que a coluna da Garbo vai mostrar — e por quê
+
+**As cinco campanhas da Garbo estão pausadas**, quatro delas marcadas pelo
+Google como `Limitada pelo orçamento`, com verbas de R$ 3 a R$ 12/dia. As duas
+da NovaCena também estão pausadas. O total diário da conta é R$ 50 — só o
+Cássio.
+
+Então `WhatsApp | GARBO` vai marcar zero. Zero aqui significa **"não rodou"**,
+não "rodou e não converteu". A distinção é a diferença entre um problema de
+verba e um problema de anúncio.
+
+**Pendência remanescente:**
 
 `CASSIO | LEAD QUALIFICADO | FORM` está **Inativa**: nenhuma conversão em 30
 dias. A cadeia de medição parece íntegra (`site.js` empurra `form_submit`, o
