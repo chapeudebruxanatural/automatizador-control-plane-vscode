@@ -273,6 +273,17 @@ Auditoria completa em `audit/google-ads.jsonl` (fora do Git, contém request IDs
   da interface com dados da API, que estavam em janelas diferentes.
 - **`MONITOR_NOT_DEPLOYED`** — foi dito que havia monitor rodando. Não havia
   processo persistente.
+- **Dependência adicionada sem regenerar o `package-lock.json` (07/08).** O
+  `yaml` entrou no `package.json` para o governador ler o livro-caixa. O
+  workflow do monitor roda `npm ci`, que **recusa lock fora de sincronia** — a
+  próxima execução agendada quebraria, e quebraria o monitor que tinha acabado
+  de ser consertado e provado. Nenhum teste local acusaria: `npm test` usa o
+  `node_modules` que já está lá. Regra: **mexeu em `package.json`, regenere o
+  lock e valide com `npm ci` num diretório limpo**, não com `npm install`.
+- **Primeira coleta de ID de campanha por inferência (07/08).** Os IDs da Garbo
+  foram deduzidos por proximidade no HTML da interface; **três dos cinco nomes
+  saíram errados**. Não foram gravados. O `href` de cada linha é a fonte; a
+  coluna `ID da campanha` da própria tabela confirma. Ver `scope.ts`.
 
 ### 6.2 Correção estatística
 
