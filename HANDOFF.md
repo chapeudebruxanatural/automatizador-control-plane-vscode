@@ -941,6 +941,46 @@ Os números conferem com a fórmula: Garbo `(100 − 14) ÷ 14 = 6,1`; Cássio
 
 ## 13. SITUAÇÃO ATUAL
 
+> ## ⚠︎ INCIDENTE ABERTO — Garbo pausada por autor desconhecido (07/08)
+>
+> As três campanhas da Garbo (24016194642, 24016194645, 24016194648) foram
+> ativadas às ~11h, **verificadas com recarregamento** (total da conta subiu de
+> R$ 50 para R$ 64/dia), e às 14h estavam **`Pausada` de novo**.
+>
+> **Os orçamentos que foram gravados na mesma operação persistiram** (10→6,
+> 7→5). Só o status voltou. Isso descarta "a alteração não salvou": metade dela
+> salvou.
+>
+> O dono afirma que não foi ele e não sabe quem foi. O **Histórico de
+> alterações do Google não registra nada** no dia além da criação da coluna
+> `WhatsApp | NOVACENA` às 00:02 — mas ele atrasa algumas horas, então ainda
+> não é prova de ausência. **Reconferir o histórico de 07/08 depois de 24h**:
+> se aparecer autor, o incidente fecha; se continuar vazio com a mudança tendo
+> ocorrido, o problema é maior que uma pausa.
+>
+> Reativadas às 14h20 a pedido do dono. Total da conta de volta a R$ 64/dia.
+>
+> **Hipóteses ainda não descartadas:** regra automatizada na conta · script
+> vinculado · segundo agente operando a mesma conta sem coordenação · acesso de
+> terceiro. Nenhuma foi confirmada; não tratar nenhuma como causa.
+>
+> **~~Falta construir a detecção.~~ ✅ CONSTRUÍDA no mesmo dia.**
+> `detectarDivergencias()` compara o que o livro-caixa declara com o que a
+> conta realmente tem, em quatro eixos: `pausada_sem_aviso`,
+> `ativa_sem_declaracao`, `removida` e `orcamento_diferente`. O script lê
+> `campaign.status` e `campaign_budget.amount_micros` de cada campanha e passa
+> os dois lados para comparação.
+>
+> **O que torna isso necessário, e não apenas caprichoso:** com a Garbo pausada
+> e sem gastar, o governador reportaria **`saudavel`, 6,1 dias de saldo**. Ela
+> estava saudável *porque* não rodava. **Saldo intacto e campanha parada
+> produzem exatamente o mesmo número** — só a comparação com o status real
+> separa os dois. Há teste de regressão marcado `REGRESSAO 07/08` fixando que o
+> nível continua `saudavel` mas o resumo denuncia a pausa.
+>
+> Divergência sozinha já força `precisaDecisao`, mesmo sem nenhuma recomendação
+> de corte — não adianta ajustar verba de campanha que não está no ar.
+
 > ## ▶︎ RETOMADA — sessão encerrada em 07/08/2026
 >
 > **Tudo mesclado na `main` (`a862dd9`).** Workflow disparado e verde, com o

@@ -56,11 +56,117 @@ export type NivelDeRisco =
   /** Já ultrapassou. Cada centavo daqui em diante sai do bolso de outro. */
   | 'estourado';
 
+export type StatusNaConta = 'ENABLED' | 'PAUSED' | 'REMOVED' | 'UNKNOWN';
+
 export interface CampanhaDoCliente {
   readonly campaignId: string;
   readonly nome: string;
+  /** Orçamento diário **declarado** no livro-caixa. A intenção. */
   readonly orcamentoDiarioBRL: number;
+  /** Se o livro-caixa a declara em veiculação. A intenção, de novo. */
   readonly ativa: boolean;
+  /** Status **real** lido da API. `undefined` quando não foi consultado. */
+  readonly statusNaConta?: StatusNaConta;
+  /** Orçamento **real** lido da API. `undefined` quando não foi consultado. */
+  readonly orcamentoNaContaBRL?: number;
+}
+
+export type TipoDeDivergencia =
+  /** Livro-caixa diz ativa; a conta diz pausada. */
+  | 'pausada_sem_aviso'
+  /** Livro-caixa diz pausada; a conta diz ativa — gastando fora do plano. */
+  | 'ativa_sem_declaracao'
+  /** Sumiu da conta. */
+  | 'removida'
+  /** O número gravado não é o número combinado. */
+  | 'orcamento_diferente';
+
+export interface Divergencia {
+  readonly campaignId: string;
+  readonly nome: string;
+  readonly tipo: TipoDeDivergencia;
+  readonly esperado: string;
+  readonly encontrado: string;
+  readonly descricao: string;
+}
+
+/**
+ * Compara o que o livro-caixa declara com o que a conta realmente tem.
+ *
+ * Existe por causa do incidente de 07/08: três campanhas da Garbo foram
+ * ativadas, verificadas com recarregamento, e algumas horas depois estavam
+ * pausadas de novo — sem autor no histórico do Google e sem ninguém saber.
+ *
+ * O detalhe que torna isso perigoso: **o governador teria reportado a Garbo
+ * como `saudavel`, com 6,1 dias de saldo.** Ela estava saudável exatamente
+ * porque não gastava nada, e não gastava nada porque não estava no ar. Verde
+ * por ausência de consumo é o pior tipo de verde — o painel fica calmo
+ * enquanto o cliente paga por dias em que não apareceu para ninguém.
+ *
+ * Saldo intacto e campanha parada são a mesma leitura numérica. Só a
+ * comparação com o status real separa as duas.
+ */
+export function detectarDivergencias(estado: EstadoDoCliente): Divergencia[] {
+  const achados: Divergencia[] = [];
+
+  for (const c of estado.campanhas) {
+    if (c.statusNaConta !== undefined && c.statusNaConta !== 'UNKNOWN') {
+      if (c.ativa && c.statusNaConta === 'PAUSED') {
+        achados.push({
+          campaignId: c.campaignId,
+          nome: c.nome,
+          tipo: 'pausada_sem_aviso',
+          esperado: 'ENABLED',
+          encontrado: 'PAUSED',
+          descricao:
+            `${c.nome} está declarada em veiculação mas a conta diz PAUSADA. ` +
+            'O cliente não está aparecendo, e o saldo dele fica parado parecendo saúde.',
+        });
+      }
+      if (c.ativa && c.statusNaConta === 'REMOVED') {
+        achados.push({
+          campaignId: c.campaignId,
+          nome: c.nome,
+          tipo: 'removida',
+          esperado: 'ENABLED',
+          encontrado: 'REMOVED',
+          descricao: `${c.nome} foi REMOVIDA da conta e o livro-caixa ainda a declara ativa.`,
+        });
+      }
+      if (!c.ativa && c.statusNaConta === 'ENABLED') {
+        achados.push({
+          campaignId: c.campaignId,
+          nome: c.nome,
+          tipo: 'ativa_sem_declaracao',
+          esperado: 'PAUSED',
+          encontrado: 'ENABLED',
+          descricao:
+            `${c.nome} está veiculando sem estar declarada no livro-caixa. ` +
+            'Gasta do bolso comum sem entrar na conta de nenhum cliente.',
+        });
+      }
+    }
+
+    // Centavo de arredondamento não é divergência; R$ 0,50 já é outro número.
+    if (
+      c.orcamentoNaContaBRL !== undefined &&
+      Math.abs(c.orcamentoNaContaBRL - c.orcamentoDiarioBRL) > 0.5
+    ) {
+      achados.push({
+        campaignId: c.campaignId,
+        nome: c.nome,
+        tipo: 'orcamento_diferente',
+        esperado: `R$ ${c.orcamentoDiarioBRL.toFixed(2)}/dia`,
+        encontrado: `R$ ${c.orcamentoNaContaBRL.toFixed(2)}/dia`,
+        descricao:
+          `${c.nome}: o livro-caixa combina R$ ${c.orcamentoDiarioBRL.toFixed(2)}/dia e a conta ` +
+          `está com R$ ${c.orcamentoNaContaBRL.toFixed(2)}/dia. Todo cálculo de dias restantes ` +
+          'sai errado enquanto os dois não baterem.',
+      });
+    }
+  }
+
+  return achados;
 }
 
 export interface EstadoDoCliente {
@@ -100,6 +206,8 @@ export interface DiagnosticoDoCliente {
   /** Teto diário total que respeita a fatia, considerando a regra do 2×. */
   readonly tetoDiarioSeguroBRL: number;
   readonly recomendacoes: readonly RecomendacaoDeCampanha[];
+  /** Onde o livro-caixa e a conta discordam. Ver `detectarDivergencias`. */
+  readonly divergencias: readonly Divergencia[];
   /** Frase única para o alerta. Escrita para ser lida às 3 da manhã. */
   readonly resumo: string;
 }
@@ -210,7 +318,20 @@ export function diagnosticar(estado: EstadoDoCliente): DiagnosticoDoCliente {
       .filter((r) => r.orcamentoRecomendadoBRL < r.orcamentoAtualBRL - 0.005);
   }
 
+  const divergencias = detectarDivergencias(estado);
+
   const resumo = (() => {
+    // Divergência vem ANTES do nível de saldo. Um cliente "saudável" cuja
+    // campanha está pausada não está saudável — está parado, e o saldo intacto
+    // é consequência disso, não sinal de que está tudo bem.
+    const paradas = divergencias.filter((d) => d.tipo === 'pausada_sem_aviso');
+    if (paradas.length > 0) {
+      return (
+        `${estado.clientSlug}: ${paradas.length} campanha(s) declarada(s) em veiculação ` +
+        'estão PAUSADAS na conta. O saldo parece intacto porque nada está sendo gasto — ' +
+        'o cliente está pagando por dias em que não apareceu.'
+      );
+    }
     switch (nivel) {
       case 'estourado':
         return (
@@ -246,6 +367,7 @@ export function diagnosticar(estado: EstadoDoCliente): DiagnosticoDoCliente {
     diasRestantes,
     tetoDiarioSeguroBRL: tetoDiarioSeguro,
     recomendacoes,
+    divergencias,
     resumo,
   };
 }
@@ -421,6 +543,8 @@ export function diagnosticarConta(
     somaDasFatiasBRL: somaDasFatias,
     descobertoBRL: arredondar(fundosDisponiveisBRL - somaDasFatias),
     clientes,
-    precisaDecisao: clientes.some((c) => c.recomendacoes.length > 0),
+    precisaDecisao: clientes.some(
+      (c) => c.recomendacoes.length > 0 || c.divergencias.length > 0,
+    ),
   };
 }

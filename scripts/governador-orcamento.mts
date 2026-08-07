@@ -112,6 +112,36 @@ async function gastoDesde(campaignId: string, desde: string): Promise<number> {
 
 const rateio = ledger.rateioDeclarado;
 
+/**
+ * Estado REAL da campanha na conta: status e orçamento gravado.
+ *
+ * Sem esta leitura o governador só conhece a intenção declarada no livro-caixa,
+ * e foi assim que o incidente de 07/08 passou despercebido — três campanhas
+ * pausadas por autor desconhecido, com o painel reportando "saudável, 6,1 dias".
+ * Saldo intacto e campanha parada produzem exatamente o mesmo número.
+ */
+async function estadoNaConta(
+  campaignId: string,
+): Promise<{ status: string; orcamentoBRL: number | undefined }> {
+  const { rows } = await tp.searchStream(
+    CID,
+    `SELECT campaign.status, campaign_budget.amount_micros, campaign_budget.period
+     FROM campaign WHERE campaign.id = ${campaignId}`,
+  );
+  const r = (rows[0] ?? {}) as Record<string, Record<string, unknown>>;
+  const status = String(r['campaign']?.['status'] ?? 'UNKNOWN');
+  const micros = r['campaignBudget']?.['amountMicros'];
+  return {
+    status,
+    // CUSTOM_PERIOD não tem orçamento diário; comparar seria comparar coisas
+    // diferentes e produziria divergência falsa todo dia.
+    orcamentoBRL:
+      String(r['campaignBudget']?.['period'] ?? '') === 'CUSTOM_PERIOD' || micros === undefined
+        ? undefined
+        : Number(micros) / 1e6,
+  };
+}
+
 const estados = [];
 const semFatia: string[] = [];
 const comissaoAusente: string[] = [];
@@ -160,11 +190,14 @@ for (const c of ledger.clientes ?? []) {
     const meta = AUTHORIZED_CAMPAIGNS.find(
       (a: { campaignId: string | null }) => a.campaignId === camp.id,
     );
+    const real = await estadoNaConta(camp.id);
     campanhas.push({
       campaignId: camp.id,
       nome: meta?.expectedName ?? camp.id,
       orcamentoDiarioBRL: Number(camp.orcamentoDiario),
       ativa: true,
+      statusNaConta: real.status as 'ENABLED' | 'PAUSED' | 'REMOVED' | 'UNKNOWN',
+      orcamentoNaContaBRL: real.orcamentoBRL,
     });
   }
 
@@ -205,6 +238,14 @@ for (const c of conta.clientes) {
   );
   console.log(`   ${c.resumo}`);
 
+  // Divergência vem antes da recomendação de orçamento: não adianta ajustar a
+  // verba de uma campanha que não está no ar.
+  for (const v of c.divergencias) {
+    console.log(`   >>> DIVERGENCIA [${v.tipo}] ${v.nome}`);
+    console.log(`       esperado ${v.esperado} · encontrado ${v.encontrado}`);
+    console.log(`       ${v.descricao}`);
+  }
+
   for (const r of c.recomendacoes) {
     console.log(
       `   -> ${r.nome}: ${brl(r.orcamentoAtualBRL)}/dia para ${brl(r.orcamentoRecomendadoBRL)}/dia`,
@@ -233,7 +274,18 @@ if (!conta.precisaDecisao) {
   process.exit(semFatia.length > 0 || comissaoAusente.length > 0 ? 3 : 0);
 }
 
+const todasDivergencias = conta.clientes.flatMap((c) => c.divergencias);
 console.log('\n--- DECISÃO NECESSÁRIA ---');
+if (todasDivergencias.length > 0) {
+  console.log(
+    `${todasDivergencias.length} divergencia(s) entre o livro-caixa e a conta. ` +
+      'Resolver ANTES de mexer em orcamento:',
+  );
+  for (const v of todasDivergencias) {
+    console.log(`  - ${v.nome} (${v.campaignId}): ${v.esperado} -> ${v.encontrado}`);
+  }
+  console.log('');
+}
 console.log('Nenhuma destas mudanças foi aplicada. Para aplicar, cada uma passa por');
 console.log('planCampaignBudget (validateOnly) e exige o hash de volta:\n');
 for (const c of conta.clientes) {

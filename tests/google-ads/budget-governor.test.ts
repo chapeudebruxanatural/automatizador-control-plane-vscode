@@ -258,3 +258,84 @@ describe('conciliação de caixa — comissão retida do Pix', () => {
     assert.ok(c.problemas.some((p) => p.tipo === 'comissao_negativa'));
   });
 });
+
+describe('divergência entre o livro-caixa e a conta', () => {
+  /** O incidente de 07/08: declarada ativa, PAUSED na conta. */
+  const garboPausadaEscondido = () =>
+    garbo({
+      campanhas: [
+        { campaignId: '24016194642', nome: 'MOVEIS', orcamentoDiarioBRL: 6, ativa: true, statusNaConta: 'PAUSED' as const },
+        { campaignId: '24016194645', nome: 'MESAS', orcamentoDiarioBRL: 5, ativa: true, statusNaConta: 'PAUSED' as const },
+        { campaignId: '24016194648', nome: 'PRODUTOS', orcamentoDiarioBRL: 3, ativa: true, statusNaConta: 'ENABLED' as const },
+      ],
+    });
+
+  it('pega campanha declarada ativa que esta PAUSED na conta', () => {
+    const d = diagnosticar(garboPausadaEscondido());
+    const paradas = d.divergencias.filter((x) => x.tipo === 'pausada_sem_aviso');
+    assert.equal(paradas.length, 2);
+    assert.deepEqual(paradas.map((p) => p.nome).sort(), ['MESAS', 'MOVEIS']);
+  });
+
+  it('REGRESSAO 07/08: saldo intacto NAO pode ser lido como saude', () => {
+    // O ponto do incidente. Sem gasto, o nivel calculado e 'saudavel' — e era
+    // saudavel exatamente porque nada rodava. Verde por ausencia de consumo e
+    // o pior tipo de verde: o cliente paga por dias em que nao apareceu.
+    const d = diagnosticar(garboPausadaEscondido());
+    assert.equal(d.nivel, 'saudavel', 'o nivel de saldo continua otimo');
+    assert.match(d.resumo, /PAUSADAS na conta/, 'mas o resumo precisa denunciar');
+    assert.match(d.resumo, /nao apareceu|não apareceu/);
+  });
+
+  it('divergencia sozinha ja obriga decisao, sem nenhuma recomendacao de corte', () => {
+    const conta = diagnosticarConta(685.44, [garboPausadaEscondido()]);
+    assert.equal(conta.clientes[0]?.recomendacoes.length, 0, 'nao ha corte a fazer');
+    assert.equal(conta.precisaDecisao, true, 'e ainda assim precisa de decisao');
+  });
+
+  it('pega campanha veiculando sem estar declarada', () => {
+    const d = diagnosticar(
+      garbo({
+        campanhas: [
+          { campaignId: '24016194654', nome: 'CASAMENTOS', orcamentoDiarioBRL: 12, ativa: false, statusNaConta: 'ENABLED' },
+        ],
+      }),
+    );
+    const x = d.divergencias.find((v) => v.tipo === 'ativa_sem_declaracao');
+    assert.ok(x);
+    assert.match(x?.descricao ?? '', /bolso comum/);
+  });
+
+  it('pega orcamento gravado diferente do combinado', () => {
+    const d = diagnosticar(
+      garbo({
+        campanhas: [
+          { campaignId: '24016194642', nome: 'MOVEIS', orcamentoDiarioBRL: 6, ativa: true, statusNaConta: 'ENABLED', orcamentoNaContaBRL: 10 },
+        ],
+      }),
+    );
+    const x = d.divergencias.find((v) => v.tipo === 'orcamento_diferente');
+    assert.ok(x);
+    assert.equal(x?.esperado, 'R$ 6.00/dia');
+    assert.equal(x?.encontrado, 'R$ 10.00/dia');
+  });
+
+  it('centavo de arredondamento nao vira divergencia', () => {
+    const d = diagnosticar(
+      garbo({
+        campanhas: [
+          { campaignId: '24016194642', nome: 'MOVEIS', orcamentoDiarioBRL: 6, ativa: true, statusNaConta: 'ENABLED', orcamentoNaContaBRL: 6.01 },
+        ],
+      }),
+    );
+    assert.equal(d.divergencias.length, 0);
+  });
+
+  it('sem statusNaConta consultado, nao inventa divergencia', () => {
+    // Ausencia de leitura nao e evidencia de divergencia. Um governador que
+    // alarma por dado que nao tem vira ruido e para de ser lido.
+    const d = diagnosticar(garbo());
+    assert.equal(d.divergencias.length, 0);
+    assert.equal(d.nivel, 'saudavel');
+  });
+});
