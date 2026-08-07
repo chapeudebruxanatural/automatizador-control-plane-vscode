@@ -208,6 +208,14 @@ export interface DiagnosticoDoCliente {
   readonly recomendacoes: readonly RecomendacaoDeCampanha[];
   /** Onde o livro-caixa e a conta discordam. Ver `detectarDivergencias`. */
   readonly divergencias: readonly Divergencia[];
+  /**
+   * As campanhas como foram avaliadas, com o que foi lido da conta.
+   *
+   * Exposto para que o relatório consiga mostrar O QUE foi verificado, e não
+   * só o veredito. "Nenhuma divergência" e "a comparação não rodou" têm a
+   * mesma aparência quando o relatório só imprime o veredito.
+   */
+  readonly campanhas: readonly CampanhaDoCliente[];
   /** Frase única para o alerta. Escrita para ser lida às 3 da manhã. */
   readonly resumo: string;
 }
@@ -368,6 +376,7 @@ export function diagnosticar(estado: EstadoDoCliente): DiagnosticoDoCliente {
     tetoDiarioSeguroBRL: tetoDiarioSeguro,
     recomendacoes,
     divergencias,
+    campanhas: estado.campanhas,
     resumo,
   };
 }

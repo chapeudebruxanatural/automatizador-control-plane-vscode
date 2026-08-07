@@ -238,6 +238,25 @@ for (const c of conta.clientes) {
   );
   console.log(`   ${c.resumo}`);
 
+  /**
+   * Imprime o que foi LIDO da conta, campanha por campanha.
+   *
+   * Existe porque "nenhuma divergência" e "a comparação não rodou" produzem
+   * exatamente a mesma saída silenciosa — que é o modo de falha que este
+   * módulo inteiro foi escrito para evitar. Se `estadoNaConta` devolvesse
+   * `UNKNOWN` para tudo, o relatório continuaria verde e ninguém saberia.
+   *
+   * Verificação que não deixa rastro do que verificou não é verificação.
+   */
+  for (const camp of c.campanhas ?? []) {
+    const st = camp.statusNaConta ?? 'NAO_LIDO';
+    const orc =
+      camp.orcamentoNaContaBRL === undefined
+        ? 'orcamento nao lido'
+        : `${brl(camp.orcamentoNaContaBRL)}/dia na conta`;
+    console.log(`   . ${camp.nome}: conta diz ${st}, ${orc}`);
+  }
+
   // Divergência vem antes da recomendação de orçamento: não adianta ajustar a
   // verba de uma campanha que não está no ar.
   for (const v of c.divergencias) {

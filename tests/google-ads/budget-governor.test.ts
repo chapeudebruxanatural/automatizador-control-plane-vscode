@@ -339,3 +339,28 @@ describe('divergência entre o livro-caixa e a conta', () => {
     assert.equal(d.nivel, 'saudavel');
   });
 });
+
+describe('o relatório precisa mostrar o que verificou', () => {
+  it('expoe as campanhas avaliadas com o status lido da conta', () => {
+    // Sem isto, "nenhuma divergencia" e "a comparacao nao rodou" imprimem a
+    // mesma coisa: nada. Verificacao que nao deixa rastro do que verificou nao
+    // e verificacao.
+    const d = diagnosticar(
+      garbo({
+        campanhas: [
+          { campaignId: '24016194642', nome: 'MOVEIS', orcamentoDiarioBRL: 6, ativa: true, statusNaConta: 'ENABLED', orcamentoNaContaBRL: 6 },
+        ],
+      }),
+    );
+    assert.equal(d.divergencias.length, 0, 'nao ha divergencia');
+    assert.equal(d.campanhas.length, 1, 'e ainda assim da para provar que leu');
+    assert.equal(d.campanhas[0]?.statusNaConta, 'ENABLED');
+    assert.equal(d.campanhas[0]?.orcamentoNaContaBRL, 6);
+  });
+
+  it('distingue nao-lido de lido-e-ok', () => {
+    const semLeitura = diagnosticar(garbo());
+    assert.equal(semLeitura.divergencias.length, 0);
+    assert.equal(semLeitura.campanhas[0]?.statusNaConta, undefined, 'undefined = nao consultado');
+  });
+});
