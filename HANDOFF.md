@@ -838,12 +838,138 @@ pontos que valem repetir aqui:
 continua reprovado por COPYRIGHTED_CONTENT. O dono vai enviar mídia nova para
 substituir o short. Não gastar antes da troca.
 
-**Lacuna aberta:** o monitor só vigia o Cássio. A Garbo está no ar e sem
-vigilância, e não há alerta de saldo por cliente. É o próximo passo.
+**~~Lacuna aberta:~~ ✅ FECHADA no mesmo dia.** O governador de orçamento entrou
+no agendador — ver §12-C.
+
+---
+
+## 12-C. GOVERNADOR DE ORÇAMENTO — no ar em 07/08
+
+Resposta ao pedido do dono: *"um sistema que impeça um cliente de gastar o saldo
+de outro"*.
+
+**Não impede. Nenhum software impede.** O Google decide o gasto, não nós, e
+numa conta compartilhada não há carteira por campanha. O que existe é teto de
+orçamento diário mais detecção rápida. Impedir de verdade só com contas
+separadas por cliente — que o dono tem motivo real para não fazer: o bônus do
+Google é maior concentrando volume numa conta só. É uma troca consciente:
+**isolamento por bônus**.
+
+`packages/integrations/src/google-ads/budget-governor.ts` (função pura, sem I/O)
+· `scripts/governador-orcamento.mts` (somente leitura) · roda no `monitor.yml`
+às 09:00 e 21:00 UTC, logo após o monitor.
+
+### As duas margens que a intuição erra
+
+**1. O teto seguro é `restante ÷ 2`, não `restante`.** O Google gasta até 2× o
+orçamento diário num dia isolado e compensa no mês — mas o saldo do cliente já
+foi. Com R$ 10 sobrando, R$ 10/dia pode virar R$ 20 gastos.
+
+**2. Desconta o gasto ainda não reportado.** Entre duas execuções há consumo
+real e invisível. Tratar o número do relatório como verdade subestima o gasto
+justamente quando a margem é menor. Há teste de um caso que passa de `atencao`
+para `critico` só por causa disso.
+
+Ambas erram para o lado de parar cedo. Parar cedo custa horas de veiculação;
+parar tarde custa o dinheiro de outro cliente.
+
+### Como ele se comporta
+
+| Nível | Quando | Ação |
+|---|---|---|
+| `saudavel` | 3+ dias | nada |
+| `atencao` | 1 a 3 dias | avisa. **Não mexe em orçamento** — mudar pode reiniciar aprendizado e ainda há folga |
+| `critico` | < 1 dia | recomenda reduzir ao teto seguro |
+| `estourado` | gasto > depositado | recomenda o piso e diz **quanto já saiu da fatia de outro** |
+
+**Nunca recomenda aumento.** Há teste varrendo combinações de gasto e atraso.
+Governador que sobe orçamento sozinho deixa de ser freio e vira acelerador.
+
+**Não aplica nada.** Imprime o comando; aplicar passa pelo `planCampaignBudget`
+com hash de aprovação. Decisão do dono: *"me avise antes, me dê a sugestão
+correta para eu decidir, e aí aplique."*
+
+Sai com código `3` quando há decisão pendente, `0` quando não há. O passo tem
+`continue-on-error` porque 3 é informação, não falha — workflow que fica
+vermelho por rotina é workflow que ninguém lê.
+
+### Contabilidade: três números, não um
+
+`inventory/saldo-por-cliente.yaml`. O Pix do cliente chega ao dono, que retém a
+comissão de gestão e deposita o resto no Google:
+
+```
+recebidoDoCliente = comissao + depositadoEmAds
+```
+
+**Só `depositadoEmAds` dá pista de veiculação.** Lançar o Pix inteiro como saldo
+de anúncio infla os dias calculados: o governador acha que o cliente tem mais
+pista do que tem e o deixa consumir a fatia de outro **reportando tudo verde**.
+O número inflado não engana só o cliente; engana o freio.
+
+`conciliarCaixa()` fecha a conta: `depositado + bônus − gasto` tem que bater com
+o saldo real do Google. Bônus promocional tem linha própria porque não pertence
+a cliente nenhum — subsidia quem estiver veiculando. Sem linha própria viraria
+divergência inexplicável todo mês, e divergência que sempre aparece é
+divergência que ninguém olha.
+
+### Primeira leitura real — 07/08, execução no Actions
+
+```
+fundos na conta:      R$ 685,44
+prometido a clientes: R$ 384,71     (sem descoberto)
+
+  GARBO-EVENTOS  [saudavel]  depositado R$ 100,00 · gasto R$ 0,00 · 6,1 dias
+  CASSIO-FERRAZ  [saudavel]  depositado R$ 285,44 · gasto R$ 0,73 · 4,7 dias
+
+! COMISSAO NAO DECLARADA: garbo-eventos (2026-08-07)
+```
+
+Os números conferem com a fórmula: Garbo `(100 − 14) ÷ 14 = 6,1`; Cássio
+`(285,44 − 0,73 − 50) ÷ 50 = 4,7`. Os descontos de 12h estão sendo aplicados.
+
+**Duas coisas para olhar amanhã, e elas não são iguais:**
+
+- **Garbo com gasto R$ 0,00.** Ativada em 07/08; zero no mesmo dia é plausível.
+  **Zero de novo amanhã não é** — aí investigar anúncio reprovado, grupo de
+  anúncios pausado ou lance abaixo do leilão.
+- **Cássio com R$ 0,73 num orçamento de R$ 50/dia.** É 1,5% do orçamento. A
+  campanha está em LEARNING desde 06/08 e vinha de R$ 1,90 acumulados. Ou ela
+  destrava, ou o problema não é verba.
 
 ---
 
 ## 13. SITUAÇÃO ATUAL
+
+> ## ▶︎ RETOMADA — sessão encerrada em 07/08/2026
+>
+> **Tudo mesclado na `main` (`a862dd9`).** Workflow disparado e verde, com o
+> governador rodando. Nada pendente de commit.
+>
+> **Comece por estes três, nesta ordem:**
+>
+> **1. Garbo gastou alguma coisa?** `gh run list --workflow=monitor.yml` e leia
+> o Summary da execução mais recente. Zero em 07/08 é normal; **zero em 08/08
+> não é** — investigar anúncio reprovado, grupo de anúncios pausado, ou lance
+> abaixo do leilão em Campinas. As três campanhas ativas são 24016194642
+> (R$ 6/dia), 24016194645 (R$ 5) e 24016194648 (R$ 3).
+>
+> **2. Cássio destravou?** R$ 0,73 num orçamento de R$ 50/dia é 1,5%. Em
+> LEARNING desde 06/08. Se continuar assim, o problema não é verba.
+>
+> **3. A comissão da Garbo.** `comissao: null` no livro-caixa. Enquanto for
+> null, o governador calcula 6,1 dias de pista assumindo que os R$ 100 do Pix
+> viraram R$ 100 de anúncio. Se houve retenção, a pista é menor e a diferença
+> sai do saldo do Cássio. **Perguntar ao dono o valor retido** e preencher
+> `comissao` e `depositadoEmAds` em `inventory/saldo-por-cliente.yaml`.
+>
+> **Esperando o dono, não a gente:** mídia nova da Gaveta para substituir o
+> short reprovado por direitos autorais (os R$ 300 estão parados até lá).
+>
+> **Fila depois disso:** tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e
+> Encantaria; pixel da Meta em todos. Os dois primeiros seguem bloqueados por
+> não terem site. Cliente novo **nasce em conta de anúncios própria** — não
+> migrar quem já roda, mas parar de fazer o problema crescer.
 
 **`CASSIO_DELIVERING`** — há entrega, sem contato novo confirmado desde a
 reativação. **Reconfirmado em 06/08:** os 5 contatos continuam sendo os de 29/07

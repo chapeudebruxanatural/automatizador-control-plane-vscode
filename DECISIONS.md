@@ -201,3 +201,35 @@ em 30 dias. Consequência: a hipótese principal não é tag quebrada, é **ning
 completar o formulário** — 11 campos, 5 obrigatórios, com `input[type=date]`, para
 tráfego de vídeo em celular. Em 680 cliques: 5 no WhatsApp, 0 no formulário.
 Não confirmado: exigiria submissão real, que geraria pedido à produção.
+
+## 2026-08-07
+
+- **Campanhas da Garbo reativadas com R$ 100 (Pix da Andréia).** Rateio pelas
+  conversas de WhatsApp que cada uma gerou: MOVEIS R$ 6/dia, MESAS R$ 5/dia,
+  PRODUTOS R$ 3/dia. CASAMENTOS e MARCA seguem pausadas. Motivo: as cinco
+  produziram 29 conversas por R$ 221,60 (R$ 7,64 cada) rodando a R$ 3–12/dia —
+  não estavam indo mal, estavam sem verba. Ressalva registrada: a proporção
+  premia volume, não eficiência; PRODUTOS entrega a R$ 2,36 e MOVEIS a R$ 11,07.
+- **Lifecycle `read_only_scope` criado.** Garbo e NovaCena entram na allowlist
+  para auditoria, mas mutate é recusado. Motivo: coluna de auditoria que o
+  control plane não lê é auditoria que só existe na interface; mas a restrição
+  vigente é "não toque em nenhuma outra campanha", e `active_scope` abriria
+  escrita de brinde.
+- **Piso de R$ 1,00/dia em vez de pausa** quando o saldo do cliente acaba.
+  Motivo: histórico contínuo, sem degrau de reativação. Custa até ~R$ 30/mês por
+  cliente parado, do bolso do dono — float deliberado. Exceção: mais de 30 dias
+  sem depósito, pausar de fato.
+- **Governador de orçamento propõe, não aplica.** Decisão do dono: "me avise
+  antes, me dê a sugestão correta para eu decidir, e aí aplique." Aplicar segue
+  passando pelo `planCampaignBudget` com hash de aprovação.
+- **Livro-caixa com três números** (`recebidoDoCliente`, `comissao`,
+  `depositadoEmAds`). Motivo: só o depósito real dá pista de veiculação. Lançar
+  o Pix inteiro infla os dias calculados e faz o governador liberar consumo da
+  fatia de outro cliente reportando tudo verde — o número inflado engana o freio,
+  não só o cliente.
+- **Não migrar clientes atuais para contas separadas.** O bônus do Google é
+  maior concentrando volume numa conta só, e migrar custa histórico e
+  aprendizado. Decisão: cliente novo nasce em conta própria. Troca consciente de
+  isolamento por bônus, registrada como tal.
+- **Dependência `yaml` adicionada** para o governador ler o livro-caixa. Sem
+  acesso a rede ou credencial, logo fora da regra de aprovação do CLAUDE.md.
