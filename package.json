@@ -18,9 +18,11 @@
     "test": "bash scripts/run-tests.sh",
     "scan:secrets": "bash scripts/scan-secrets.sh",
     "scan:secrets:all": "bash scripts/scan-secrets.sh --all",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run build"
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "governador": "node --import tsx scripts/governador-orcamento.mts"
   },
   "dependencies": {
+    "yaml": "^2.7.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

@@ -74,6 +74,49 @@ Toda semana, para cada cliente:
 Sem esse passo, o modelo pré-pago numa conta compartilhada vira, na prática,
 o dono financiando quem gasta mais rápido sem saber que está financiando.
 
+### O governador — quem faz essa conferência
+
+`npm run governador` (`scripts/governador-orcamento.mts`). **Somente leitura.**
+Lê o gasto por cliente na API, cruza com este arquivo e imprime o diagnóstico
+com a recomendação de orçamento. Não aplica nada: termina imprimindo o comando
+de aplicação, que passa por `planCampaignBudget` e exige hash de aprovação.
+
+Sai com código `3` quando há decisão pendente e `0` quando não há — para o
+agendador distinguir "está tudo bem" de "precisa de você".
+
+**Níveis:**
+
+| Nível | Quando | O que faz |
+|---|---|---|
+| `saudavel` | 3+ dias de saldo | nada |
+| `atencao` | 1 a 3 dias | avisa. **Não mexe em orçamento** — mudar orçamento pode reiniciar aprendizado, e ainda há folga |
+| `critico` | menos de 1 dia | recomenda reduzir ao teto seguro |
+| `estourado` | gasto > depositado | recomenda o piso, e diz **quanto já saiu da fatia de outro cliente** |
+
+**As duas margens que a intuição erra**, e que estão em teste:
+
+1. **Teto seguro é `restante ÷ 2`, não `restante`.** Com R$ 10 sobrando, um
+   orçamento de R$ 10/dia pode virar R$ 20 gastos, porque o Google gasta até 2×
+   o diário num dia isolado e compensa depois — mas o saldo do cliente já foi.
+2. **Desconta o gasto que ainda não apareceu no relatório.** Entre duas
+   execuções há consumo real e invisível. Tratar o número do relatório como
+   verdade subestima o gasto justamente quando a margem é menor. Há teste
+   mostrando um caso que passa de `atencao` para `critico` só por causa disso.
+
+Ambas erram para o lado de parar cedo. Num modelo pré-pago, parar cedo custa
+horas de veiculação; parar tarde custa o dinheiro de outro cliente.
+
+**O governador nunca sobe orçamento.** Aumentar gasto só faz sentido diante de
+depósito novo, e é o dono quem sabe que o depósito entrou. Governador que sobe
+orçamento sozinho deixa de ser freio e vira acelerador. Há teste varrendo
+combinações de gasto e atraso para garantir que toda recomendação é para baixo.
+
+**Cliente sem fatia declarada aparece como `SEM GOVERNO`.** Campanha ativa,
+gastando, e sem depósito nem rateio em lugar nenhum, consome do bolso comum sem
+teto. A primeira versão do script simplesmente pulava esses clientes — o que
+deixava o Cássio, que gasta mais rápido que todos, como o único fora do
+governo. Silêncio ali não é ausência de risco.
+
 **Alerta que o monitor precisa passar a dar:** saldo restante do cliente abaixo
 de 2 dias de orçamento diário. Dois dias é o tempo de mandar mensagem, o
 cliente ver, fazer o Pix e o dinheiro cair.

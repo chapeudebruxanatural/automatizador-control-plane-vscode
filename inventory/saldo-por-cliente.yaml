@@ -23,12 +23,28 @@
 # O gasto vem de `metrics.cost_micros` por campanha, filtrado pelos IDs do
 # cliente em `packages/integrations/src/google-ads/scope.ts`.
 #
+# TRÊS NÚMEROS, NÃO UM
+#
+# O Pix do cliente chega na conta do dono, que retém a comissão de gestão e
+# deposita o resto no Google. São três valores diferentes e a distinção não é
+# formalidade contábil — é o que faz o governador funcionar:
+#
+#     recebidoDoCliente = comissao + depositadoEmAds
+#
+# Só `depositadoEmAds` dá pista de veiculação. Lançar o valor do Pix como se
+# fosse saldo de anúncio infla os dias calculados: o governador acha que o
+# cliente tem mais pista do que tem e o deixa consumir a fatia de outro —
+# **reportando tudo verde enquanto isso**. O número inflado não engana só o
+# cliente; engana o freio.
+#
+# Comissão de gestão é legítima. O que não sobrevive a auditoria é o relatório
+# de veiculação afirmar um número que o Google não confirma.
+#
 # COMO LANÇAR UM DEPÓSITO
 #   1. cliente manda Pix ao dono;
-#   2. dono transfere para a conta de anúncios (Pagamento manual);
-#   3. lance aqui em `depositos`, com data e valor;
-#   4. ajuste `orcamentoDiario` das campanhas para o depósito durar o
-#      `horizonteDias` combinado.
+#   2. dono retém a comissão e transfere o restante para a conta de anúncios;
+#   3. lance aqui os TRÊS valores, com data;
+#   4. ajuste `orcamentoDiario` para `depositadoEmAds` durar o `horizonteDias`.
 #
 # NUNCA registre chave Pix, comprovante, CPF ou dado bancário aqui. Só data,
 # valor e origem declarada. Ver SECURITY.md.
@@ -62,14 +78,17 @@ clientes:
   - slug: garbo-eventos
     responsavel: Andréia
     depositos:
-      - valor: 100.00
-        em: 2026-08-07
+      - em: 2026-08-07
         origem: pix_do_cliente_para_o_dono
-        # O Pix foi para o dono, não para a conta de anúncios. O saldo de
-        # R$ 685,44 já cobre o valor, então a campanha não esperou a
-        # transferência. Isto é adiantamento do caixa comum — e é exatamente o
-        # tipo de mistura que este arquivo existe para tornar visível.
-        verificationStatus: owner_reported
+        recebidoDoCliente: 100.00
+        # ATENÇÃO: preencher. Enquanto `comissao` for null, `depositadoEmAds`
+        # está assumindo o Pix inteiro — que é exatamente a inflação que o
+        # cabeçalho descreve. O governador vai calcular 7,1 dias de pista; se a
+        # comissão for R$ 30, a pista real é 5,0 dias, e os 2 dias de diferença
+        # saem do saldo do Cássio com o painel todo verde.
+        comissao: null
+        depositadoEmAds: 100.00
+        verificationStatus: unknown # o rateio Pix/comissão não foi informado
     horizonteDias: 7
     orcamentoDiarioTotal: 14.00
     campanhasAtivas:
