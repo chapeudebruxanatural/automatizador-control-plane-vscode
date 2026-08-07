@@ -48,9 +48,21 @@ export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
     expectedName: 'CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | BRASIL_PRIORITARIO',
     lifecycle: 'active_scope',
     notes:
-      'Demand Gen nacional prioritária. O conflito de verba do Cássio NÃO bloqueia ' +
-      'leitura — bloqueia reativação, aumento de orçamento, publicação, nova verba e ' +
-      'qualquer mutate.',
+      'PAUSADA em 06/08, substituída pela 24106867845. Orçamento CUSTOM_PERIOD de ' +
+      'R$ 472,94 com R$ 276,95 não gastos — o saldo continua na conta e ela pode ser ' +
+      'reativada até 09/08. Mantida no escopo para leitura do histórico: os 5 contatos ' +
+      'de 29/07 estão aqui, e é contra eles que se compara o resultado da nova.',
+  },
+  {
+    campaignId: '24106867845',
+    clientSlug: 'cassio-ferraz',
+    expectedName: 'CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | DIARIO',
+    lifecycle: 'active_scope',
+    notes:
+      'Criada em 06/08 para substituir a 24066140634. Orçamento DIÁRIO de R$ 50, sem ' +
+      'data de término — o cliente recarrega saldo na conta sem que a campanha precise ' +
+      'ser editada, pausada ou reiniciada. Mesmo público, mesmos 5 vídeos, mesma ' +
+      'landing. É esta que o monitor deve vigiar.',
   },
   {
     campaignId: '24105770570',

@@ -20,11 +20,30 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 # Alvos: nome logico | container (filtro de nome) | usuario padrao da imagem
+#
+# O usuario NAO e sempre `postgres`. Em 06/08 o alvo do encantaria estava
+# declarado com `postgres` e o container usa `directus` — o `psql -U postgres`
+# voltava vazio SEM FALHAR, e o backup passou a reportar sucesso com zero bases.
+# Ao adicionar um alvo, confirme o usuario real antes:
+#   docker exec <cid> printenv POSTGRES_USER POSTGRES_DB
 TARGETS=(
   "postgres-shared|postgres_postgres|postgres"
   "pgvector|pgvector_pgvector|postgres"
-  "encantaria|encantaria_database|postgres"
+  "encantaria|encantaria_database|directus"
 )
+
+# Alvo declarado que nao rende nenhuma base e ERRO, nao aviso.
+#
+# Existe porque o modo de falha real nao foi "o script quebrou", foi "o script
+# ficou verde e o backup saiu vazio". Relatorio verde com backup vazio e pior
+# que falha ruidosa: da confianca onde nao ha cobertura. Se um alvo foi
+# declarado, alguem afirmou que ha dado ali — nao render nada significa
+# configuracao errada, nao ausencia legitima.
+#
+# Para remover um alvo de proposito, tire-o de TARGETS. Nao o deixe falhando
+# em silencio.
+STRICT_TARGETS="${STRICT_TARGETS:-1}"
+MISSING_TARGETS=0
 
 LIST_ONLY=0
 for arg in "$@"; do
@@ -71,8 +90,13 @@ for target in "${TARGETS[@]}"; do
     "SELECT datname FROM pg_database WHERE datistemplate = false AND datname <> 'postgres';" 2>/dev/null)"
 
   if [ -z "$dbs" ]; then
-    log "AVISO: nenhuma base listada em '$name' — pulando"
-    manifest_add "$name" postgres "$filter" "" 0 "" "skipped_no_databases"
+    # Quase sempre significa usuario errado no TARGETS: `psql -U <inexistente>`
+    # volta vazio em vez de falhar. Ver o comentario em TARGETS.
+    log "ERRO: alvo '$name' declarado, mas NENHUMA base foi listada."
+    log "      Causa provavel: usuario '$pguser' nao existe nesse container."
+    log "      Confira com: docker exec $cid printenv POSTGRES_USER POSTGRES_DB"
+    manifest_add "$name" postgres "$filter" "" 0 "" "error_no_databases"
+    MISSING_TARGETS=$((MISSING_TARGETS + 1))
     continue
   fi
 
@@ -103,3 +127,13 @@ done
 
 prune_old "$OUT_DIR" "*.dump" "$BACKUP_RETENTION_DAYS"
 backup_end
+
+# Sai diferente de zero quando um alvo declarado nao rendeu base nenhuma.
+# E o que faz um systemd timer marcar a execucao como falha em vez de
+# `Succeeded` — sem isso, backup vazio vira linha verde no journal.
+if [ "$MISSING_TARGETS" -gt 0 ] && [ "$STRICT_TARGETS" = "1" ]; then
+  log ""
+  log "*** $MISSING_TARGETS alvo(s) declarado(s) sem nenhuma base. Backup INCOMPLETO."
+  log "*** Corrija o TARGETS ou remova o alvo. Para ignorar: STRICT_TARGETS=0"
+  exit 2
+fi

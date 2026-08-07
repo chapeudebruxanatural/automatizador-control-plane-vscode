@@ -513,22 +513,37 @@ Passo a passo: `docs/runbooks/ativar-monitor.md`.
 
 ### 10.1 VPS `nvvps` — Debian 11, Docker Swarm, 13 stacks, 28 serviços
 
-Riscos abertos, **nenhum corrigido**:
+**Reverificado em 06/08 por SSH.** Levantamento completo e sanitizado em
+`docs/discovery/vps-inventory-2026-08-06.md`. O quadro abaixo substitui o
+anterior — três itens mudaram de leitura.
 
-| ID | Sev | Risco |
+| ID | Sev | Estado em 06/08 |
 |---|---|---|
-| V-001 | crítico | Debian 11 no fim do suporte LTS; 193 dias sem reboot |
-| R-001 | crítico | Backup cobre **1 de 13 stacks** |
-| R-002 | crítico | Backup provavelmente arquiva a cópia errada — checkout do Git, não os volumes Docker (791 MB vs 2,3 GB) |
-| R-003 | alto | Portas 2377/7946 do Swarm expostas em todas as interfaces |
-| R-004 | alto | Arquivo com nome de backup de ambiente em `/root` (não aberto) |
+| V-001 | crítico | **aberto** — Debian 11 no fim do LTS (agosto/2026); 194 dias sem reboot |
+| R-001 | crítico | **parcialmente fechado em 06/08** — scripts instalados em `/root/backup-scripts/` na VPS. `backup-volumes.sh --apply`: **10/10 volumes**, integridade verificada por checksum. `backup-postgres.sh --apply`: **7 bases em 3 containers**, integridade verificada, incluindo `encantaria/directus` — que antes vinha vazio (usuário errado no script). Destino em `/var/backups/control-plane`, fora do `/tmp` que o `systemd-tmpfiles-clean` varre. **Falta o upload externo**: a cópia existe e é íntegra, mas mora no mesmo disco que deveria proteger — cobre volume corrompido ou apagado por engano, não cobre perder a VPS. O dump de `encantaria/directus` deu **82 KB**, número pequeno demais para passar sem conferência — foi exatamente esse tipo de número pequeno que escondeu o backup vazio por meses; vale checar o conteúdo antes de confiar |
+| R-002 | ~~crítico~~ → médio | **reformulado** — a hipótese de "arquiva o checkout do Git" **não se confirmou**: o script aponta para `data/` e `uploads/`, que são dados de aplicação. A discrepância 791 MB × 2,3 GB **segue sem explicação**. `requires_verification` |
+| R-003 | crítico | **pior que o registrado** — não é regra frouxa, é **ausência de filtro**: `-P INPUT ACCEPT` e **nenhuma regra em INPUT**. 2377, 7946, 4789 e 3000 abertas sem filtro |
+| R-004 | alto | **confirmado** — `novacena-env-production.backup.20260521152109` em `/root`. Não aberto |
+| R-005 | resolvido | Swap era **zero** com 28 serviços. 2 GB criados em 06/08 |
+| R-006 | resolvido | `prune -af` diário apagaria imagem local sem registry. Trocado por `--filter until=720h`. O log prova que **nunca chegou a apagar nada** (233 KB, tudo `0B`) |
 
-Existe backup diário em S3 (`novacena-backup.timer`), mas só do NovaCena Motion.
-Correção de Ciclo 1: dizer que "não havia backup" estava errado — havia, e é
-insuficiente, que é diferente.
+**O backup é real, externo e funciona** — 6 execuções consecutivas com sucesso de
+31/07 a 05/08, para bucket S3 de verdade, credencial fora do script. A hipótese
+de "cópia no mesmo disco via MinIO local" está **descartada**. O problema não é
+o backup falhar; é ele cobrir um treze avos do que precisa cobrir.
 
-Scripts prontos e testados, **não instalados**: `scripts/backup/`,
-`scripts/restore/`, `scripts/docker-retention-*.sh`.
+**Não instalar `ufw` nesta VPS.** Em host com Docker ele não se aplica a portas
+publicadas por container e cria falsa proteção; `iptables` direto num nó Swarm é
+pior, porque o Docker reescreve as próprias cadeias. O lugar do filtro é o
+**firewall do painel da Hostinger**, fora do host.
+
+**`scripts/backup/` — instalados em `/root/backup-scripts/` na VPS em 06/08**,
+executados e verificados (ver R-001).
+
+`scripts/restore/` — prontos e testados, **não instalados**. O restore nunca foi
+exercitado contra um dump real; integridade de checksum não é restaurabilidade.
+
+`scripts/docker-retention-*.sh` — prontos, **não instalados**.
 
 ### 10.2 WhatsApp / Evolution API — homologação
 

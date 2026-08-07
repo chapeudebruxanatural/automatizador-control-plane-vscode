@@ -23,6 +23,36 @@ Legenda: `[ ]` aberto · `[~]` em andamento · `[x]` concluído · `[!]` bloquea
 
 ---
 
+## VPS — pendências do levantamento de backup (06/08)
+
+Ver `docs/discovery/vps-inventory-2026-08-06.md` e `HANDOFF.md` §10.1 (R-001).
+
+- [ ] **Mais urgente.** Localizar onde mora o conteúdo real do Encantaria. O
+      site está no ar e o CRM mostra produtos confirmados pelo dono, mas o
+      Postgres de `encantaria_database` só tem o schema do Directus vazio —
+      restore testado e verificado em container descartável, sem tocar em
+      produção. O conteúdo real está em algum lugar ainda não identificado.
+      `verificationStatus: unknown`. Pode significar dado de cliente sem
+      nenhum backup.
+- [ ] Os 7 dumps de Postgres somam só 2,2 MB — pouco para Chatwoot, n8n,
+      Typebot e NocoDB. Investigar se essas aplicações usam mesmo o container
+      `postgres_postgres` ou guardam dado fora do alcance de
+      `backup-postgres.sh`.
+- [ ] Restore só foi exercitado no dump do `encantaria`. Os outros 6
+      (`pgvector-chatwoot`, `pgvector-novacena_editais`,
+      `postgres-shared-evolution`, `postgres-shared-n8n_queue`,
+      `postgres-shared-nocodb`, `postgres-shared-typebot`) não foram testados.
+- [ ] Backups (`volumes` + `postgres`) ainda moram só em
+      `/var/backups/control-plane`, na própria VPS — falta subir para um
+      destino externo. Reaproveitar o mecanismo do `novacena-backup.sh`, que
+      já sobe para S3 com credencial fora do script.
+- [ ] Firewall da VPS: `-P INPUT ACCEPT`, nenhuma regra em `INPUT`. Portas
+      2377/7946/4789/3000 abertas sem filtro. Corrigir pelo firewall do
+      painel da Hostinger — não instalar `ufw` (não se aplica bem a portas
+      publicadas por container em host Docker).
+
+---
+
 ## Plataforma de agente — fases
 
 Desenho completo em [docs/architecture/agent-platform.md](docs/architecture/agent-platform.md).
