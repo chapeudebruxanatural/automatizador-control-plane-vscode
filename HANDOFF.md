@@ -394,6 +394,29 @@ emulação de UA mobile) · redirect HTTP → HTTPS (buscando `http://` o conte�
 voltou em http, sem redirect visível — **checar manualmente**) · deep link no app
 nativo · 1 dos 4 scripts do site não pôde ser lido.
 
+### 7.7 Site corrigido em 07/08 — repositório `dadocruz/cassio-ferraz`
+
+A dívida técnica acima virou correção. Três commits, todos na mesma família de
+defeito: **link que nasce `href="#"` e só recebe destino se o JS rodar.**
+
+| Commit | O quê |
+|---|---|
+| `90f7509` | 45 links de WhatsApp com `wa.me` real no HTML · CTA do hero vai ao WhatsApp em vez de `#formulario` · formulário de 5 campos obrigatórios para 2 (nome e telefone) |
+| `64fcde6` | asteriscos removidos dos campos que deixaram de ser obrigatórios |
+| `2d8cc6d` | 19 links de redes sociais do rodapé — mesmo defeito, mesma correção |
+
+O JS continua rodando; agora ele apenas confirma um `href` que já está certo.
+É a diferença entre o JS **ser** o link e o JS **enfeitar** o link.
+
+> ⚠️ **`2d8cc6d` está commitado localmente, não publicado.** O sandbox não tem
+> chave SSH nem `CLOUDFLARE_API_TOKEN`; `git push` e `npx wrangler deploy` rodam
+> na máquina do dono. Os dois primeiros commits **já estão no ar** e verificados
+> na URL do anúncio.
+
+Deploy do site é **manual, sem CI** — `npx wrangler deploy`, Worker com assets
+estáticos (`wrangler.jsonc`, `assets.directory: "."`, protegido por
+`.assetsignore` que exclui `.git`). Publicar não é consequência de commitar.
+
 ---
 
 ## 8. GAVETA / BUTECO SERTANEJO — NÃO MEXER
@@ -479,6 +502,42 @@ Corrigido com uma segunda consulta usando `campaign.start_date` — campo que s�
 existe até a v22, mais um motivo para a versão estar fixada (§5.1). A saída agora
 separa `7 dias` de `acumulado`, e se `start_date` vier vazio o próprio monitor
 alerta que está cego em vez de imprimir número errado.
+
+### 9.2 Cron provado e alvo corrigido — 07/08
+
+Duas coisas foram fechadas aqui, e é importante que sejam lidas como duas.
+
+**O cron roda sozinho.** As execuções **#4 (06:52)** e **#5 (19:44)** aparecem
+como `Scheduled`, não `workflow_dispatch`, ambas verdes. É essa a prova de que
+o agendamento existe fora da sessão — o que a §9 exigia e que nenhuma execução
+manual jamais demonstraria.
+
+**Mas a #5 rodou em código velho.** Ela executou no commit `f3acb64`, anterior
+ao merge da correção, então ainda vigiava a **24066140634 — que está pausada**.
+Um workflow verde vigiando a campanha errada é pior que workflow vermelho:
+"Sem alertas" descrevia com precisão uma campanha morta.
+
+Execução **#6**, no merge `62e3617`, fecha a lacuna:
+
+```
+=== Cássio Ferraz — CASSIO | DEMAND_GEN | VIDEO_DVD | CONTRATANTES | DIARIO (24106867845) ===
+status: ENABLED / LEARNING   orçamento: R$ 50.00/dia
+
+  2026-08-06 | R$ 1.81 | 15 cliques | CPC 0.12 | WhatsApp 0
+
+7 dias:     R$ 1.81 | 15 cliques | 0 contatos
+acumulado:  R$ 1.94 | 16 cliques | 0 contatos (desde 2026-08-06)
+CPC médio:  R$ 0.12   taxa de contato: 0.00% (0 em 16 cliques)
+
+Sem alertas.
+```
+
+Nome, ID, orçamento diário e as duas métricas derivadas conferem.
+
+**Regra que sai daqui:** ao corrigir o monitor, confira em qual commit a
+execução rodou, não só se ela ficou verde. O `schedule` usa a `main` no momento
+do disparo; enquanto a correção está em branch, o cron segue rodando o código
+antigo sem nenhum sinal disso na interface.
 
 ### 9.1 Os dois bloqueios que existiam (histórico)
 
@@ -672,10 +731,25 @@ Campanha não foi pausada. Restam três pendências menores dali: conferir
 manualmente o redirect HTTP → HTTPS, decidir sobre o formulário de 11 campos, e
 decidir sobre os links `wa.me` injetados por JS. Nenhuma bloqueia a operação.
 
-**2. Tornar o monitor persistente.** Hoje `MONITOR_NOT_DEPLOYED`. Provar com
-PID, serviço ou registro de execução.
+**2. ~~Tornar o monitor persistente.~~ ✅ PROVADO em 07/08 — ver §9.2.**
+Execuções #4 e #5 vieram marcadas como `Scheduled`. #6, no merge `62e3617`, já
+reporta a campanha certa.
 
 **3. Acompanhar CPC e contatos** pelos limiares da seção 7.5.
+
+**4. Publicar `2d8cc6d` no site do Cássio** — ver §7.7. Único item do Cássio em
+aberto. Na máquina do dono, dentro de `~/Projetos/cassio-ferraz`:
+
+```bash
+git push origin main
+npx wrangler deploy
+```
+
+**5. Próximo cliente.** O Cássio está fechado depois do passo 4. O checklist
+para o próximo está em `docs/operations/padrao-medicao-por-cliente.md` — atenção
+para a pendência conhecida: `WhatsApp | GARBO` e `WhatsApp | NOVACENA` têm coluna
+de auditoria mas **não têm entrada no `scope.ts`**, então o control plane não
+alcança as campanhas desses dois.
 
 ### Curto prazo
 
