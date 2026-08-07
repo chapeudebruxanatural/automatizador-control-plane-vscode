@@ -13,12 +13,35 @@ import { readFile, appendFile, mkdir } from 'node:fs/promises';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const CID = '2656966896';
-const CAMPAIGN = '24066140634';
+
+/**
+ * Campanha vigiada. Trocada em 06/08 da 24066140634 (pausada) para a
+ * 24106867845.
+ *
+ * Aceita sobrescrita por variável de ambiente para que trocar de campanha não
+ * exija editar, commitar e mesclar código — foi essa fricção que deixou o
+ * monitor apontando para uma campanha pausada por horas.
+ */
+const CAMPAIGN = process.env['GOOGLE_ADS_CAMPAIGN_ID'] ?? '24106867845';
 
 const CPC_ALERT_BRL = 1.0;
-const SPEND_ALERT_BRL = 400;
-const BUDGET_CAP_BRL = 472.94;
 const SPEND_WITHOUT_CONTACT_BRL = 100;
+
+/**
+ * Alerta de gasto acumulado.
+ *
+ * A campanha antiga tinha orçamento CUSTOM_PERIOD com teto de R$ 472,94, e o
+ * alerta comparava o acumulado contra esse teto. A nova tem orçamento DIÁRIO e
+ * **não tem teto** — o cliente recarrega saldo quando quer. Comparar acumulado
+ * contra teto deixou de fazer sentido: o número só cresce e um dia dispararia
+ * sozinho, sem significar nada.
+ *
+ * O que importa agora é o gasto do DIA contra o orçamento diário. Gastar muito
+ * acima do configurado é sinal de problema; o Google permite até 2x num dia
+ * isolado, então o alerta fica acima disso.
+ */
+const DAILY_BUDGET_BRL = Number(process.env['GOOGLE_ADS_DAILY_BUDGET_BRL'] ?? 50);
+const DAILY_OVERSPEND_FACTOR = 2.5;
 
 /**
  * Carrega o `.env` quando ele existe.
@@ -71,9 +94,10 @@ const { rows } = await tp.searchStream(
 
 const st = await tp.searchStream(
   CID,
-  `SELECT campaign.status, campaign.primary_status, campaign.primary_status_reasons,
-          campaign.start_date, campaign.end_date,
-          campaign_budget.total_amount_micros
+  `SELECT campaign.name, campaign.status, campaign.primary_status,
+          campaign.primary_status_reasons, campaign.start_date, campaign.end_date,
+          campaign_budget.total_amount_micros, campaign_budget.amount_micros,
+          campaign_budget.period
    FROM campaign WHERE campaign.id = ${CAMPAIGN}`,
 );
 const info = (st.rows[0] ?? {}) as Record<string, Record<string, unknown>>;
@@ -147,17 +171,38 @@ if (last !== undefined && last.clicks > 0) {
 if (last !== undefined && last.cost > SPEND_WITHOUT_CONTACT_BRL && last.all === 0) {
   alerts.push(`R$ ${last.cost.toFixed(2)} gastos em ${last.date} sem nenhum contato novo.`);
 }
-if (lifetimeKnown && lifetimeCost > SPEND_ALERT_BRL) {
+if (last !== undefined && last.cost > DAILY_BUDGET_BRL * DAILY_OVERSPEND_FACTOR) {
   alerts.push(
-    `Gasto acumulado de R$ ${lifetimeCost.toFixed(2)} passou o alerta de ` +
-      `R$ ${SPEND_ALERT_BRL.toFixed(2)}. Restam R$ ${(BUDGET_CAP_BRL - lifetimeCost).toFixed(2)} ` +
-      'até o teto, onde a campanha para sozinha.',
+    `R$ ${last.cost.toFixed(2)} gastos em ${last.date}, mais de ${DAILY_OVERSPEND_FACTOR}x ` +
+      `o orçamento diário de R$ ${DAILY_BUDGET_BRL.toFixed(2)}. O Google permite até 2x ` +
+      'num dia isolado; acima disso, conferir se o orçamento foi alterado.',
   );
 }
 if (!lifetimeKnown) {
   alerts.push(
-    'campaign.start_date veio vazio — o gasto acumulado nao pode ser apurado e o ' +
-      'alerta de teto de verba esta CEGO nesta execucao. Verificar a versao da API.',
+    'campaign.start_date veio vazio — o acumulado nao pode ser apurado. Verificar a ' +
+      'versao da API (os campos de data existem ate a v22).',
+  );
+}
+
+/**
+ * Campanha pausada ou sem entrega é alerta.
+ *
+ * Em 06/08 o monitor ficou apontando para uma campanha recém-pausada e teria
+ * reportado "sem alertas" com entrega zero — silêncio que parece saúde. Estado
+ * que impede veiculação precisa gritar.
+ */
+if (/PAUSED|REMOVED/i.test(String(info['campaign']?.['status'] ?? ''))) {
+  alerts.push(
+    `A campanha ${CAMPAIGN} esta ${String(info['campaign']?.['status'])} — nao esta ` +
+      'veiculando. Se isso for intencional, aponte o monitor para outra campanha com ' +
+      'GOOGLE_ADS_CAMPAIGN_ID.',
+  );
+}
+if (last !== undefined && last.clicks === 0 && last.cost === 0) {
+  alerts.push(
+    `Nenhum clique e nenhum gasto em ${last.date}. Campanha pode estar pausada, em ` +
+      'revisao ou sem anuncio aprovado.',
   );
 }
 
@@ -165,8 +210,13 @@ const status = String(info['campaign']?.['status'] ?? '?');
 const primary = String(info['campaign']?.['primaryStatus'] ?? '?');
 const budget = Number(info['campaignBudget']?.['totalAmountMicros'] ?? 0) / 1e6;
 
-console.log('=== Cássio Ferraz — campanha 24066140634 ===');
-console.log(`status: ${status} / ${primary}   orçamento: R$ ${budget.toFixed(2)}`);
+const campaignName = String(info['campaign']?.['name'] ?? `campanha ${CAMPAIGN}`);
+const dailyMicros = Number(info['campaignBudget']?.['amountMicros'] ?? 0) / 1e6;
+const budgetLabel =
+  dailyMicros > 0 ? `R$ ${dailyMicros.toFixed(2)}/dia` : `R$ ${budget.toFixed(2)} (total)`;
+
+console.log(`=== Cássio Ferraz — ${campaignName} (${CAMPAIGN}) ===`);
+console.log(`status: ${status} / ${primary}   orçamento: ${budgetLabel}`);
 console.log('');
 for (const d of days) {
   const cpc = d.clicks > 0 ? (d.cost / d.clicks).toFixed(2) : '—';
@@ -182,10 +232,14 @@ if (lifetimeKnown) {
     `acumulado:  R$ ${lifetimeCost.toFixed(2)} | ${lifetimeClicks} cliques | ${lifetimeAll} contatos ` +
       `(desde ${startDate})`,
   );
-  console.log(`restante até o teto: R$ ${(BUDGET_CAP_BRL - lifetimeCost).toFixed(2)} (aprox.)`);
+  const cpcMedio = lifetimeClicks > 0 ? lifetimeCost / lifetimeClicks : 0;
+  const taxa = lifetimeClicks > 0 ? (lifetimeAll / lifetimeClicks) * 100 : 0;
+  console.log(
+    `CPC médio:  R$ ${cpcMedio.toFixed(2)}   taxa de contato: ${taxa.toFixed(2)}% ` +
+      `(${lifetimeAll} em ${lifetimeClicks} cliques)`,
+  );
 } else {
   console.log('acumulado:  INDISPONÍVEL — campaign.start_date vazio');
-  console.log('restante até o teto: NÃO APURADO');
 }
 
 if (alerts.length > 0) {
