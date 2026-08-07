@@ -23,27 +23,34 @@
 # O gasto vem de `metrics.cost_micros` por campanha, filtrado pelos IDs do
 # cliente em `packages/integrations/src/google-ads/scope.ts`.
 #
-# TRÊS NÚMEROS, NÃO UM
+# REGRA VIGENTE: MENSALIDADE SEPARADA, PIX VAI INTEIRO
 #
-# O Pix do cliente chega na conta do dono, que retém a comissão de gestão e
-# deposita o resto no Google. São três valores diferentes e a distinção não é
-# formalidade contábil — é o que faz o governador funcionar:
+# Decisão do dono em 07/08/2026. A gestão é cobrada à parte, como mensalidade,
+# e **todo o Pix de mídia vira saldo de anúncio** — `comissao: 0.00`.
+#
+# É a estrutura que menos confunde relatório de veiculação com receita da
+# agência. Não por disciplina de quem preenche, mas por construção: se nada é
+# retido, não há como o relatório e o extrato do Google divergirem.
+#
+# TRÊS NÚMEROS MESMO ASSIM
+#
+# A estrutura continua com três campos porque a regra pode mudar, e no dia em
+# que mudar o erro é silencioso:
 #
 #     recebidoDoCliente = comissao + depositadoEmAds
 #
-# Só `depositadoEmAds` dá pista de veiculação. Lançar o valor do Pix como se
-# fosse saldo de anúncio infla os dias calculados: o governador acha que o
-# cliente tem mais pista do que tem e o deixa consumir a fatia de outro —
-# **reportando tudo verde enquanto isso**. O número inflado não engana só o
-# cliente; engana o freio.
-#
-# Comissão de gestão é legítima. O que não sobrevive a auditoria é o relatório
-# de veiculação afirmar um número que o Google não confirma.
+# Só `depositadoEmAds` dá pista de veiculação. Lançar o Pix inteiro quando
+# houve retenção infla os dias calculados: o governador acha que o cliente tem
+# mais pista do que tem e o deixa consumir a fatia de outro — **reportando tudo
+# verde enquanto isso**. O número inflado não engana só o cliente; engana o
+# freio. Por isso `comissao: null` dispara alerta: ausência de declaração não
+# pode ser lida como ausência de retenção.
 #
 # COMO LANÇAR UM DEPÓSITO
 #   1. cliente manda Pix ao dono;
-#   2. dono retém a comissão e transfere o restante para a conta de anúncios;
-#   3. lance aqui os TRÊS valores, com data;
+#   2. dono transfere para a conta de anúncios (pela regra vigente, o valor
+#      integral) e lança `comissao: 0.00` — explicitamente, nunca `null`;
+#   3. lance os TRÊS valores, com data;
 #   4. ajuste `orcamentoDiario` para `depositadoEmAds` durar o `horizonteDias`.
 #
 # NUNCA registre chave Pix, comprovante, CPF ou dado bancário aqui. Só data,
@@ -81,14 +88,9 @@ clientes:
       - em: 2026-08-07
         origem: pix_do_cliente_para_o_dono
         recebidoDoCliente: 100.00
-        # ATENÇÃO: preencher. Enquanto `comissao` for null, `depositadoEmAds`
-        # está assumindo o Pix inteiro — que é exatamente a inflação que o
-        # cabeçalho descreve. O governador vai calcular 7,1 dias de pista; se a
-        # comissão for R$ 30, a pista real é 5,0 dias, e os 2 dias de diferença
-        # saem do saldo do Cássio com o painel todo verde.
-        comissao: null
+        comissao: 0.00 # confirmado pelo dono em 07/08: nada retido
         depositadoEmAds: 100.00
-        verificationStatus: unknown # o rateio Pix/comissão não foi informado
+        verificationStatus: owner_reported
     horizonteDias: 7
     orcamentoDiarioTotal: 14.00
     campanhasAtivas:

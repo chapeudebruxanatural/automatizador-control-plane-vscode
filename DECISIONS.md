@@ -233,3 +233,11 @@ Não confirmado: exigiria submissão real, que geraria pedido à produção.
   isolamento por bônus, registrada como tal.
 - **Dependência `yaml` adicionada** para o governador ler o livro-caixa. Sem
   acesso a rede ou credencial, logo fora da regra de aprovação do CLAUDE.md.
+- **Mensalidade separada; o Pix de mídia vai integralmente para anúncio.**
+  Confirmado em 07/08 para o depósito de R$ 100 da Garbo (`comissao: 0.00`) e
+  adotado como regra vigente. Motivo: é a estrutura em que relatório de
+  veiculação e receita da agência não se misturam **por construção** — se nada
+  é retido, não há como o relatório divergir do extrato do Google. `comissao`
+  deve ser lançada como `0.00` explicitamente, nunca deixada `null`: ausência
+  de declaração não pode ser lida como ausência de retenção, e o governador
+  alerta enquanto for `null`.
