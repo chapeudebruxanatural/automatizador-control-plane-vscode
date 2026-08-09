@@ -1,3 +1,14 @@
+
+
+2026-08-09 — Capacidade administrativa Meta não é autorização permanente de campanha
+
+Contexto: o dono confirmou que precisa criar campanhas, gerar relatórios e administrar finanças da conta ADM 01 pelo control plane, inclusive campanhas cujo destino é WhatsApp. A permissão anterior `Ver desempenho` atendia somente leitura e era insuficiente para essa operação.
+
+Decisão do dono: o usuário do sistema dedicado **Automatizadoria** recebe **Acesso total** à conta ADM 01. A Meta confirmou esse estado. Esse acesso inclui campanhas, configurações, finanças e permissões da conta. A decisão anterior que bloqueava token até definir o portfólio foi superada apenas após o dono autorizar expressamente preservar o app Dado Cruz e criar app e usuário dedicados no portfólio.
+
+Limite técnico e operacional: acesso do usuário do sistema é capacidade de infraestrutura, não autorização permanente para gastar. O token hoje armazenado como `META_ACCESS_TOKEN` continua com `ads_read` e `business_management`, sem `ads_management`. O adaptador real publicado nesta data implementa somente GET e recusa escrita. O kill switch, o dry-run, o plano com hash, a aprovação humana consumível e a auditoria continuam obrigatórios antes de criar, editar, pausar ou publicar campanha.
+
+Para campanhas com destino ao WhatsApp, Página, Instagram, conta do WhatsApp Business, número e pixel/dataset devem ser inventariados por ID e ligados ao cliente correto. Nome parecido não é prova; associação incerta permanece `verificationStatus: unknown`. A rotação do token para `ads_management` ocorrerá somente depois que o adaptador de escrita e essas associações estiverem validados. O Buteco Sertanejo `24105770570` e a campanha removida `24079586567` continuam intocáveis.
 # DECISIONS
 
 Registro cronológico de decisões. Decisões arquiteturais extensas ganham um ADR
