@@ -52,8 +52,10 @@ Validação antes de mexer em qualquer coisa:
 npm ci && npm run verify && npm run scan:secrets:all
 ```
 
-Estado esperado em 09/08: **290 testes, 79 suítes, tudo verde.** Lint e
-typecheck limpos. Se não estiver assim, conserte antes de seguir.
+Estado esperado na `main` após a fábrica: **300 testes, 83 suítes, tudo
+verde** no CI. Lint e typecheck limpos. O sandbox local suspende os dois testes
+HTTP; o conjunto sem socket tem 286 testes em 76 suítes. Se o CI não estiver
+verde, conserte antes de seguir.
 
 ### Arquitetura de continuidade entre IAs
 
@@ -62,10 +64,17 @@ memória operacional passa gradualmente para repositórios privados por cliente,
 permitindo alternar entre Codex, Claude e Copilot sem depender do histórico do
 chat. O ADR autoritativo é `docs/adr/0004-arquitetura-hibrida-workspaces-por-cliente.md`.
 
-Piloto verificado em 09/08: `dadocruz/cliente-cassio-ferraz-ops`, privado. Os
-outros sete nomes de destino ainda são `unknown`; não declarar que existem.
-Credenciais, allowlists, kill switch, aprovação e auditoria nunca saem do
-control plane. `security.yaml` nunca é exportado.
+Os oito repositórios `cliente-*-ops` do inventário foram conferidos como
+privados na interface do GitHub em 09/08. Sete estão apenas criados e o do
+Cássio contém o piloto publicado. Eles são memória operacional opcional; não
+substituem os repositórios reais dos sites. Credenciais, allowlists, kill
+switch, aprovação e auditoria nunca saem do control plane. `security.yaml`
+nunca é exportado.
+
+Novos projetos reais usam a fábrica `npm run cliente:provisionar`, que simula
+primeiro e, só com aprovação específica, cria repositório GitHub privado,
+Cloudflare Pages, starter e domínio opcional. Pages é o padrão estático;
+Workers exige escolha explícita.
 
 ---
 
