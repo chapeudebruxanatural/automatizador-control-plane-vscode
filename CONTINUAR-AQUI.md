@@ -55,6 +55,18 @@ npm ci && npm run verify && npm run scan:secrets:all
 Estado esperado em 09/08: **290 testes, 79 suítes, tudo verde.** Lint e
 typecheck limpos. Se não estiver assim, conserte antes de seguir.
 
+### Arquitetura de continuidade entre IAs
+
+O control plane continua sendo o motor central de segurança e execução. A
+memória operacional passa gradualmente para repositórios privados por cliente,
+permitindo alternar entre Codex, Claude e Copilot sem depender do histórico do
+chat. O ADR autoritativo é `docs/adr/0004-arquitetura-hibrida-workspaces-por-cliente.md`.
+
+Piloto verificado em 09/08: `dadocruz/cliente-cassio-ferraz-ops`, privado. Os
+outros sete nomes de destino ainda são `unknown`; não declarar que existem.
+Credenciais, allowlists, kill switch, aprovação e auditoria nunca saem do
+control plane. `security.yaml` nunca é exportado.
+
 ---
 
 ## 2. O que é FATO VERIFICADO (pode confiar)
