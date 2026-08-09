@@ -1,0 +1,70 @@
+# Inventário lido diretamente do Meta Business em 09/08/2026.
+# Nome não prova associação a cliente. Tudo que não foi confirmado pelo dono
+# permanece unknown, mesmo quando o nome parece óbvio.
+collectedAt: '2026-08-09T14:46:42-03:00'
+source: meta_business_settings
+businessPortfolio:
+  id: '488135221601055'
+  name: Dado Cruz
+  verificationStatus: verified
+
+systemUser:
+  id: '61593000755608'
+  name: Automatizadoria
+  verificationStatus: verified
+
+adAccounts:
+  - id: act_1217584809532823
+    name: ADM 01
+    currency: BRL
+    accountStatus: '1'
+    systemUserAccess: full
+    ownerRelation: owner_reported
+    verificationStatus: verified
+
+pages:
+  - id: '1072672662585363'
+    name: Fotografiasedesign
+    clientSlug: null
+    verificationStatus: unknown
+  - id: '2021185101532717'
+    name: Dado Cruz
+    clientSlug: null
+    verificationStatus: unknown
+  - id: '1131094210082197'
+    name: 4cadeiras
+    uiOwnershipLabel: '4 Cadeiras | Evento'
+    clientSlug: null
+    verificationStatus: unknown
+
+instagramAccounts:
+  - businessAssetId: '103868239031431'
+    instagramId: '17841404791869061'
+    username: fotografiasedesign
+    uiStatus: analysis_required
+    clientSlug: null
+    verificationStatus: unknown
+
+whatsappAccounts:
+  observedRows: 0
+  note: A tela do portfólio não exibiu nenhuma conta do WhatsApp. Isso pode significar ausência ou falta de vínculo/acesso; não tratar como prova de inexistência.
+  verificationStatus: unknown
+
+datasetsAndPixels:
+  - businessAssetId: '1022054830503166'
+    displayedId: '1349340487097325'
+    name: Estúdio NovaCena
+    receivingEvents: false
+    clientSlug: null
+    verificationStatus: unknown
+  - businessAssetId: '979023691508854'
+    displayedId: '1640871190359011'
+    name: NovaCena Motion
+    receivingEvents: false
+    clientSlug: null
+    verificationStatus: unknown
+
+operationalBlocks:
+  - Campanha com destino ao WhatsApp não pode ser automatizada até identificar por ID a Página, o Instagram e o número/conta do WhatsApp corretos de cada cliente.
+  - O token atual não contém ads_management.
+  - O adaptador Meta publicado é somente leitura e recusa escrita.
