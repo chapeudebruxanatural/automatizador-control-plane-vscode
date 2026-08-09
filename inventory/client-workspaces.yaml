@@ -1,0 +1,54 @@
+schemaVersion: 1
+policy:
+  visibilityRequired: private
+  namingPattern: dadocruz/cliente-<slug>-ops
+  executionRepository: dadocruz/automatizador-control-plane
+  note: >-
+    O workspace guarda memória e contexto de um cliente. Credenciais,
+    allowlists, execução, kill switch, aprovação e auditoria permanecem no
+    control plane. Repositório desejado não é repositório existente: actual
+    continua null até confirmação pela API ou interface do GitHub.
+
+workspaces:
+  - clientSlug: automatizadoria
+    desiredRepository: dadocruz/cliente-automatizadoria-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
+  - clientSlug: novacena
+    desiredRepository: dadocruz/cliente-novacena-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
+  - clientSlug: gaveta-producoes
+    desiredRepository: dadocruz/cliente-gaveta-producoes-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
+  - clientSlug: cassio-ferraz
+    desiredRepository: dadocruz/cliente-cassio-ferraz-ops
+    actualRepository: dadocruz/cliente-cassio-ferraz-ops
+    state: pilot_published
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
+  - clientSlug: garbo-eventos
+    desiredRepository: dadocruz/cliente-garbo-eventos-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
+  - clientSlug: vivere
+    desiredRepository: dadocruz/cliente-vivere-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
+  - clientSlug: soulraizes
+    desiredRepository: dadocruz/cliente-soulraizes-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
+  - clientSlug: chapeu-de-bruxa
+    desiredRepository: dadocruz/cliente-chapeu-de-bruxa-ops
+    actualRepository: null
+    state: template_ready
+    verificationStatus: unknown
