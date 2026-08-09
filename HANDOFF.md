@@ -1412,3 +1412,38 @@ Inventário visual concluído e registrado em `inventory/meta-assets.yaml`. Fato
 A tela Contas do WhatsApp exibiu zero linhas. Isso foi registrado como `unknown`, não como inexistência: pode haver número ligado por outra superfície, portfólio ou Página. Nenhuma Página, Instagram, WhatsApp ou dataset foi atribuído ao usuário do sistema nesta etapa. Todas as associações cliente↔ativo permanecem `verificationStatus: unknown` até confirmação por ID do dono.
 
 Bloqueio correto para anúncios com destino ao WhatsApp: antes do dry-run de campanha, identificar a Página, o Instagram e o número/conta WhatsApp do cliente correto. Não usar o nome `Fotografiasedesign` nem `NovaCena` como prova de associação.
+
+
+> ## ▶︎ RETOMADA — fábrica de projetos de cliente em 09/08/2026
+>
+> O dono esclareceu que os repositórios já existentes no GitHub são os
+> projetos/sites reais dos clientes. Os workspaces `cliente-*-ops` são memória
+> privada opcional e não os substituem.
+>
+> Entrou `npm run cliente:provisionar`: por padrão ele apenas gera um plano. Em
+> modo aprovado, cria repositório GitHub privado, Cloudflare Pages ligado ao
+> repositório, starter estático portátil e domínio opcional. A escrita exige
+> kill switch desligado, `EXECUTION_MODE=live`, aprovação humana, frase exata
+> do plano e tokens de provisionamento separados dos leitores.
+>
+> Runbook: `docs/operations/onboarding-automatico-cliente.md`. Workers continua
+> fora do automático até haver template explícito; não inferir Pages/Workers
+> pelo nome do cliente.
+>
+> **Cloudflare destravada:** foi criado o token de conta
+> `AutomatizadorIA - provisionamento Pages`, limitado a `Pages Write`, válido
+> até 09/08/2027. O valor foi copiado diretamente para arquivo externo ao Git
+> com modo `600` e a área de transferência foi limpa. A interface confirmou o
+> token como `Active`. O `account_id` também fica em arquivo protegido padrão.
+> Nenhum projeto Pages ou domínio fictício foi criado.
+>
+> **GitHub:** a credencial dedicada ainda aguarda o código de verificação no
+> modo administrativo da própria conta. Não pedir nem registrar esse código no
+> chat. Até concluir, a fábrica está validada em dry-run, mas o primeiro
+> onboarding real permanece bloqueado antes de criar o repositório.
+>
+> Validação local: lint, typecheck, build, `git diff --check`, 286 testes em 76
+> suítes sem socket e scanners de 212 arquivos rastreados + 28 novos, tudo
+> verde e zero achado. `npm run verify` confirmou as passagens sem socket e reproduziu as
+> duas suspensões conhecidas nos testes HTTP locais (`api.test.ts` e
+> `webhook-route.test.ts`); usar o CI do GitHub como validação desses sockets.
