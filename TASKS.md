@@ -113,6 +113,20 @@ Ordenadas por dependência. **Não pule a fase 3.**
 - [ ] **Fase 6 — adaptadores.** GitHub, deploy e SaaS já existem; falta expor
       ações tipadas e seguras pelo control plane
 
+## Workspaces privados por cliente — arquitetura híbrida (09/08)
+
+- [x] Definir fronteiras entre motor central, memória do cliente e repositório
+      de código no ADR 0004.
+- [x] Criar template portátil para Codex, Claude e Copilot.
+- [x] Criar gerador sem rede, com destino vazio obrigatório e exclusão de
+      `security.yaml`.
+- [x] Registrar nomes desejados sem tratá-los como repositórios existentes.
+- [x] Criar e revisar o piloto privado `cliente-cassio-ferraz-ops`.
+- [ ] Depois do piloto, criar os demais workspaces privados e promover
+      `actualRepository` somente após conferência.
+- [ ] Definir sincronização revisável workspace → projeção central; até lá,
+      `clients/<slug>/` continua como fonte durante a migração.
+
 ---
 
 ## Próximo bloco — consolidar conhecimento
