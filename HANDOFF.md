@@ -1,5 +1,27 @@
 
 
+> ## ▶︎ RETOMADA — arquitetura híbrida e portabilidade entre IAs em 09/08/2026
+>
+> O dono decidiu reduzir a dependência do histórico de ChatGPT, Claude ou
+> Codex. O control plane foi preservado como motor central; não houve
+> reescrita nem remoção de integração.
+>
+> Entraram o ADR 0004, o inventário `inventory/client-workspaces.yaml`, o
+> template `templates/client-workspace/` e o comando
+> `npm run workspace:cliente`. O gerador funciona sem rede, exige diretório
+> vazio, exporta contexto por lista positiva e nunca copia `security.yaml`.
+> Cada workspace inclui instruções para Codex/agents, Claude e Copilot, além de
+> `CLIENTE.yaml`, HANDOFF, DECISIONS e TASKS.
+>
+> Sete nomes continuam apenas destinos desejados, com `actualRepository: null`
+> e `verificationStatus: unknown`. O piloto do Cássio foi criado em
+> `dadocruz/cliente-cassio-ferraz-ops`, apareceu como `Private` na interface do
+> GitHub e foi promovido para `verificationStatus: verified`. Garbo fica
+> separado do repositório público do site.
+>
+> Nenhuma campanha, orçamento, mensagem, VPS, n8n, Cloudflare, DNS, banco ou
+> recurso Meta foi alterado por esta decisão.
+
 ## ▶︎ RETOMADA — Meta com leitura real e acesso operacional em 09/08/2026
 
 Com autorização explícita do dono, o usuário do sistema **Automatizadoria** (ID `61593000755608`) recebeu **Acesso total** à conta de anúncios **ADM 01**. A própria interface da Meta confirmou que esse nível inclui campanhas, configurações, finanças e permissões da conta. O app dedicado permanece **AutomatizadorIA Control Plane** (ID `1046773687948340`) no portfólio **Dado Cruz** (ID `488135221601055`).
