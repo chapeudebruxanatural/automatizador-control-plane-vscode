@@ -564,3 +564,10 @@ Decisão do dono: o usuário do sistema dedicado **Automatizadoria** recebe **Ac
 Limite técnico e operacional: acesso do usuário do sistema é capacidade de infraestrutura, não autorização permanente para gastar. O token hoje armazenado como `META_ACCESS_TOKEN` continua com `ads_read` e `business_management`, sem `ads_management`. O adaptador real publicado nesta data implementa somente GET e recusa escrita. O kill switch, o dry-run, o plano com hash, a aprovação humana consumível e a auditoria continuam obrigatórios antes de criar, editar, pausar ou publicar campanha.
 
 Para campanhas com destino ao WhatsApp, Página, Instagram, conta do WhatsApp Business, número e pixel/dataset devem ser inventariados por ID e ligados ao cliente correto. Nome parecido não é prova; associação incerta permanece `verificationStatus: unknown`. A rotação do token para `ads_management` ocorrerá somente depois que o adaptador de escrita e essas associações estiverem validados. O Buteco Sertanejo `24105770570` e a campanha removida `24079586567` continuam intocáveis.
+
+
+2026-08-09 — Campanha com destino ao WhatsApp exige mapa de ativos por ID
+
+Fato: o portfólio mostrou três Páginas, uma conta do Instagram com análise necessária, dois datasets sem eventos e nenhuma linha na tela de contas do WhatsApp. A tela vazia do WhatsApp não prova inexistência; pode representar ausência de vínculo, outro portfólio ou acesso insuficiente.
+
+Decisão: nenhuma campanha com destino ao WhatsApp será criada ou publicada até que Página, Instagram, número/conta do WhatsApp e pixel/dataset estejam confirmados por ID para o cliente correto. Nomes não autorizam associação. O inventário fica em `inventory/meta-assets.yaml`, com `verificationStatus: unknown` onde falta confirmação.
