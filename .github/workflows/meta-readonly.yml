@@ -33,7 +33,7 @@ jobs:
             --output "${resposta}" \
             --write-out '%{http_code}' \
             --header "Authorization: Bearer ${META_ACCESS_TOKEN}" \
-            --get 'https://graph.facebook.com/me/adaccounts' \
+            --get 'https://graph.facebook.com/v26.0/me/adaccounts' \
             --data-urlencode 'fields=id,name,account_status,currency' \
             --data-urlencode 'limit=100')"
 
