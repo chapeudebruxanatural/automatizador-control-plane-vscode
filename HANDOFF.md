@@ -1323,3 +1323,22 @@ campanha**. Conferir na próxima leitura antes de dar como encerrado.
 > desligados e GitHub/VPS/Cloudflare/n8n habilitados; 12 ações, 3 mutantes
 > bloqueadas. Publicação autorizada pelo dono e realizada na `main` no commit
 > desta retomada; conferir o SHA atual com `git log -1 --oneline`.
+
+> ## ▶︎ RETOMADA — inventário Meta e bloqueio correto em 09/08/2026
+>
+> O dono retomou a Meta e pediu orientação para criar o acesso programático.
+> A leitura autenticada entrou no portfólio `Dado Cruz` (`488135221601055`),
+> que está verificado. Nenhuma campanha, pixel, usuário ou permissão foi alterado.
+>
+> **Fatos:** uma conta de anúncios `ADM 01` (`1217584809532823`); três Páginas
+> visíveis contra quatro no resumo; Instagram `fotografiasedesign` com análise
+> necessária; dois pixels/datasets NovaCena sem eventos; três usuários do
+> sistema; app `Dado Cruz` (`495604383589426`) não publicado e configurado para
+> Login do Facebook para Empresas. A política de 2FA do portfólio está em
+> `Ninguém`.
+>
+> A Meta exigiu chave de acesso para gerar/anular token. O botão `Usar chave de
+> acesso` foi acionado e a confirmação pessoal continua pendente na aba. Mesmo
+> depois dela, **não gerar token ainda**: falta o dono confirmar se `Dado Cruz`
+> é o portfólio central da AutomatizadorIA e se o app existente tem outro uso.
+> O plano exato está em `docs/operations/meta-validacao-e-acesso.md`.

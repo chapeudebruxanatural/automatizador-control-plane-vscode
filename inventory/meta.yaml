@@ -3,14 +3,15 @@
 
 meta:
   collectedAt: 2026-08-09
-  source: seletor autenticado do Meta Business
+  source: seletor e configuracoes autenticadas do Meta Business
   status: PARCIAL
   verificationStatus: verified
   changesMade: 0
   blocker: >-
-    O seletor de portfólios está acessível, mas abrir os ativos do portfólio
-    Dado Cruz exigiu chave de acesso/biometria. O dono deve confirmar
-    pessoalmente no dispositivo; senha e 2FA não entram no chat.
+    Os ativos do portfolio Dado Cruz foram inventariados. Gerar ou anular token
+    exige chave de acesso/biometria do dono; a confirmacao pessoal ainda esta
+    aberta na aba. Antes do token, falta confirmar se este e o portfolio central
+    da AutomatizadorIA ou um portfolio pessoal/NovaCena.
 
 scopeDecidedByOwner:
   campaigns: true
@@ -25,6 +26,46 @@ summary:
   note: >-
     Nome parecido não promove associação. As sugestões abaixo ficam
     `discovered` até confirmação do dono e conferência dos ativos internos.
+
+dadoCruzPortfolio:
+  businessId: "488135221601055"
+  businessVerified: true
+  verificationStatus: verified
+  twoFactorRequirement: ninguem
+  primaryPage: null
+  adAccountCreationLimit: 3
+  securityNote: >-
+    A empresa esta verificada, mas o portfolio nao exige 2FA. Alterar a regra
+    pode bloquear pessoas; revisar os quatro acessos antes de exigir para todos.
+  adAccounts:
+    - { id: "1217584809532823", name: ADM 01, owner: Dado Cruz, verificationStatus: verified }
+  pagesVisible:
+    - { id: "1072672662585363", name: Fotografiasedesign, owner: Dado Cruz, verificationStatus: verified }
+    - { id: unknown, name: Dado Cruz, owner: Dado Cruz, verificationStatus: verified }
+    - { id: unknown, name: 4cadeiras, owner: "4 Cadeiras | Evento", verificationStatus: verified }
+  pageCountNote: >-
+    O seletor geral informa quatro Paginas; a grade interna exibiu tres. Nao
+    preencher a quarta por inferencia.
+  instagramAccounts:
+    - id: "17841404791869061"
+      handle: fotografiasedesign
+      owner: Dado Cruz
+      state: analise_necessaria
+      verificationStatus: verified
+  datasetsAndPixels:
+    - { id: "1349340487097325", name: Estudio NovaCena, receivingEvents: false, verificationStatus: verified }
+    - { id: "1640871190359011", name: NovaCena Motion, receivingEvents: false, verificationStatus: verified }
+  systemUsers:
+    - { id: "61590224587597", name: Conversions API System User, role: Employee, scope: ativos NovaCena, verificationStatus: verified }
+    - { id: "61590303424059", name: Conversions API System User, role: Employee, scope: requires_verification, verificationStatus: verified }
+    - { id: "61568271300419", name: Dado Cruz, role: Admin, scope: requires_verification, verificationStatus: verified }
+  apps:
+    - id: "495604383589426"
+      name: Dado Cruz
+      publicationStatus: nao_publicado
+      observedUseCase: Login do Facebook para Empresas
+      intendedForControlPlane: unknown
+      verificationStatus: verified
 
 candidatePortfolios:
   - displayName: 4 Cadeiras | Evento
@@ -85,8 +126,10 @@ otherPortfolios:
   - { displayName: vocepodeprojeto, businessId: "161967748801895", visibleAdAccounts: 0, visiblePages: 3, visiblePeople: 2 }
 
 remainingQuestions:
+  - O portfolio Dado Cruz e a empresa central da AutomatizadorIA ou deve permanecer pessoal/NovaCena?
+  - O app Dado Cruz 495604383589426 tem uso atual e deve ser preservado sem alteracao?
   - Qual portfólio contém os ativos do Cássio?
   - Qual portfólio contém os ativos da Garbo?
   - Qual portfólio contém os ativos da Gaveta?
   - Confirmar os candidatos NovaCena, Soulraízes e Vivere.
-  - Após a chave de acesso, listar contas de anúncios, páginas, Instagram e pixels/datasets por portfólio.
+  - Depois da decisao do portfolio central, criar app e usuario de sistema dedicados, sem reutilizar os da NovaCena.

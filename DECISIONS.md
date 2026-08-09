@@ -509,3 +509,19 @@ A API confirmou 33 workflows, 1 ativo, 32 inativos e 3 arquivados. A interface
 mostra 30 porque omite os arquivados. Todas as associações a cliente permanecem
 `unknown`; nome ou tag não são prova. `GET /api/v1/credentials` respondeu 405,
 portanto o inventário de credenciais é indisponível — não uma lista vazia.
+
+## 2026-08-09 — Meta não recebe token antes da decisão do portfólio central
+
+**Fato:** o portfólio `Dado Cruz` é verificado e possui uma conta de anúncios,
+um app não publicado, três usuários do sistema e ativos da NovaCena. Ele não
+exige 2FA e sua identificação operacional ainda não prova que seja o portfólio
+central da AutomatizadorIA.
+
+**Decisão de segurança:** não reutilizar o app ou os usuários do sistema
+existentes e não gerar token enquanto o dono não confirmar se `Dado Cruz` é o
+portfólio central. Se for, serão criados app e usuário dedicados. Se não for,
+o portfólio fica preservado e a AutomatizadorIA recebe estrutura separada.
+
+**Isolamento:** cada cliente permanece proprietário dos próprios ativos e os
+compartilha com a AutomatizadorIA como parceiro, quando aplicável. Nome não
+autoriza associação; portfólio, conta, Página, Instagram e pixel precisam de ID.
