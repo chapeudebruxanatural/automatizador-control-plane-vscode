@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+audit/
+*.log
+.DS_Store
+
+# Credenciais nunca pertencem ao workspace versionado.
+secrets/
+credentials/
+security.yaml
