@@ -2,13 +2,21 @@
 
 Última atualização: **2026-08-09**
 
-## Checkpoint — arquitetura híbrida aplicada
+## Checkpoint — fábrica de projetos e arquitetura híbrida
 
 - O control plane permanece como motor central de segurança e execução.
 - Template e gerador de workspace privado por cliente implementados e testados.
-- Piloto `dadocruz/cliente-cassio-ferraz-ops` criado e confirmado como privado.
-- Cássio é o único vínculo `verified`; os outros sete permanecem `unknown`.
-- Nenhum segredo foi exportado e nenhuma campanha ou infraestrutura foi alterada.
+- Os oito repositórios `cliente-*-ops` foram criados e confirmados como
+  privados; apenas o do Cássio contém o piloto publicado.
+- Repositório de projeto/site e workspace operacional são recursos diferentes.
+- `npm run cliente:provisionar` simula e provisiona GitHub privado + Cloudflare
+  Pages + starter + domínio opcional, sempre atrás do kill switch e aprovação.
+- Token Cloudflare de provisionamento criado com somente `Pages Write`, válido
+  até 09/08/2027 e guardado fora do Git em arquivo modo `600`.
+- CI #113 da `main` passou nos dois ambientes Node depois da publicação da
+  fábrica; localmente, 286 testes em 76 suítes sem socket passaram.
+- Nenhum projeto Pages fictício, domínio, campanha, mensagem, VPS, n8n ou banco
+  foi alterado durante a validação da fábrica.
 
 ## Checkpoint atual — incidente da Garbo
 
