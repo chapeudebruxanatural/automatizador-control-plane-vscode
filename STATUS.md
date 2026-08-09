@@ -5,13 +5,14 @@
 ## Checkpoint atual — incidente da Garbo
 
 - **Branch:** `main`; árvore limpa antes das atualizações documentais.
-- **Validação local:** `npm ci` + lint + typecheck + **256/256 testes em 70
-  suítes** + build + `scan:secrets:all` (182 arquivos, 0 achados).
+- **Validação local:** lint + typecheck + **260/260 testes em 71 suítes** +
+  build + `scan:secrets:all` (183 arquivos, zero achados), tudo verde.
 - **Kill switch:** ligado. As únicas escritas externas foram as duas ações
   aprovadas pelo dono: remover o agendamento legado e reativar três campanhas.
 - **Google Ads:** leitura pela interface autenticada na conta anunciante
-  `2656966896`. A API local não foi chamada porque o developer token não está
-  disponível neste ambiente; nenhum valor de credencial foi exibido.
+  `2656966896`. A API local foi destravada em 08/08 por referência a arquivo
+  protegido; o valor do developer token não entra em `.env`, log ou commit.
+  Nenhum valor de credencial foi exibido.
 - **Incidente da Garbo:** fechado. O script horário
   `GARBO | TRAVA R$100 | 20260728` (`11999683`) pausou as três campanhas às
   14:49 de 07/08 após reativação manual às 14:25.
@@ -19,15 +20,16 @@
   de 07/08 foi reativado sem atualizar a janela da trava.
 - **Trava neutralizada com aprovação:** frequência do script alterada de
   `Por hora` para `Nenhuma`; script, código e status `Ativado` preservados.
-- **Estado real em 08/08 às 09:04:** 24016194642/645/648 ativas com
-  R$ 6/R$ 5/R$ 3 por dia; 24016194651/654 pausadas. Buteco 24105770570 e Gaveta
-  24079586567 não foram tocadas.
+- **Divergência real em 08/08 às 23:20:** 24016194642/645/648 continuam ativas
+  com R$ 6/R$ 5/R$ 3 por dia, mas 24016194651/654 também apareceram ativas a
+  R$ 8/R$ 12. O livro-caixa diz pausadas; nenhuma correção foi aplicada sem
+  aprovação.
 - **Relatórios:** Garbo 0 em `WhatsApp | GARBO` em 07/08 e 0 em 08/08 até 09:04.
   Cássio consolidado: R$ 373,63, 1.388 cliques, 14 em `WHATSAPP - CÁSSIO` e
   R$ 26,69 por WhatsApp; São Paulo 9, Goiânia 2, Brasília 2 e Rio de Janeiro 1
   por região de segmentação.
-- **Próxima verificação:** após a antiga janela das 09:49, confirmar que o
-  script não executou e que as três campanhas continuam ativas.
+- **Cássio:** marcador `CASSIO_CONVERTING`; API confirmou 14 contatos na
+  campanha diária desde 06/08, com R$ 153,60 e 982 cliques.
 
 O restante deste arquivo é um checkpoint histórico de 05/08 e está superado
 onde conflitar com `CONTINUAR-AQUI.md` e `HANDOFF.md`.

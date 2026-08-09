@@ -98,34 +98,31 @@ export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
       '(para confirmar que segue parada); qualquer mutate é recusado em código. ' +
       'Não contestar, não editar anúncio, não substituir vídeo.',
   },
-  // --- Garbo Eventos (André Ferraz) — 5 campanhas de Search, TODAS pausadas ---
+  // --- Garbo Eventos (Andréia) — 5 campanhas de Search ---
   //
-  // Verificado em 07/08: nenhuma entrega. Quatro das cinco marcadas pelo próprio
-  // Google como "Limitada pelo orçamento", com verbas de R$ 3 a R$ 12/dia. O
-  // total diário da conta é R$ 50 — que é só o Cássio. A Garbo não gasta nada.
-  //
-  // Isso importa para a leitura da coluna `WhatsApp | GARBO`: ela vai marcar
-  // zero, e zero aqui significa "não rodou", não "rodou e não converteu".
+  // Estado pretendido desde 08/08: MOVEIS, MESAS e PRODUTOS ativas a R$ 6,
+  // R$ 5 e R$ 3/dia; MARCA e CASAMENTOS pausadas. O lifecycle continua
+  // `read_only_scope`: legibilidade não concede escrita ao adaptador.
   {
     campaignId: '24016194642',
     clientSlug: 'garbo-eventos',
     expectedName: 'GARBO | SEARCH | MOVEIS EVENTOS | CAMPINAS',
     lifecycle: 'read_only_scope',
-    notes: 'Pausada, R$ 10/dia, limitada pelo orçamento.',
+    notes: 'Ativa desde 08/08, R$ 6/dia.',
   },
   {
     campaignId: '24016194645',
     clientSlug: 'garbo-eventos',
     expectedName: 'GARBO | SEARCH | MESAS CADEIRAS | CAMPINAS',
     lifecycle: 'read_only_scope',
-    notes: 'Pausada, R$ 7/dia, limitada pelo orçamento.',
+    notes: 'Ativa desde 08/08, R$ 5/dia.',
   },
   {
     campaignId: '24016194648',
     clientSlug: 'garbo-eventos',
     expectedName: 'GARBO | SEARCH | PRODUTOS ESPECIFICOS | CAMPINAS',
     lifecycle: 'read_only_scope',
-    notes: 'Pausada, R$ 3/dia, limitada pelo orçamento.',
+    notes: 'Ativa desde 08/08, R$ 3/dia.',
   },
   {
     campaignId: '24016194651',

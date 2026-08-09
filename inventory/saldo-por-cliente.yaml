@@ -102,7 +102,9 @@ clientes:
         orcamentoDiario: 3.00
     campanhasPausadas:
       - id: '24016194654' # CASAMENTOS EVENTOS — 2 conversas a R$ 20,11 cada
+        orcamentoDiario: 12.00
       - id: '24016194651' # MARCA — nunca rodou, R$ 0,00 de gasto
+        orcamentoDiario: 8.00
     # Base de comparação: o que as 5 campanhas produziram de 10/07 até
     # pausarem. É contra isto que o novo ciclo é julgado.
     historico:

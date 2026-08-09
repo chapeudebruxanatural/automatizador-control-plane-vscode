@@ -1,28 +1,28 @@
 # =============================================================================
 # inventory/cloudflare.yaml
 # =============================================================================
-# ESTADO: PARCIAL. Nenhuma consulta a API da Cloudflare foi feita — nao ha
-# token configurado. As zonas abaixo sao OWNER_REPORTED (o dono leu o painel e
-# transcreveu), nao verificadas.
+# ESTADO: PARCIAL. A sessao autenticada do painel foi conferida diretamente em
+# 08/08, mas nenhuma consulta a API foi feita — ainda nao ha token programatico.
 #
 # O parser que normalizara a resposta da API ja existe e esta testado:
 # packages/integrations/src/cloudflare/parser.ts
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-05
-  status: BLOQUEADO
+  collectedAt: 2026-08-08
+  status: PARCIAL
   apiQueried: false
-  verificationStatus: owner_reported
+  uiQueried: true
+  verificationStatus: verified
   blocker: >-
     Sem token de API. Necessario: Account:Read, Zone:Read, DNS:Read,
     Pages:Read, Workers:Read. Nunca colar o valor no chat — ver
     docs/runbooks/desbloquear-integracoes.md.
 
 account:
-  displayName: Estudionovacena
-  accountId: unknown
-  verificationStatus: owner_reported
+  displayName: "Estudionovacena@gmail.com's Account"
+  accountId: e6d7a4863004885bdae7e63bbec5e1f7
+  verificationStatus: verified
   note: >-
     O nome da conta e "Estudionovacena", mas ela hospeda dominios de VARIOS
     clientes (Cassio Ferraz, Garbo, Vivere, 4 Cadeiras, Malta Sertaneja,
@@ -31,19 +31,21 @@ account:
     de DNS de toda a carteira. Vale avaliar conta separada por operacao.
 
 # -----------------------------------------------------------------------------
-# ZONAS RELATADAS PELO DONO
+# ZONAS VISIVEIS NO PAINEL EM 08/08 — todas com status Ativo
 # -----------------------------------------------------------------------------
 zones:
   - name: 4cadeiras.com
     likelyClient: null
     likelyRepository: 4cadeiras
-    verificationStatus: owner_reported
+    zoneVerificationStatus: verified
+    clientVerificationStatus: unknown
     note: Repositorio 4cadeiras existe e e site de evento com venda de ingresso.
 
   - name: cassioferraz.com.br
     likelyClient: cassio-ferraz
     likelyRepository: cassio-ferraz
-    verificationStatus: owner_reported
+    zoneVerificationStatus: verified
+    clientVerificationStatus: verified
     note: >-
       Confirmado indiretamente pelo historico de Google Ads: o site declarado
       da campanha e cassioferraz.com.br.
@@ -51,31 +53,27 @@ zones:
   - name: encantariaartesanal.com
     likelyClient: null
     likelyRepository: encantaria_artesanal
-    verificationStatus: owner_reported
+    zoneVerificationStatus: verified
+    clientVerificationStatus: unknown
     knownSubdomains:
       - host: painel.encantariaartesanal.com
         target: "encantaria_directus (VPS)"
         verificationStatus: verified
         source: regra de roteamento do Traefik
 
-  - name: encantariaartesanal.com (segunda entrada aparente)
+  - name: encantariaatersanal.com
     likelyClient: null
-    verificationStatus: conflicting
-    hypothesis: >-
-      HIPOTESE PREFERIDA: nao e uma segunda zona, e o subdominio
-      painel.encantariaartesanal.com aparecendo separadamente no painel. O
-      Traefik confirma que esse subdominio existe e aponta para a VPS.
-      HIPOTESE ALTERNATIVA: sao mesmo duas zonas com o mesmo nome, em contas
-      diferentes — o que seria problema real, porque so uma responde e
-      descobrir qual costuma acontecer durante um incidente.
-    howToResolve: >-
-      `findDuplicateZoneNames` em packages/integrations/src/cloudflare/parser.ts
-      distingue os dois casos assim que houver token. Ja testado.
+    zoneVerificationStatus: verified
+    clientVerificationStatus: unknown
+    note: >-
+      Zona distinta confirmada no painel, com "atersanal" no nome. Nao presumir
+      que pertence a Encantaria nem que e erro descartavel; confirmar com o dono.
 
   - name: gabrielgadelhacantor.com
     likelyClient: null
     likelyRepository: gabriel-gadelha-casamentos
-    verificationStatus: conflicting
+    zoneVerificationStatus: verified
+    clientVerificationStatus: conflicting
     openQuestion: >-
       O dono pergunta se corresponde ao projeto de casamentos ou a outro. O
       repositorio gabriel-gadelha-casamentos tem descricao "Landing page
@@ -87,17 +85,20 @@ zones:
   - name: garboeventos.com.br
     likelyClient: garbo-eventos
     likelyRepository: garbo
-    verificationStatus: owner_reported
+    zoneVerificationStatus: verified
+    clientVerificationStatus: verified
 
   - name: maltasertaneja.com
     likelyClient: null
     likelyRepository: malta-sertaneja
-    verificationStatus: owner_reported
+    zoneVerificationStatus: verified
+    clientVerificationStatus: unknown
 
   - name: viveremp.com
     likelyClient: vivere
     likelyRepository: vivere
-    verificationStatus: owner_reported
+    zoneVerificationStatus: verified
+    clientVerificationStatus: owner_reported
     knownSubdomains:
       - { host: "www.viveremp.com", role: site institucional }
       - { host: "gestao.viveremp.com", role: aplicacao VIVERE 360 }
@@ -164,5 +165,14 @@ notQueried:
     - turnstile widgets
     - analytics
     - vinculos com GitHub (deployments de Pages)
+
+uiObserved:
+  at: 2026-08-08
+  zonesActive: 8
+  workersAndPages: 14
+  billableUsageUSD: 0.00
+  note: >-
+    A interface mostrou projetos Workers/Pages e vinculos GitHub, mas o
+    inventario completo ainda exige API somente leitura para ser reproduzivel.
 
 changesMade: 0

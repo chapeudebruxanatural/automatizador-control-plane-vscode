@@ -6,7 +6,7 @@
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-04
+  collectedAt: 2026-08-08
   note: >-
     "readiness" descreve o quanto o Control Plane pode integrar HOJE.
     Nenhuma integracao esta ativa em codigo — todos os adaptadores sao
@@ -25,7 +25,7 @@ integrations:
     readiness: pronto
     controlPlaneAdapter: GitHubAdapter (contrato + mock)
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-04
+    lastVerifiedAt: 2026-08-08
     notes: >-
       Unica integracao ja exercitada de ponta a ponta: este repositorio foi
       criado e publicado por ela. Ausencia de delete_repo e admin:org e uma boa
@@ -42,7 +42,7 @@ integrations:
     readiness: pronto (somente leitura)
     controlPlaneAdapter: VpsAdapter (contrato + mock)
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-04
+    lastVerifiedAt: 2026-08-08
     notes: >-
       Acesso root. O adaptador real deve usar LISTA BRANCA de comandos, nao
       lista negra: lista branca falha fechada, lista negra falha aberta.
@@ -58,28 +58,29 @@ integrations:
     blocker: Falta API key
     controlPlaneAdapter: N8nAdapter (contrato + mock)
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-04
+    lastVerifiedAt: 2026-08-08
     notes: >-
       Instalacao verificada (4 servicos, modo fila, ~6 meses no ar), conteudo
-      totalmente desconhecido. Maior ponto cego da operacao.
+      totalmente desconhecido. A URL abre a tela de login, sem sessao
+      autenticada. Maior ponto cego da operacao.
       Ver docs/discovery/n8n-inventory.md.
 
   - id: cloudflare
     platform: Cloudflare
     purpose: DNS e hospedagem de sites estaticos na borda
     authSource: API token — NAO EXISTE
-    account: unknown
-    read: false
+    account: e6d7a4863004885bdae7e63bbec5e1f7
+    read: true
     write: false
-    readiness: bloqueado
-    blocker: Falta token somente leitura (Zone:Read, DNS:Read)
+    readiness: parcial
+    blocker: Falta token programatico somente leitura (Zone:Read, DNS:Read)
     controlPlaneAdapter: CloudflareAdapter (contrato + mock)
-    verificationStatus: discovered
-    lastVerifiedAt: 2026-08-04
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-08
     notes: >-
-      Existencia inferida de wrangler.toml, _headers e _redirects em varios
-      repositorios, e de um dashboard acessivel na sessao do navegador.
-      Nao ha Cloudflare Tunnel na VPS. Destrava o mapa dominio -> cliente.
+      Sessao do painel verificada: 8 zonas ativas e 14 projetos Workers/Pages.
+      `read: true` descreve somente a sessao humana; o adaptador continua
+      bloqueado sem token. Nao ha Cloudflare Tunnel na VPS.
 
   - id: google-automatizadoria
     platform: Google Workspace
@@ -116,13 +117,13 @@ integrations:
   - id: meta-ads
     platform: Meta Marketing API
     purpose: Gestao de campanhas de trafego pago
-    authSource: conector MCP ja autenticado
-    read: true
-    write: true
-    readiness: parcial
+    authSource: estado anterior de conector; sessao atual do navegador deslogada
+    read: false
+    write: false
+    readiness: bloqueado
     controlPlaneAdapter: MetaAdapter (contrato + mock)
-    verificationStatus: verified
-    lastVerifiedAt: 2026-08-04
+    verificationStatus: stale
+    lastVerifiedAt: 2026-08-08
     accounts:
       total: 8
       active: 2
@@ -130,9 +131,9 @@ integrations:
       unsettled: 2
       currency: BRL
     notes: >-
-      Gargalo administrativo, nao tecnico. 4 contas sinalizadas por atividade
-      incomum exigem contato com o Facebook; 2 tem pendencia financeira.
-      Campanha e sempre Nivel 2 de aprovacao — aqui se gasta dinheiro real.
+      O inventario de 04/08 dizia haver conector autenticado e 2 contas ativas,
+      mas em 08/08 a sessao disponivel abriu a tela de login. Reautenticar e
+      conferir Business Manager/contas antes de reutilizar os dados anteriores.
 
   - id: whatsapp-evolution
     platform: Evolution API (auto-hospedada)
@@ -193,8 +194,8 @@ integrations:
 # -----------------------------------------------------------------------------
 readinessSummary:
   pronto: [github, vps-ssh]
-  parcial: [meta-ads]
-  bloqueado: [n8n, cloudflare, google-automatizadoria, google-novacena, supabase]
+  parcial: [cloudflare]
+  bloqueado: [n8n, meta-ads, google-automatizadoria, google-novacena, supabase]
   foraDeEscopo: [whatsapp-evolution, aws-lambda, runpod]
 
 recommendedOrder:

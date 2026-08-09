@@ -102,13 +102,17 @@ Tudo abaixo foi lido da API ou da interface e conferido.
 
 Cinco campanhas de Search, CPC manual, Campinas e região, criadas em 10/07.
 
-| ID | Nome | Estado em 08/08 após correção aprovada |
+| ID | Nome | Estado ao vivo em 08/08 às 23:20 |
 |---|---|---|
 | 24016194642 | `GARBO \| SEARCH \| MOVEIS EVENTOS \| CAMPINAS` | **ativa**, R$ 6/dia |
 | 24016194645 | `GARBO \| SEARCH \| MESAS CADEIRAS \| CAMPINAS` | **ativa**, R$ 5/dia |
 | 24016194648 | `GARBO \| SEARCH \| PRODUTOS ESPECIFICOS \| CAMPINAS` | **ativa**, R$ 3/dia |
-| 24016194651 | `GARBO \| SEARCH \| MARCA \| CAMPINAS` | pausada, R$ 8/dia |
-| 24016194654 | `GARBO \| SEARCH \| CASAMENTOS EVENTOS \| CAMPINAS` | pausada, R$ 12/dia |
+| 24016194651 | `GARBO \| SEARCH \| MARCA \| CAMPINAS` | **ativa fora do plano**, R$ 8/dia |
+| 24016194654 | `GARBO \| SEARCH \| CASAMENTOS EVENTOS \| CAMPINAS` | **ativa fora do plano**, R$ 12/dia |
+
+> **DIVERGÊNCIA ABERTA:** o livro-caixa e a decisão vigente dizem que MARCA e
+> CASAMENTOS devem estar pausadas. A API confirmou as duas `ENABLED`; o
+> governador corrigido acusa `ativa_sem_declaracao`. Não pausar sem aprovação.
 
 Histórico de 10/07 a 06/08, com as cinco rodando a R$ 3–12/dia:
 **R$ 221,60 · 145 cliques · 29 conversas de WhatsApp · R$ 7,64 por conversa.**
@@ -244,8 +248,9 @@ Com aprovação explícita do dono em 08/08, a frequência do script foi alterad
 de `Por hora` para `Nenhuma` (`—` na tabela). **O script, seu código e o status
 `Ativado` foram preservados; nada foi apagado.** Só depois disso foram
 reativadas exatamente `24016194642`, `24016194645` e `24016194648`, mantendo
-R$ 6/dia, R$ 5/dia e R$ 3/dia. `24016194651` e `24016194654` continuam
-pausadas.
+R$ 6/dia, R$ 5/dia e R$ 3/dia. Naquele momento `24016194651` e `24016194654`
+foram confirmadas pausadas; às 23:20 a API encontrou ambas ativas novamente.
+O autor dessa ativação ainda não foi apurado e nenhuma correção foi aplicada.
 
 Relatório reconferido na mesma sessão: o crédito de R$ 100 da Andréia gerou
 **0 registros em `WhatsApp | GARBO` em 07/08 e 0 em 08/08 até 09:04**. Não
@@ -303,21 +308,33 @@ erro reversível dentro deste repositório.
 
 ## 5. Fila de trabalho, em ordem
 
-**1. Confirmar estabilidade da Garbo após a antiga janela das 09:49.** O
-agendamento já aparece como `Nenhuma`; reconferir que não houve nova execução e
-que `24016194642`, `24016194645` e `24016194648` seguem ativas. É somente
-leitura.
+**1. Decisão do dono sobre a divergência Garbo.** MARCA `24016194651` e
+CASAMENTOS `24016194654` estão ativas fora do plano, somando R$ 20/dia. O lote
+exato proposto é pausar somente as duas, sem alterar orçamento nem tocar nas
+outras campanhas.
 
-**2. Garbo gastou?** O zero de 07/08 foi causado pela pausa. Só investigar
-entrega se continuar zerada depois de 24h contínuas realmente no ar.
+**2. Cássio precisa de recarga.** O governador estimou 1,7 dia de saldo seguro
+às 23:20. Pedir Pix/enviar mensagem requer aprovação; a leitura da API já está
+funcionando localmente.
 
-**3. Mídia nova da Gaveta** — esperando o dono. A campanha termina dia 11.
+**3. O dono entra pessoalmente no n8n e no Meta** nas abas abertas, sem passar
+senha ou 2FA no chat. Depois gerar API key de inventário do n8n e confirmar se
+Meta entra para campanhas ou apenas pixels.
 
-**4. Tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e Encantaria**, e pixel da
+**4. Token somente leitura da Cloudflare.** O painel já confirmou 8 zonas e 14
+Workers/Pages; falta acesso programático para DNS e mapa domínio → cliente.
+
+**5. Segurança da VPS.** Hostinger confirmou zero firewall; 2377, 7946, 4789 e
+3000 estão públicos. Propor lote exato antes de escrever. Backups externos e
+restores da maioria dos bancos continuam sem prova.
+
+**6. Mídia nova da Gaveta** — esperando o dono. A campanha termina dia 11.
+
+**7. Tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e Encantaria**, e pixel da
 Meta em todos. Os dois primeiros estão **bloqueados por não terem site**. Siga
 o checklist de `docs/operations/padrao-medicao-por-cliente.md`.
 
-**5. Cliente novo nasce em conta de anúncios própria.** Não migrar quem já roda
+**8. Cliente novo nasce em conta de anúncios própria.** Não migrar quem já roda
 — o bônus do Google é maior concentrando volume, e migrar custa histórico e
 aprendizado. Mas parar de fazer o problema crescer. Troca consciente:
 isolamento por bônus.

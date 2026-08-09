@@ -63,24 +63,21 @@ try {
   // sem .env — segue com o que estiver no ambiente
 }
 
-if (!process.env['GOOGLE_ADS_DEVELOPER_TOKEN']) {
-  console.error(
-    'GOOGLE_ADS_DEVELOPER_TOKEN ausente. Defina no .env (local) ou nos secrets (CI).',
-  );
-  process.exit(1);
-}
-
-const { describeCredentials } = await import(
+const { describeCredentials, loadGoogleAdsDeveloperToken } = await import(
   ROOT + 'packages/integrations/src/google-ads/credential-provider.js'
 );
 const { createGoogleAdsTransport } = await import(
   ROOT + 'packages/integrations/src/google-ads/transport.js'
 );
+const { dataOperacionalGoogleAds } = await import(
+  ROOT + 'packages/integrations/src/google-ads/budget-governor.js'
+);
 
 const creds = await describeCredentials();
+const developerToken = await loadGoogleAdsDeveloperToken();
 const tp = await createGoogleAdsTransport({
   keyPath: creds.credentialReference as string,
-  developerToken: process.env['GOOGLE_ADS_DEVELOPER_TOKEN'] as string,
+  developerToken,
   loginCustomerId: '3992594849',
 });
 
@@ -116,7 +113,7 @@ const info = (st.rows[0] ?? {}) as Record<string, Record<string, unknown>>;
  * versão estar fixada; ver secao 5.1 do HANDOFF.
  */
 const startDate = String(info['campaign']?.['startDate'] ?? '');
-const today = new Date().toISOString().slice(0, 10);
+const today = dataOperacionalGoogleAds();
 
 let lifetimeCost = 0;
 let lifetimeClicks = 0;

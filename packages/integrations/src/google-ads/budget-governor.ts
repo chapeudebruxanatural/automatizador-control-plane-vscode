@@ -46,6 +46,22 @@ export const FATOR_ESTOURO_DIARIO = 2;
 /** Abaixo disto o dono precisa ser avisado para pedir Pix ao cliente. */
 export const DIAS_PARA_ALERTA = 3;
 
+/**
+ * Data civil usada pela conta e pelo livro-caixa.
+ *
+ * O monitor pode rodar em máquinas configuradas em UTC (GitHub Actions é o
+ * caso normal). `toISOString()` mudava o dia às 21h de Brasília e fazia a
+ * consulta incluir amanhã antes de amanhã existir para a operação.
+ */
+export function dataOperacionalGoogleAds(agora: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(agora);
+}
+
 export type NivelDeRisco =
   /** Folga confortável. Nada a fazer. */
   | 'saudavel'
@@ -142,7 +158,7 @@ export function detectarDivergencias(estado: EstadoDoCliente): Divergencia[] {
           encontrado: 'ENABLED',
           descricao:
             `${c.nome} está veiculando sem estar declarada no livro-caixa. ` +
-            'Gasta do bolso comum sem entrar na conta de nenhum cliente.',
+            'Gasta fora do plano registrado para o cliente e pode consumir o bolso comum.',
         });
       }
     }

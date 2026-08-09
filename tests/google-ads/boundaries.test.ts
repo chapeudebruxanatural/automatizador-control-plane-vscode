@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   describeCredentials,
+  loadGoogleAdsDeveloperToken,
   keyPermissionWarning,
   MCC_LOGIN_CUSTOMER_ID,
   ADVERTISER_CUSTOMER_ID,
@@ -361,6 +362,27 @@ describe('caminho explicito de credencial', () => {
     });
     assert.equal(status.authMode, 'unavailable');
     assert.equal(status.credentialReference, null);
+  });
+
+  it('developer token pode ser lido por caminho protegido sem entrar no env', async () => {
+    // O próprio teste é conteúdo inofensivo e serve para provar apenas a rota
+    // de leitura; nenhum segredo real participa desta suíte.
+    const aqui = fileURLToPath(import.meta.url);
+    const token = await loadGoogleAdsDeveloperToken({
+      env: { GOOGLE_ADS_DEVELOPER_TOKEN_PATH: aqui },
+      secretDir: '/diretorio/que/nao/existe',
+    });
+    assert.match(token, /Testes de fronteira do Google Ads/);
+  });
+
+  it('caminho explícito inválido do developer token falha fechado', async () => {
+    await assert.rejects(
+      () =>
+        loadGoogleAdsDeveloperToken({
+          env: { GOOGLE_ADS_DEVELOPER_TOKEN_PATH: '/nao/existe-token' },
+        }),
+      /não configurado/,
+    );
   });
 });
 

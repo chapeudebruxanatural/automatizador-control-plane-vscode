@@ -1096,14 +1096,61 @@ ações.
 > não terem site. Cliente novo **nasce em conta de anúncios própria** — não
 > migrar quem já roda, mas parar de fazer o problema crescer.
 
-**Marcador operacional ainda `CASSIO_DELIVERING`.** O XML de 08/08 mostra 14
-registros históricos de `WHATSAPP - CÁSSIO`, 9 deles na campanha diária —
-evidência suficiente para o relatório pedido pelo dono —, mas a regra do
-marcador exige confirmação pela API. A API local não pôde ser consultada neste
-ambiente por falta do developer token.
+> ## ▶︎ RETOMADA — auditoria de acessos em 08/08/2026 às 23:20
+>
+> Esta retomada **substitui o estado operacional das 09:04 onde houver
+> conflito**. Branch `main`, HEAD inicial `cf9ee34`; alterações desta auditoria
+> ainda não publicadas. Nenhuma escrita externa foi feita.
+>
+> **Google Ads local destravado.** A conta de serviço e o developer token já
+> existiam em arquivos modo `600` no diretório protegido. O código passou a ler
+> ambos por caminho, sem duplicar segredo em `.env`. `npm run governador`
+> consultou a conta ao vivo; a data agora usa `America/Sao_Paulo` e o script
+> também confere campanhas declaradas como pausadas.
+>
+> **⚠️ DIVERGÊNCIA ABERTA:** MARCA `24016194651` está `ENABLED` a R$ 8/dia e
+> CASAMENTOS `24016194654` está `ENABLED` a R$ 12/dia. A decisão e o livro-caixa
+> dizem `PAUSED`. MOVEIS/MESAS/PRODUTOS seguem `ENABLED` a R$ 6/R$ 5/R$ 3. O
+> governador corrigido acusa as duas como `ativa_sem_declaracao` e sai com
+> código 3. **Não foram pausadas:** alterar status exige aprovação explícita.
+>
+> Os únicos scripts visíveis são `GARBO | NEGATIVAS | 20260728` (`12009767`) e
+> `GARBO | TRAVA R$100 | 20260728` (`11999683`), ambos sem frequência. Não há
+> regras automatizadas. A trava executou às 08:49 sem ações; não voltou a pausar
+> as três campanhas pretendidas.
+>
+> **Cássio em atenção:** leitura ao vivo do governador às 23:20 estimou 1,7 dia
+> de saldo seguro para a campanha diária de R$ 50. Avisar/pedir novo Pix é ação
+> externa e ainda não foi autorizado.
+>
+> **Acessos verificados:** `gh` como `dadocruz`; `gcloud` como
+> `contato.automatizadoria@gmail.com` no projeto `automatizador-ia-ads`;
+> Google Ads; GTM; Cloudflare; Hostinger e SSH `nvvps`. Containers GTM:
+> Cássio `GTM-5JGMZBKZ`, Gabriel `GTM-5Z8QFW5B`, Garbo `GTM-W7CNZMLN` e
+> NovaCena `GTM-P4RX9S2X`.
+>
+> **Ainda exige ação pessoal do dono:** entrar no n8n e no Meta nas abas já
+> abertas, sem enviar senha/2FA no chat. Depois, gerar referência segura de API
+> do n8n e token programático somente leitura da Cloudflare; no Meta, decidir
+> se o escopo inclui campanhas ou somente pixels.
+>
+> **VPS:** 28 serviços 1/1 e sem containers parados/erro; disco 47%. Risco
+> aberto: painel Hostinger mostra **zero firewall**, e a VPS publica
+> 2377/tcp, 7946/tcp+udp, 4789/udp e 3000/tcp além de 22/80/443. Snapshot semanal
+> existe, mas backup lógico/externo e restores da maioria dos bancos continuam
+> sem prova. Criar firewall ou backup é escrita externa e aguarda lote exato +
+> aprovação.
+>
+> Validação após as correções locais: lint, typecheck, **260 testes em 71
+> suítes**, build e varredura completa de 183 arquivos — tudo verde, zero
+> achados de segredo.
 
-Só reporte **`CASSIO_CONVERTING`** após novo `WHATSAPP - CÁSSIO` confirmado
-**pela API**, não pela interface.
+**Marcador operacional `CASSIO_CONVERTING`.** A API local foi destravada e, em
+08/08 às 23:24, confirmou na campanha diária `24106867845`, desde 06/08:
+**R$ 153,60 · 982 cliques · 14 em `WHATSAPP - CÁSSIO`**, custo de R$ 10,97 por
+contato e taxa de 1,43%. A janela segmentada de 7 dias retornou 6 contatos; o
+acumulado da própria campanha retornou 14. Não somar esse acumulado aos 14 do
+XML histórico sem conciliar por campanha/período — seria dupla contagem.
 
 **Estado de configuração em 06/08:** `WHATSAPP - CÁSSIO` está em **Ação
 secundária** — ou seja, `metrics.conversions` continua devolvendo 0 e

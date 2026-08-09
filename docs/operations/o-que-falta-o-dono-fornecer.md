@@ -15,7 +15,7 @@ O caminho é sempre um destes dois:
 
 | Onde roda | Onde o segredo mora |
 |---|---|
-| Local (sua máquina) | `.env` na raiz do repositório — já está no `.gitignore` |
+| Local (sua máquina) | arquivo modo `600` em diretório protegido; `.env` só para referências/caminhos |
 | GitHub Actions | `Settings → Secrets and variables → Actions` |
 
 O `.env.example` documenta apenas **nomes** de variáveis, nunca valores. Ao
@@ -27,67 +27,59 @@ Antes de qualquer commit: `npm run scan:secrets`.
 
 ## Bloco 1 — Destrava vários clientes de uma vez
 
-### 1.1 `GITHUB_TOKEN` (Personal Access Token)
+### 1.1 Entrar no n8n e criar acesso de inventário
 
-**Destrava:** ler e corrigir os sites de todos os clientes sem depender de
-clone manual, um a um.
+**Destrava:** saber quais workflows existem, quais estão ativos, de que cliente
+são e quais credenciais/processos dependem deles. É o maior ponto cego atual.
 
-Escopo mínimo: `repo` (leitura e escrita nos repositórios de cliente).
-Gere em `github.com/settings/tokens`. Prefira token de granularidade fina, com
-os repositórios listados explicitamente.
+Em 08/08 a URL `n8n.automatizadoria.cloud` abriu normalmente, mas mostrou a
+tela de login. O dono deve entrar pessoalmente na aba já aberta; **não enviar
+senha no chat**. Depois, criar uma API key para inventário e guardá-la no
+mecanismo local protegido. Isso não autoriza alteração de workflow.
 
-Hoje só o `dadocruz/cassio-ferraz` foi acessado, e por clone local.
+### 1.2 Entrar no Meta Business Manager e decidir o escopo
 
-### 1.2 `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`
+**Destrava:** inventário das contas, páginas, Instagram e pixels; depois, a
+medição pedida para os clientes.
 
-**Destrava:** DNS, Workers e deploy de todos os sites. Hoje o deploy do site do
-Cássio é manual (`npx wrangler deploy`) e nenhum outro cliente é alcançável.
+Em 08/08 a sessão mostrou `Continuar com Facebook/Instagram`. O dono deve entrar
+pessoalmente; **não enviar senha nem 2FA no chat**. Depois falta decidir:
+operar Meta Ads ou somente instalar/auditar pixels. IDs anteriores estão
+`stale` até nova conferência.
 
-Escopo mínimo sugerido: `Zone:Read`, `DNS:Edit`, `Workers Scripts:Edit`.
-Gere em `dash.cloudflare.com/profile/api-tokens`.
+### 1.3 Token programático somente leitura da Cloudflare
 
-> ⚠️ DNS é destrutivo por natureza. Mesmo com o token, alteração de DNS
-> continua exigindo sua aprovação específica — a regra do `CLAUDE.md` não muda
-> por existir credencial.
+**Destrava:** inventário reproduzível de zonas, DNS, Workers e Pages. A sessão
+humana já foi verificada: conta `e6d7a4863004885bdae7e63bbec5e1f7`, 8 zonas
+ativas e 14 projetos Workers/Pages.
 
-### 1.3 `GOOGLE_ADS_DEVELOPER_TOKEN` no `.env` local
+Criar primeiro um token **somente leitura** (`Zone:Read`, `DNS:Read` e leitura
+de Workers/Pages). `DNS:Edit` e deploy ficam para outro lote, com plano e
+aprovação específicos.
 
-**Destrava:** rodar `npm run governador` e o monitor **fora do GitHub Actions**.
+### 1.4 Containers GTM que ainda não aparecem
 
-Hoje esse token só existe nos Actions secrets. Consequência prática: toda
-verificação de saldo depende de disparar um workflow e esperar. Localmente o
-comando falha com `GOOGLE_ADS_DEVELOPER_TOKEN ausente`.
+Em 08/08 foram verificados no painel:
 
-O `.env` precisa de:
+- Cássio: `GTM-5JGMZBKZ`
+- Gabriel Gadelha: `GTM-5Z8QFW5B`
+- Garbo: `GTM-W7CNZMLN`
+- NovaCena: `GTM-P4RX9S2X`
 
-```
-GOOGLE_ADS_DEVELOPER_TOKEN=<valor>
-GOOGLE_ADS_KEY_PATH=<caminho para o JSON da conta de serviço>
-```
+Não apareceram containers de Sou Raízes, Chapéu de Bruxa e Encantaria. O dono
+precisa confirmar se existem em outra conta; se não existirem, autorizar sua
+criação quando os sites correspondentes estiverem definidos.
 
-O JSON da conta de serviço é lido **por caminho**, nunca por conteúdo colado.
+### 1.5 Itens já resolvidos — não fornecer de novo
 
-### 1.4 Acesso ao Google Tag Manager de cada cliente
-
-**Destrava:** criar as tags de WhatsApp que faltam (Sou Raízes, Chapéu de
-Bruxa, Encantaria) e instalar o pixel da Meta em todos.
-
-O container do Cássio é `GTM-5JGMZBKZ`. **Faltam os IDs de container dos
-demais** e o acesso de publicação em cada um.
-
-Sem isso, o checklist de `docs/operations/padrao-medicao-por-cliente.md` trava no item 1 para
-todo cliente novo.
-
-### 1.5 Acesso ao Meta Business Manager
-
-**Destrava:** todo o trabalho de pixel da Meta, que você pediu para todos os
-clientes.
-
-Preciso de: acesso ao Business Manager e **o ID do pixel de cada cliente** (ou
-autorização para criar os que não existem).
-
-**Ainda não foi definido se a operação de Meta Ads entra no escopo** ou se é só
-pixel para medição. São coisas diferentes — decida antes de eu começar.
+- **GitHub:** `gh` autenticado como `dadocruz`, com leitura/escrita nos
+  repositórios. Não precisa criar outro token agora.
+- **Google Ads local:** conta de serviço e developer token estão em arquivos
+  modo `600` no diretório protegido. `npm run governador` consultou a conta ao
+  vivo em 08/08. Não duplicar o token em `.env`.
+- **Google Cloud:** `gcloud` autenticado em
+  `contato.automatizadoria@gmail.com`, projeto `automatizador-ia-ads`.
+- **VPS:** SSH por `nvvps` funciona; o inventário somente leitura foi renovado.
 
 ---
 
@@ -102,20 +94,12 @@ pixel para medição. São coisas diferentes — decida antes de eu começar.
 > A frequência do script foi alterada para `Nenhuma` com aprovação do dono. O
 > código segue intacto e o status `Ativado` — ele não foi apagado.
 
-### 2.1 Existem outros scripts legados na conta?
+### 2.1 Scripts e regras — conferência concluída
 
-**Destrava:** saber se há mais travas antigas prontas para brigar com o
-governador do mesmo jeito que a da Garbo brigou.
-
-O `GARBO | TRAVA R$100` foi encontrado por investigação de incidente, não por
-inventário. **Nunca foi feita uma varredura de scripts da conta.** Se existir
-um equivalente para o Cássio ou a NovaCena, ele vai agir na primeira vez que o
-gasto cruzar o limiar dele — e ninguém saberá que existia.
-
-Verificar em `Ferramentas → Ações em massa → Scripts` e em
-`Ferramentas → Ações em massa → Regras`, listando **nome, frequência e o que
-cada um faz**. Isso é leitura; posso fazer sozinho assim que tiver o caminho
-confirmado.
+Em 08/08 foram encontrados somente dois scripts, ambos sem frequência:
+`GARBO | NEGATIVAS | 20260728` (`12009767`) e
+`GARBO | TRAVA R$100 | 20260728` (`11999683`). Não há regras automatizadas.
+Nenhum script equivalente de Cássio ou NovaCena apareceu.
 
 ### 2.2 Quem mais tem acesso à conta de anúncios `2656966896`?
 

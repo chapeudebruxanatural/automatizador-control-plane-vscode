@@ -15,8 +15,12 @@ Legenda: `[ ]` aberto · `[~]` em andamento · `[x]` concluído · `[!]` bloquea
       `11999683`; código preservado, status `Ativado`, frequência `Nenhuma`.
 - [x] Depois de neutralizar a trava, reativar exatamente 24016194642,
       24016194645 e 24016194648, mantendo R$ 6/R$ 5/R$ 3 por dia.
-- [ ] Após 09:49, confirmar por leitura que não houve nova execução e que as
-      três campanhas seguem ativas.
+- [x] Após 09:49, confirmar por leitura que os dois scripts estão sem
+      frequência e não há regras automatizadas. As três campanhas pretendidas
+      seguem ativas.
+- [!] **Divergência nova:** MARCA `24016194651` (R$ 8/dia) e CASAMENTOS
+      `24016194654` (R$ 12/dia) também estão `ENABLED`, contra o livro-caixa e a
+      decisão vigente. Aguardar aprovação explícita para pausar somente as duas.
 - [x] Relatórios: Garbo 0 em `WhatsApp | GARBO` desde o crédito de 07/08 até
       08/08 09:04; Cássio consolidado em 14 `WHATSAPP - CÁSSIO`, R$ 373,63 e
       R$ 26,69 por WhatsApp (São Paulo 9, Goiânia 2, Brasília 2, Rio 1 por
@@ -78,11 +82,10 @@ Ver `docs/discovery/vps-inventory-2026-08-06.md` e `HANDOFF.md` §10.1 (R-001).
 Desenho completo em [docs/architecture/agent-platform.md](docs/architecture/agent-platform.md).
 Ordenadas por dependência. **Não pule a fase 3.**
 
-- [x] **Fase 0 — destravar.** API do Google Ads em v22; credencial por
-      `GOOGLE_ADS_KEY_PATH` para rodar fora do notebook do dono
-- [~] **Fase 1 — tornar contínuo.** Workflow escrito e testado com `HOME` vazio.
-      **Bloqueado no dono:** cadastrar dois secrets —
-      ver [docs/runbooks/ativar-monitor.md](docs/runbooks/ativar-monitor.md)
+- [x] **Fase 0 — destravar.** API do Google Ads em v22; chave de serviço e
+      developer token por caminhos protegidos locais; leitura ao vivo provada.
+- [x] **Fase 1 — tornar contínuo.** Workflow agendado e secrets verificados no
+      GitHub Actions; execuções `Scheduled` já provadas.
 - [x] Núcleo de segurança do agente: resolvedor de cliente, confirmação por
       código, catálogo de capacidades — 52 testes
 - [ ] **Fase 2 — integrar o banco existente.** O dono confirma que a
@@ -107,7 +110,9 @@ Ordenadas por dependência. **Não pule a fase 3.**
       `owner_reported` para `verified`
 - [ ] Resolver os repositórios sem cliente associado (`inventory/repositories.yaml`,
       campo `relationshipStatus: unknown`)
-- [ ] Mapear domínios reais e cruzar com zonas da Cloudflare → `inventory/domains.yaml`
+- [~] Mapear domínios reais e cruzar com zonas da Cloudflare →
+      `inventory/domains.yaml`. Painel confirmou 8 zonas ativas; associação por
+      cliente e DNS reproduzível ainda exigem token somente leitura.
 - [!] Contar e classificar workflows do n8n — **bloqueado**: exige API key
 - [ ] Documentar, por cliente, qual workflow do n8n atende qual processo
 

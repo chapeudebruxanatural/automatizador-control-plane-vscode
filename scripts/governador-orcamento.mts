@@ -34,18 +34,13 @@ try {
   // sem .env — em CI as credenciais vêm do ambiente
 }
 
-if (!process.env['GOOGLE_ADS_DEVELOPER_TOKEN']) {
-  console.error('GOOGLE_ADS_DEVELOPER_TOKEN ausente. Defina no .env (local) ou nos secrets (CI).');
-  process.exit(1);
-}
-
-const { describeCredentials } = await import(
+const { describeCredentials, loadGoogleAdsDeveloperToken } = await import(
   ROOT + 'packages/integrations/src/google-ads/credential-provider.js'
 );
 const { createGoogleAdsTransport } = await import(
   ROOT + 'packages/integrations/src/google-ads/transport.js'
 );
-const { diagnosticarConta } = await import(
+const { dataOperacionalGoogleAds, diagnosticarConta } = await import(
   ROOT + 'packages/integrations/src/google-ads/budget-governor.js'
 );
 const { AUTHORIZED_CAMPAIGNS } = await import(
@@ -54,7 +49,7 @@ const { AUTHORIZED_CAMPAIGNS } = await import(
 
 interface LedgerCampanha {
   id: string;
-  orcamentoDiario: number;
+  orcamentoDiario?: number;
 }
 interface LedgerDeposito {
   em: string;
@@ -67,6 +62,7 @@ interface LedgerCliente {
   slug: string;
   depositos?: LedgerDeposito[];
   campanhasAtivas?: LedgerCampanha[];
+  campanhasPausadas?: LedgerCampanha[];
 }
 interface Ledger {
   conta: { fundosDisponiveis: { valor: number } };
@@ -79,13 +75,14 @@ const ledger = parseYaml(
 ) as Ledger;
 
 const creds = await describeCredentials();
+const developerToken = await loadGoogleAdsDeveloperToken();
 const tp = await createGoogleAdsTransport({
   keyPath: creds.credentialReference as string,
-  developerToken: process.env['GOOGLE_ADS_DEVELOPER_TOKEN'] as string,
+  developerToken,
   loginCustomerId: '3992594849',
 });
 
-const hoje = new Date().toISOString().slice(0, 10);
+const hoje = dataOperacionalGoogleAds();
 const brl = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
 /**
@@ -148,7 +145,8 @@ const comissaoAusente: string[] = [];
 for (const c of ledger.clientes ?? []) {
   const depositos = c.depositos ?? [];
   const ativas = c.campanhasAtivas ?? [];
-  if (ativas.length === 0) continue;
+  const pausadas = c.campanhasPausadas ?? [];
+  if (ativas.length === 0 && pausadas.length === 0) continue;
 
   /**
    * Fatia do cliente: depósitos lançados, ou o rateio declarado pelo dono.
@@ -173,11 +171,6 @@ for (const c of ledger.clientes ?? []) {
     }
   }
 
-  if (depositado <= 0) {
-    semFatia.push(c.slug);
-    continue;
-  }
-
   const desde =
     depositos.length > 0
       ? (depositos.map((d) => String(d.em)).sort()[0] as string)
@@ -185,7 +178,12 @@ for (const c of ledger.clientes ?? []) {
 
   let gasto = 0;
   const campanhas = [];
-  for (const camp of ativas) {
+  for (const camp of [...ativas, ...pausadas]) {
+    const declaradaAtiva = ativas.some((a) => a.id === camp.id);
+    // Gasto conhecido é financeiro, não intenção: se uma campanha declarada
+    // pausada foi ativada fora do plano, cada centavo dela também saiu da fatia
+    // do cliente e precisa ser descontado. `ativa` continua representando a
+    // intenção para impedir recomendação automática sobre a divergência.
     gasto += await gastoDesde(camp.id, desde);
     const meta = AUTHORIZED_CAMPAIGNS.find(
       (a: { campaignId: string | null }) => a.campaignId === camp.id,
@@ -194,12 +192,23 @@ for (const c of ledger.clientes ?? []) {
     campanhas.push({
       campaignId: camp.id,
       nome: meta?.expectedName ?? camp.id,
-      orcamentoDiarioBRL: Number(camp.orcamentoDiario),
-      ativa: true,
+      // Algumas campanhas pausadas são CUSTOM_PERIOD ou não têm diário
+      // declarado. Para elas o orçamento serve só como contexto; o status é a
+      // comparação que importa. Nunca deixe `NaN` atravessar o diagnóstico.
+      orcamentoDiarioBRL: Number(camp.orcamentoDiario ?? real.orcamentoBRL ?? 0),
+      ativa: declaradaAtiva,
       statusNaConta: real.status as 'ENABLED' | 'PAUSED' | 'REMOVED' | 'UNKNOWN',
       orcamentoNaContaBRL: real.orcamentoBRL,
     });
   }
+
+  const haCampanhaVeiculando =
+    ativas.length > 0 || campanhas.some((camp) => camp.statusNaConta === 'ENABLED');
+  if (depositado <= 0 && haCampanhaVeiculando) semFatia.push(c.slug);
+  // Cliente sem fatia e sem campanha veiculando não participa da conta deste
+  // ciclo. Os status já foram lidos acima para provar que continua parado; não
+  // o transforme em falso "estourado R$ 0,00" no diagnóstico financeiro.
+  if (depositado <= 0 && !haCampanhaVeiculando) continue;
 
   estados.push({
     clientSlug: c.slug,

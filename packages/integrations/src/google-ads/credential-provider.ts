@@ -23,7 +23,7 @@
  * aqui, e `liveReadVerified` permanece `false` até rodar no notebook.
  */
 
-import { access, stat } from 'node:fs/promises';
+import { access, readFile, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
@@ -46,10 +46,65 @@ export interface GoogleAdsCredentialStatus {
 /** Caminho padrão do diretório protegido, no notebook do dono. */
 export const DEFAULT_SECRET_DIR = resolve(homedir(), 'Documents/Codex/.secrets/google-ads');
 
+/** Nome convencional do developer token no diretório protegido local. */
+export const DEFAULT_DEVELOPER_TOKEN_FILENAME = 'developer-token';
+
 export interface CredentialProviderOptions {
   /** Sobrescrevível para teste e para outra máquina. */
   readonly secretDir?: string;
   readonly env?: Record<string, string | undefined>;
+}
+
+async function findDeveloperTokenPath(
+  secretDir: string,
+  explicitPath?: string,
+): Promise<string | null> {
+  if (explicitPath !== undefined && explicitPath !== '') {
+    try {
+      await access(explicitPath, constants.R_OK);
+      return explicitPath;
+    } catch {
+      // Caminho explícito inválido não pode cair silenciosamente em outro token.
+      return null;
+    }
+  }
+
+  const defaultPath = resolve(secretDir, DEFAULT_DEVELOPER_TOKEN_FILENAME);
+  try {
+    await access(defaultPath, constants.R_OK);
+    return defaultPath;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Carrega o developer token sem registrá-lo nem serializá-lo.
+ *
+ * Em CI, o valor injetado por ambiente continua tendo precedência. Localmente,
+ * o token pode ficar em arquivo modo 600 no mesmo diretório protegido da chave
+ * de serviço. Um caminho explícito inválido falha fechado e nunca procura outro
+ * arquivo por conveniência.
+ */
+export async function loadGoogleAdsDeveloperToken(
+  options: CredentialProviderOptions = {},
+): Promise<string> {
+  const env = options.env ?? process.env;
+  const inline = env['GOOGLE_ADS_DEVELOPER_TOKEN'];
+  if (inline !== undefined && inline.trim() !== '') return inline.trim();
+
+  const secretDir = options.secretDir ?? DEFAULT_SECRET_DIR;
+  const tokenPath = await findDeveloperTokenPath(
+    secretDir,
+    env['GOOGLE_ADS_DEVELOPER_TOKEN_PATH'],
+  );
+  if (tokenPath === null) {
+    throw new Error('developer token do Google Ads não configurado por ambiente nem caminho protegido');
+  }
+
+  const token = (await readFile(tokenPath, 'utf8')).trim();
+  if (token === '') throw new Error(`developer token vazio no caminho protegido: ${tokenPath}`);
+  return token;
 }
 
 /**
@@ -121,7 +176,9 @@ export async function describeCredentials(
   const env = options.env ?? process.env;
   const secretDir = options.secretDir ?? DEFAULT_SECRET_DIR;
 
-  const developerTokenConfigured = isPresent(env['GOOGLE_ADS_DEVELOPER_TOKEN']);
+  const developerTokenConfigured =
+    isPresent(env['GOOGLE_ADS_DEVELOPER_TOKEN']) ||
+    (await findDeveloperTokenPath(secretDir, env['GOOGLE_ADS_DEVELOPER_TOKEN_PATH'])) !== null;
   const loginCustomerIdConfigured =
     isPresent(env['GOOGLE_ADS_LOGIN_CUSTOMER_ID']) || true; // constante conhecida acima
 

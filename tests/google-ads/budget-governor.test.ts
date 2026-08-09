@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   conciliarCaixa,
+  dataOperacionalGoogleAds,
   diagnosticar,
   diagnosticarConta,
   PISO_DIARIO_BRL,
@@ -9,6 +10,16 @@ import {
   type EntradaDeCaixa,
   type EstadoDoCliente,
 } from '../../packages/integrations/src/google-ads/budget-governor.js';
+
+describe('data operacional do Google Ads', () => {
+  it('continua no dia de Brasília quando UTC já virou', () => {
+    assert.equal(dataOperacionalGoogleAds(new Date('2026-08-09T00:30:00Z')), '2026-08-08');
+  });
+
+  it('vira o dia à meia-noite de Brasília', () => {
+    assert.equal(dataOperacionalGoogleAds(new Date('2026-08-09T03:00:00Z')), '2026-08-09');
+  });
+});
 
 /** Garbo real de 07/08: três campanhas, R$ 14/dia no total. */
 const garbo = (over: Partial<EstadoDoCliente> = {}): EstadoDoCliente => ({

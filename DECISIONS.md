@@ -333,3 +333,33 @@ continuará sujeito a uma proposta concreta e aprovação explícita. Primeiro s
 validado o menor escopo somente leitura; permissões de mutação serão habilitadas
 apenas quando o fluxo de confirmação, auditoria, rollback e kill switch estiver
 homologado.
+
+## 2026-08-08 — Sessão autenticada não substitui integração programática
+
+**Acesso visual e acesso reproduzível são estados diferentes.** Cloudflare,
+Google Ads, GTM e Hostinger foram lidos nas sessões do navegador, mas isso não
+transforma o control plane em operador autônomo. Para integrações novas, o
+primeiro token será somente leitura e de escopo mínimo; permissões de escrita
+entram em lote separado, depois de confirmação, auditoria e rollback.
+
+Consequência imediata: GitHub, Google Ads local, `gcloud`, GTM e SSH já estão
+destravados para leitura. Cloudflare está parcial sem token de API; n8n e Meta
+continuam bloqueados até o dono entrar pessoalmente. Senha e 2FA nunca serão
+pedidos no chat.
+
+## 2026-08-08 — Governador usa o dia de Brasília e reconcilia pausadas
+
+**O governador precisa confrontar tanto `campanhasAtivas` quanto
+`campanhasPausadas` com a conta.** A versão anterior só consultava as declaradas
+ativas; por isso MARCA e CASAMENTOS da Garbo podiam ser ativadas fora do plano
+e o monitor continuar verde. A correção preserva campanhas pausadas fora do
+cálculo de gasto/orçamento, mas lê seu status e acusa `ativa_sem_declaracao`.
+
+**A data operacional é `America/Sao_Paulo`, não UTC.** GitHub Actions roda em
+UTC; `toISOString()` avançava o dia às 21h de Brasília. A função agora é pura e
+tem regressões cobrindo a virada.
+
+Em 08/08 às 23:20, a leitura corrigida encontrou MARCA `24016194651` ativa a
+R$ 8/dia e CASAMENTOS `24016194654` ativa a R$ 12/dia, contra a decisão vigente
+de mantê-las pausadas. O achado **não autoriza correção automática**: pausar as
+duas continua exigindo aprovação explícita do dono.
