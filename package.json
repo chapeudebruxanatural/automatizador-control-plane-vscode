@@ -26,7 +26,8 @@
     "inventario:github": "bash scripts/collect-github-inventory.sh",
     "inventario:vps": "bash scripts/collect-vps-inventory.sh",
     "relatorio:cassio": "node --env-file=.env --import tsx scripts/relatorio-cassio-whatsapp.mts",
-    "perguntar:cliente": "node --import tsx scripts/perguntar-cliente.mts"
+    "perguntar:cliente": "node --import tsx scripts/perguntar-cliente.mts",
+    "workspace:cliente": "node --import tsx scripts/exportar-workspace-cliente.mts"
   },
   "dependencies": {
     "yaml": "^2.7.0",
