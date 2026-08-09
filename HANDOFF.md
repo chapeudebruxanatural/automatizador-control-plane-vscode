@@ -1447,3 +1447,20 @@ Bloqueio correto para anúncios com destino ao WhatsApp: antes do dry-run de cam
 > verde e zero achado. `npm run verify` confirmou as passagens sem socket e reproduziu as
 > duas suspensões conhecidas nos testes HTTP locais (`api.test.ts` e
 > `webhook-route.test.ts`); usar o CI do GitHub como validação desses sockets.
+
+
+> ## ▶︎ RETOMADA — publicação final e troca de IA em 09/08/2026
+>
+> A fábrica, o runbook, os testes, o inventário corrigido e o prompt portátil
+> foram publicados na `main`. O arquivo
+> `PROMPT-CONTINUAR-OUTRA-IA.md` reúne o estado, as regras, o prompt pronto
+> para Kimi/Claude/Copilot e o passo a passo de VS Code com conta estudantil.
+>
+> A publicação final usou o conector GitHub e terminou nos commits
+> `ed38b8f`, `edb9d32`, `a1f1582` e `4d2b596`. O `gh` local existe,
+> mas segue sem autenticação; não usar o checkout antigo e sujo para puxar a
+> `main`. Abrir um clone limpo no VS Code.
+>
+> Única ação pessoal pendente para ativar onboarding real: concluir o código de
+> verificação do GitHub e criar o token dedicado descrito no prompt. O token
+> Cloudflare já está ativo. Nenhum cliente fictício foi criado.
