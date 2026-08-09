@@ -16,6 +16,7 @@ export interface N8nWorkflowSummary {
   readonly id: string;
   readonly name: string;
   readonly active: boolean;
+  readonly isArchived: boolean;
   readonly createdAt: string | null;
   readonly updatedAt: string | null;
   readonly tags: readonly string[];
@@ -33,17 +34,6 @@ export interface N8nCredentialSummary {
   readonly name: string;
   readonly type: string;
 }
-
-/** Slugs conhecidos, e os termos que sugerem cada um. */
-const CLIENT_HINTS: ReadonlyArray<readonly [slug: string, patterns: readonly RegExp[]]> = [
-  ['automatizadoria', [/automatizador/i, /\bauto[-_ ]?ia\b/i]],
-  ['novacena', [/novacena/i, /nova[-_ ]?cena/i, /remotion/i, /motion/i]],
-  ['vivere', [/vivere/i, /\bviv\b/i]],
-  ['cassio-ferraz', [/cassio/i, /ferraz/i]],
-  ['garbo-eventos', [/garbo/i]],
-  ['gaveta-producoes', [/gaveta/i]],
-  ['encantaria-artesanal', [/encantaria/i]],
-];
 
 /**
  * Nós que produzem efeito colateral externo.
@@ -79,33 +69,6 @@ export function sanitizeWebhookPath(path: string): string {
     .join('/');
 }
 
-/**
- * Deduz o cliente a partir de nome e tags.
- *
- * Uma tag que casa vale mais que o nome: tags são atribuídas de propósito,
- * nomes acumulam história. Mesmo assim nada disso vira `verified` — no máximo
- * `discovered`. Ver `docs/adr/0003-procedencia-do-inventario.md`.
- */
-export function inferClient(
-  name: string,
-  tags: readonly string[] = [],
-): { slug: string | null; confidence: VerificationStatus } {
-  const haystackTags = tags.join(' ');
-
-  for (const [slug, patterns] of CLIENT_HINTS) {
-    if (patterns.some((p) => p.test(haystackTags))) {
-      return { slug, confidence: 'discovered' };
-    }
-  }
-
-  const matches = CLIENT_HINTS.filter(([, patterns]) => patterns.some((p) => p.test(name)));
-
-  if (matches.length === 1) return { slug: matches[0]?.[0] ?? null, confidence: 'discovered' };
-  // Dois clientes no mesmo nome não é palpite melhor — é ambiguidade.
-  if (matches.length > 1) return { slug: null, confidence: 'conflicting' };
-  return { slug: null, confidence: 'unknown' };
-}
-
 export function parseWorkflow(raw: unknown): N8nWorkflowSummary {
   const w = (raw ?? {}) as Record<string, unknown>;
   const nodes = Array.isArray(w['nodes']) ? (w['nodes'] as Record<string, unknown>[]) : [];
@@ -130,20 +93,21 @@ export function parseWorkflow(raw: unknown): N8nWorkflowSummary {
     : [];
 
   const name = str(w['name']);
-  const inferred = inferClient(name, tags);
-
   return {
     id: str(w['id']),
     name,
     active: w['active'] === true,
+    isArchived: w['isArchived'] === true,
     createdAt: str(w['createdAt']) || null,
     updatedAt: str(w['updatedAt']) || null,
     tags,
     nodeCount: nodes.length,
     triggerTypes,
     webhookPaths,
-    clientSlug: inferred.slug,
-    clientConfidence: inferred.confidence,
+    // Nome e tags são pistas, não prova. Associação só entra após confirmação
+    // do dono no arquivo de memória do cliente.
+    clientSlug: null,
+    clientConfidence: 'unknown',
     hasWriteEffects,
   };
 }

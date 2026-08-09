@@ -17,12 +17,16 @@ meta:
   owner: dadocruz
   collectedAt: 2026-08-04
   repositoryCount: 14
+  listRefreshedAt: 2026-08-09
+  listRefreshResult: 14 repositorios (6 privados, 8 publicos); nenhum novo ou ausente
   method: metadados da API + arvore da raiz do branch padrao
   notes: >-
     Os campos de metadados (visibilidade, linguagem, branch, arquivos, workflows,
     pages, environments) sao FATO verificado contra a API do GitHub.
     Os campos likelyClient e likelyProject sao INFERENCIA e estao marcados como
-    `discovered` ate que o dono confirme.
+    `discovered` ate que o dono confirme. Em 09/08, o adaptador real somente
+    leitura reconfirmou contagem, visibilidade e igualdade da lista de nomes;
+    nao promoveu nenhuma associacao cliente-repositorio.
 
 repositories:
   # ---------------------------------------------------------------------------

@@ -17,33 +17,38 @@ verificam configuração existente.
 **Destrava:** contagem e classificação de workflows, mapa workflow → cliente,
 erros recentes. É o bloqueio de maior impacto do projeto.
 
-**Risco:** nenhum. A chave é de leitura e não altera workflow algum.
+**Estado em 09/08/2026:** concluído por autorização explícita do dono. O plano
+não permite editar escopos, então a chave é ampla, temporária e expira em
+16/08/2026. O risco é contido pelo cliente local, que só implementa GET. O
+valor fica fora do Git em arquivo modo `600`.
 
 ### Passos
 
-1. Abra a interface do n8n (o endereço está na configuração do Traefik; se não
-   souber, o serviço é `n8n_n8n_editor` na porta interna 5678).
-2. Vá em **Settings → n8n API**.
-3. Clique em **Create an API key**.
-4. Dê um nome que identifique o uso, por exemplo `control-plane-readonly`.
-5. Copie o valor **uma vez** — ele não é exibido de novo.
-6. No repositório, adicione ao `.env` local:
+Procedimento executado e reproduzível:
+
+1. Em **Settings → n8n API**, criar uma chave com nome e validade curta.
+2. Registrar explicitamente que o escopo é amplo por limitação do plano.
+3. Salvar o valor uma única vez em arquivo fora do Git, modo `600`.
+4. Configurar no `.env` local apenas URL e caminho:
 
 ```
-N8N_API_KEY=<cole-o-valor-aqui>
-N8N_BASE_URL=<url-do-n8n>
+N8N_BASE_URL=https://n8n.automatizadoria.cloud
+N8N_API_KEY_PATH=<caminho-fora-do-git>
 ```
+
+5. Usar somente `N8nReadClient`; ele não possui POST, PUT, PATCH ou DELETE.
+6. Revogar ou substituir a chave antes/depois de 16/08 conforme a próxima fase.
 
 ### Verificação
 
 ```bash
-grep -c "^N8N_API_KEY=." .env
+npm run inventario:n8n
 ```
 
-Deve responder `1`. Isso confirma que a variável tem valor **sem imprimi-lo**.
-
-Depois, `/status` passa a reportar `n8n.credentialConfigured: true` — presença,
-nunca o valor.
+Em 09/08 retornou 33 workflows, 1 ativo, 32 inativos e 3 arquivados, sempre
+com associação a cliente `unknown`. `/status` reporta somente presença e
+habilitação, nunca valor ou caminho. `GET /api/v1/credentials` responde 405;
+isso significa endpoint indisponível, não ausência de credenciais.
 
 ---
 
@@ -52,15 +57,21 @@ nunca o valor.
 **Destrava:** zonas, registros DNS e o mapa domínio → cliente, hoje a maior
 lacuna do catálogo.
 
-**Risco:** nenhum, **desde que o token seja criado apenas com permissões de
-leitura**. Não use o token global da conta.
+**Estado em 09/08/2026:** concluído. Token
+`automatizador-control-plane-readonly-20260808`, somente leitura, restrito à
+conta `e6d7a4863004885bdae7e63bbec5e1f7`, expira em 06/11/2026 e está em arquivo
+externo ao Git com modo 600. O valor nunca deve ser copiado para este documento.
 
 ### Passos
 
 1. Acesse **My Profile → API Tokens** no painel da Cloudflare.
 2. **Create Token → Create Custom Token**.
-3. Nome: `control-plane-readonly`.
-4. Permissões — exatamente estas duas, e nenhuma a mais:
+3. Nome: `automatizador-control-plane-readonly-AAAAMMDD`.
+4. Permissões de inventário usadas — todas em **Read**:
+   - `Account` → `Account Settings` → **Read**
+   - `Account` → `Workers Scripts` → **Read**
+   - `Account` → `Cloudflare Pages` → **Read**
+   - `Account` → `Connectivity Directory` → **Read**
    - `Zone` → `Zone` → **Read**
    - `Zone` → `DNS` → **Read**
 5. Zone Resources: `All zones` (ou apenas as zonas relevantes).
@@ -72,6 +83,12 @@ CLOUDFLARE_API_TOKEN=<cole-o-valor-aqui>
 CLOUDFLARE_ACCOUNT_ID=<id-da-conta>
 ```
 
+Localmente, prefira arquivo protegido e configure apenas o caminho:
+
+```
+CLOUDFLARE_API_TOKEN_PATH=<caminho-fora-do-git>
+```
+
 > Se em algum momento a interface oferecer permissões de **Edit**, é sinal de
 > que o token errado está sendo criado. Só `Read`.
 
@@ -80,6 +97,9 @@ CLOUDFLARE_ACCOUNT_ID=<id-da-conta>
 ```bash
 grep -c "^CLOUDFLARE_API_TOKEN=." .env
 ```
+
+Ou execute `npm run inventario:cloudflare`; o comando falha fechado se o
+arquivo não existir e nunca imprime o token.
 
 ---
 

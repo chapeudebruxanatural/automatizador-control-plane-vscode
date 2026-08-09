@@ -1,0 +1,92 @@
+# Inventário Meta Business — somente leitura
+# Nenhum ativo, campanha, pixel, usuário ou permissão foi alterado.
+
+meta:
+  collectedAt: 2026-08-09
+  source: seletor autenticado do Meta Business
+  status: PARCIAL
+  verificationStatus: verified
+  changesMade: 0
+  blocker: >-
+    O seletor de portfólios está acessível, mas abrir os ativos do portfólio
+    Dado Cruz exigiu chave de acesso/biometria. O dono deve confirmar
+    pessoalmente no dispositivo; senha e 2FA não entram no chat.
+
+scopeDecidedByOwner:
+  campaigns: true
+  pixelsAndDatasets: true
+  measurement: true
+  verificationStatus: owner_reported
+  note: Escopo de produto não autoriza mutação; kill switch e aprovação continuam obrigatórios.
+
+summary:
+  businessPortfoliosVisible: 19
+  clientAssociationsVerified: 0
+  note: >-
+    Nome parecido não promove associação. As sugestões abaixo ficam
+    `discovered` até confirmação do dono e conferência dos ativos internos.
+
+candidatePortfolios:
+  - displayName: 4 Cadeiras | Evento
+    businessId: "2233717010709081"
+    visibleAdAccounts: 0
+    visiblePages: 2
+    visiblePeople: 2
+    likelyClient: null
+    clientVerificationStatus: unknown
+
+  - displayName: Dado Cruz
+    businessId: "488135221601055"
+    visibleAdAccounts: 1
+    visiblePages: 4
+    visiblePeople: 4
+    likelyClient: null
+    clientVerificationStatus: unknown
+    note: Pode ser portfólio compartilhado; não associar ao cliente automatizadoria sem prova.
+
+  - displayName: Estúdio Nova Cena
+    businessId: "696654623259690"
+    visibleAdAccounts: 0
+    visiblePages: 2
+    visiblePeople: 4
+    likelyClient: novacena
+    clientVerificationStatus: discovered
+
+  - displayName: Soulraízes
+    businessId: "412870541753719"
+    visibleAdAccounts: 1
+    visiblePages: 1
+    visiblePeople: 3
+    likelyClient: soulraizes
+    clientVerificationStatus: discovered
+
+  - displayName: Vivere Móveis planejados
+    businessId: "154214172321154"
+    visibleAdAccounts: 0
+    visiblePages: 1
+    visiblePeople: 4
+    likelyClient: vivere
+    clientVerificationStatus: discovered
+
+otherPortfolios:
+  - { displayName: BM5-9, businessId: "264104535081278" }
+  - { displayName: Bonjour, businessId: "370344383412616", visibleAdAccounts: 1, visiblePages: 0, visiblePeople: 1 }
+  - { displayName: Cantora Carol Fernandes, businessId: "265040708430812" }
+  - { displayName: "Do �", businessId: "110603913207350", displayNameCorrupted: true, visibleAdAccounts: 1, visiblePages: 1, visiblePeople: 4 }
+  - { displayName: KN Notícias de Famosos, businessId: "285517404634170", visibleAdAccounts: 0, visiblePages: 1, visiblePeople: 3 }
+  - { displayName: My Nail Produtos para Unhas, businessId: "2497025200681499", visibleAdAccounts: 1, visiblePages: 2, visiblePeople: 5 }
+  - { displayName: Myspacecast, businessId: "105145065708366", visibleAdAccounts: 0, visiblePages: 1, visiblePeople: 2 }
+  - { displayName: Poesia e Cruz, businessId: "551632112184542" }
+  - { displayName: Slim Day Campinas, businessId: "397833254277405" }
+  - { displayName: Vanessa Motta, businessId: "1669061317243273" }
+  - { displayName: Victor & Custodio Oficial, businessId: "168984297075534", visibleAdAccounts: 0, visiblePages: 0, visiblePeople: 3 }
+  - { displayName: Zé do Pote Oficial, businessId: "2183909418548002" }
+  - { displayName: calinefloroficial, businessId: "1365404511301812", visibleAdAccounts: 0, visiblePages: 0, visiblePeople: 1 }
+  - { displayName: vocepodeprojeto, businessId: "161967748801895", visibleAdAccounts: 0, visiblePages: 3, visiblePeople: 2 }
+
+remainingQuestions:
+  - Qual portfólio contém os ativos do Cássio?
+  - Qual portfólio contém os ativos da Garbo?
+  - Qual portfólio contém os ativos da Gaveta?
+  - Confirmar os candidatos NovaCena, Soulraízes e Vivere.
+  - Após a chave de acesso, listar contas de anúncios, páginas, Instagram e pixels/datasets por portfólio.

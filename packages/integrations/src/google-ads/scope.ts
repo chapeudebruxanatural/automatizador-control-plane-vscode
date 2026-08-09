@@ -100,9 +100,9 @@ export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
   },
   // --- Garbo Eventos (Andréia) — 5 campanhas de Search ---
   //
-  // Estado pretendido desde 08/08: MOVEIS, MESAS e PRODUTOS ativas a R$ 6,
-  // R$ 5 e R$ 3/dia; MARCA e CASAMENTOS pausadas. O lifecycle continua
-  // `read_only_scope`: legibilidade não concede escrita ao adaptador.
+  // Estado pretendido confirmado pelo dono em 09/08: as cinco ativas a R$ 6,
+  // R$ 5, R$ 3, R$ 8 e R$ 12/dia. O lifecycle continua `read_only_scope`:
+  // legibilidade não concede escrita ao adaptador.
   {
     campaignId: '24016194642',
     clientSlug: 'garbo-eventos',
@@ -129,14 +129,14 @@ export const AUTHORIZED_CAMPAIGNS: readonly AuthorizedCampaign[] = [
     clientSlug: 'garbo-eventos',
     expectedName: 'GARBO | SEARCH | MARCA | CAMPINAS',
     lifecycle: 'read_only_scope',
-    notes: 'Pausada, R$ 8/dia.',
+    notes: 'Ativa por atualização pessoal do dono; intenção confirmada em 09/08, R$ 8/dia.',
   },
   {
     campaignId: '24016194654',
     clientSlug: 'garbo-eventos',
     expectedName: 'GARBO | SEARCH | CASAMENTOS EVENTOS | CAMPINAS',
     lifecycle: 'read_only_scope',
-    notes: 'Pausada, R$ 12/dia.',
+    notes: 'Ativa por atualização pessoal do dono; intenção confirmada em 09/08, R$ 12/dia.',
   },
 
   // --- NovaCena Motion (a produtora do próprio dono) — ambas pausadas ---

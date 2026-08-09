@@ -112,6 +112,42 @@ describe('postura exposta em /status', () => {
     const posture = describePosture(loadConfig({}), { N8N_API_KEY: '   ' });
     assert.equal(posture.integrations.n8n.credentialConfigured, false);
   });
+
+  it('reconhece caminho protegido da Cloudflare sem ler o segredo', () => {
+    const posture = describePosture(loadConfig({}), {
+      CLOUDFLARE_API_TOKEN_PATH: '/caminho/protegido/api-token',
+    });
+    assert.equal(posture.integrations.cloudflare.credentialConfigured, true);
+    assert.doesNotMatch(JSON.stringify(posture), /caminho\/protegido/);
+  });
+
+  it('reconhece caminho protegido do n8n sem ler o segredo', () => {
+    const posture = describePosture(loadConfig({}), {
+      N8N_API_KEY_PATH: '/caminho/protegido/api-key',
+    });
+    assert.equal(posture.integrations.n8n.credentialConfigured, true);
+    assert.doesNotMatch(JSON.stringify(posture), /caminho\/protegido/);
+  });
+
+  it('expõe Cloudflare como habilitada só quando o adaptador real foi injetado', () => {
+    const posture = describePosture(
+      loadConfig({}),
+      { CLOUDFLARE_API_TOKEN_PATH: '/caminho/protegido/api-token' },
+      { cloudflare: true },
+    );
+    assert.equal(posture.integrations.cloudflare.enabled, true);
+    assert.equal(posture.integrations.n8n.enabled, false);
+  });
+
+  it('reconhece o gh CLI como fonte local sem exigir token no ambiente', () => {
+    const posture = describePosture(
+      loadConfig({}),
+      { GITHUB_AUTH_MODE: 'gh-cli' },
+      { github: true },
+    );
+    assert.equal(posture.integrations.github.credentialConfigured, true);
+    assert.equal(posture.integrations.github.enabled, true);
+  });
 });
 
 describe('procedência do inventário', () => {

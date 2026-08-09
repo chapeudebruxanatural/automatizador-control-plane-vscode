@@ -38,13 +38,16 @@ likelyRepositories: []
 domains:
   - domain: viveremp.com
     role: site institucional
-    verificationStatus: owner_reported
+    verificationStatus: verified
+    source: dominio customizado do Worker vivere
   - domain: gestao.viveremp.com
     role: "aplicacao VIVERE 360 (gestao)"
-    verificationStatus: owner_reported
+    verificationStatus: verified
+    source: dominio customizado do Worker vivere
   - domain: conteudo.viveremp.com
     role: conteudo
-    verificationStatus: owner_reported
+    verificationStatus: verified
+    source: dominio customizado do Worker vivere
   - domain: vivere-homologacao.estudionovacena.workers.dev
     role: ambiente de homologacao (Cloudflare Worker)
     verificationStatus: owner_reported
@@ -60,24 +63,22 @@ accounts:
       de dados de cliente identificado ate agora — e esta FORA da VPS.
 
   - platform: cloudflare
-    identifier: unknown
+    identifier: e6d7a4863004885bdae7e63bbec5e1f7
     role: hospedagem (open-next / Workers)
-    verificationStatus: discovered
+    verificationStatus: verified
 
 integrations:
   - name: Supabase
     status: discovered
     note: Banco gerenciado externo. Nao ha acesso configurado no Control Plane.
   - name: Cloudflare Workers
-    status: discovered
+    status: verified
+    note: Workers vivere e vivere-homologacao encontrados pela API.
 
 environments:
   - name: producao
-    location: unknown
-    verificationStatus: unknown
-    note: >-
-      open-next.config.ts indica intencao de deploy em Cloudflare, mas nao ha
-      confirmacao de que exista ambiente de producao no ar.
+    location: Cloudflare Worker vivere, production
+    verificationStatus: verified
 
 risks:
   - severity: alta
@@ -97,7 +98,7 @@ risks:
 nextSteps:
   - Confirmar quem e Tiago Facanali no organograma do cliente (decisor, dev, operacao?)
   - Inventariar o projeto Supabase (regiao, plano, backups, acessos)
-  - Confirmar se gestao.viveremp.com e o ambiente de producao real
+  - Confirmar apenas o papel funcional de gestao.viveremp.com; hospedagem ja verificada
   - Revisar os workflows que alteram migrations automaticamente
   - Investigar e resolver o incidente do TOTP exposto (ver security.yaml)
   - Registrar o processo de aprovacao de mudancas deste cliente

@@ -5,15 +5,15 @@
 # lacuna total agora tem duas camadas:
 #
 #   - DESTINO (dominio -> servico): VERIFICADO, lido das regras do Traefik.
-#   - ORIGEM (dominio -> zona DNS):  BLOQUEADO, exige token da Cloudflare.
+#   - ORIGEM (dominio -> zona DNS):  VERIFICADA nas 8 zonas da conta Cloudflare.
 #
 # Zonas relatadas pelo dono: inventory/cloudflare.yaml
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-05
+  collectedAt: 2026-08-09
   routingSource: "regras de roteamento do Traefik (projecao fixa, apenas labels)"
-  dnsSource: "nao consultado — sem token da Cloudflare"
+  dnsSource: "Cloudflare API somente leitura; 8 zonas e 14 registros"
   changesMade: 0
 
 # -----------------------------------------------------------------------------
@@ -23,6 +23,7 @@ platformDomains:
   - domain: automatizadoria.cloud
     client: automatizadoria
     dnsProvider: unknown
+    dnsProviderNote: "confirmado que NAO esta na conta Cloudflare e6d7a4863004885bdae7e63bbec5e1f7"
     servedBy: VPS nvvps (Traefik)
     tls: "Traefik, volume volume_swarm_certificates"
     verificationStatus: verified
@@ -56,6 +57,7 @@ platformDomains:
   - domain: estudionovacena.com
     client: novacena
     dnsProvider: unknown
+    dnsProviderNote: "confirmado que NAO esta na conta Cloudflare e6d7a4863004885bdae7e63bbec5e1f7"
     servedBy: VPS nvvps (Traefik)
     verificationStatus: verified
     lastVerifiedAt: 2026-08-05
@@ -78,7 +80,7 @@ clientDomains:
   - domain: encantariaartesanal.com
     client: null
     clientNote: "Projeto em producao sem cliente atribuido no catalogo."
-    zoneVerification: owner_reported
+    zoneVerification: verified
     subdomains:
       - host: painel.encantariaartesanal.com
         service: encantaria_directus
@@ -87,72 +89,70 @@ clientDomains:
         verificationStatus: verified
         lastVerifiedAt: 2026-08-05
     apex:
-      target: unknown
-      note: >-
-        O apex nao aparece em nenhuma regra do Traefik. Ou e servido fora da
-        VPS (Cloudflare Pages, outro provedor), ou nao esta publicado.
+      target: encantaria-artesanal.pages.dev
+      platform: Cloudflare Pages
+      verificationStatus: verified
     duplicateZoneQuestion: >-
-      O dono relatou ver duas entradas para este dominio. Ver hipoteses em
-      inventory/cloudflare.yaml. O subdominio painel. confirmado aqui reforca a
-      hipotese de que a "segunda entrada" e o subdominio, nao uma segunda zona.
+      RESOLVIDO pela API: nao ha zona duplicada com o mesmo nome. Existem duas
+      zonas distintas: encantariaartesanal.com (3 registros) e
+      encantariaatersanal.com (0 registros). O segundo nome continua sem
+      cliente atribuido e nao deve ser apagado por inferencia de erro de digitacao.
 
   - domain: viveremp.com
     client: vivere
-    zoneVerification: owner_reported
+    zoneVerification: verified
     subdomains:
       - { host: "www.viveremp.com", role: site institucional, verificationStatus: owner_reported }
       - { host: "gestao.viveremp.com", role: "aplicacao VIVERE 360", verificationStatus: owner_reported }
       - { host: "conteudo.viveremp.com", role: conteudo, verificationStatus: owner_reported }
-    servedBy: "provavelmente Cloudflare Workers (open-next)"
+    servedBy: "Cloudflare Worker vivere, ambiente production"
     note: >-
       NAO aparece em nenhuma regra do Traefik: nao e servido pela VPS. Coerente
       com open-next.config.ts no repositorio, que indica deploy em Workers.
 
   - domain: cassioferraz.com.br
     client: cassio-ferraz
-    zoneVerification: owner_reported
-    servedBy: "nao e a VPS — ausente das regras do Traefik"
-    likelyPlatform: "Cloudflare Pages ou Workers (_headers, .assetsignore no repo)"
+    zoneVerification: verified
+    servedBy: "Cloudflare Worker cassio-ferraz, ambiente production"
+    likelyPlatform: null
     note: "Site declarado nas campanhas de Google Ads. Ver clients/cassio-ferraz/tracking.yaml."
 
   - domain: garboeventos.com.br
     client: garbo-eventos
-    zoneVerification: owner_reported
-    servedBy: "nao e a VPS"
-    likelyPlatform: "Cloudflare Pages (_redirects no repo)"
+    zoneVerification: verified
+    servedBy: "Cloudflare Pages garbo-oxh.pages.dev"
+    repository: dadocruz/garbo
 
   - domain: 4cadeiras.com
     client: null
-    zoneVerification: owner_reported
-    servedBy: "nao e a VPS"
-    likelyRepository: 4cadeiras
+    zoneVerification: verified
+    servedBy: "Cloudflare Pages 4cadeiras.pages.dev"
+    repository: dadocruz/4cadeiras
 
   - domain: maltasertaneja.com
     client: null
-    zoneVerification: owner_reported
-    servedBy: "nao e a VPS"
-    likelyRepository: malta-sertaneja
+    zoneVerification: verified
+    servedBy: "Cloudflare Pages malta-sertaneja.pages.dev"
+    repository: dadocruz/malta-sertaneja
 
   - domain: gabrielgadelhacantor.com
     client: null
     zoneVerification: conflicting
-    servedBy: "nao e a VPS"
-    likelyRepository: gabriel-gadelha-casamentos
+    servedBy: "Cloudflare Pages gabriel-gadelha-casamentos.pages.dev"
+    repository: dadocruz/gabriel-gadelha-casamentos
     openQuestion: "Casamentos ou outro projeto? Ver inventory/cloudflare.yaml."
 
 # -----------------------------------------------------------------------------
 summary:
   routedByVps: 3          # automatizadoria.cloud, estudionovacena.com, encantariaartesanal.com (subdominio)
-  routedElsewhere: 5      # viveremp, cassioferraz, garboeventos, 4cadeiras, maltasertaneja, gabrielgadelhacantor
+  routedElsewhere: 6      # viveremp, cassioferraz, garboeventos, 4cadeiras, maltasertaneja, gabrielgadelhacantor
   totalHostRules: 21
   domainsWithoutClient: 4 # 4cadeiras, maltasertaneja, gabrielgadelhacantor, encantariaartesanal
-  dnsZonesVerified: 0
+  dnsZonesVerified: 8
 
 remainingGaps:
-  - Provedor de DNS de automatizadoria.cloud e estudionovacena.com
-  - Registros DNS reais de todas as zonas
+  - Provedor de DNS de automatizadoria.cloud e estudionovacena.com (nao estao nesta conta Cloudflare)
   - Validade dos certificados (vivem no volume do Traefik)
   - Se ha autenticacao adicional nos paineis administrativos publicos
-  - Se o apex de encantariaartesanal.com esta publicado
-  - Quais dominios usam Pages e quais usam Workers
+  - Associar os dominios sem cliente a slugs confirmados pelo dono
   - Resolucao da duvida sobre gabrielgadelhacantor.com

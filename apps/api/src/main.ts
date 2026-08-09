@@ -10,6 +10,22 @@ import { createLogger } from '../../../packages/shared/src/logger.js';
 import { createDefaultRegistry } from '../../../packages/domain/src/actions.js';
 import { ActionExecutor } from '../../../packages/domain/src/executor.js';
 import { createMockAdapterSet } from '../../../packages/integrations/src/adapters/mock.js';
+import { createCloudflareReadAdapter } from '../../../packages/integrations/src/cloudflare/adapter.js';
+import {
+  CloudflareReadClient,
+  describeCloudflareCredential,
+  loadCloudflareApiToken,
+} from '../../../packages/integrations/src/cloudflare/client.js';
+import { createGitHubReadAdapter } from '../../../packages/integrations/src/github/adapter.js';
+import { GitHubReadClient } from '../../../packages/integrations/src/github/client.js';
+import { createN8nReadAdapter } from '../../../packages/integrations/src/n8n/adapter.js';
+import {
+  N8nReadClient,
+  describeN8nCredential,
+  loadN8nApiKey,
+} from '../../../packages/integrations/src/n8n/client.js';
+import { createVpsReadAdapter } from '../../../packages/integrations/src/vps/adapter.js';
+import { VpsReadClient } from '../../../packages/integrations/src/vps/client.js';
 import { createKillSwitch } from '../../../packages/security/src/kill-switch.js';
 import { createDenyAllApprovalProvider } from '../../../packages/security/src/approval.js';
 import {
@@ -30,11 +46,41 @@ function parseAllowedNumbers(raw: string | undefined): readonly string[] {
     .filter(Boolean);
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const config = loadConfig();
   const logger = createLogger({ level: config.logLevel, service: config.serviceName });
 
-  const adapters = createMockAdapterSet();
+  const mocks = createMockAdapterSet();
+  const githubOwner = process.env['GITHUB_OWNER']?.trim() || 'dadocruz';
+  const github =
+    process.env['GITHUB_AUTH_MODE']?.trim().toLowerCase() === 'gh-cli'
+      ? createGitHubReadAdapter(new GitHubReadClient({ owner: githubOwner }))
+      : mocks.github;
+  const vpsAlias = process.env['VPS_SSH_ALIAS']?.trim() ?? '';
+  const vps =
+    process.env['VPS_READ_ONLY']?.trim().toLowerCase() === 'true' && vpsAlias !== ''
+      ? createVpsReadAdapter(new VpsReadClient({ alias: vpsAlias }))
+      : mocks.vps;
+  const cloudflareStatus = await describeCloudflareCredential();
+  const cloudflareAccountId = process.env['CLOUDFLARE_ACCOUNT_ID']?.trim() ?? '';
+  const cloudflare =
+    cloudflareStatus.configured && cloudflareAccountId !== ''
+      ? createCloudflareReadAdapter(
+          new CloudflareReadClient({
+            accountId: cloudflareAccountId,
+            token: await loadCloudflareApiToken(),
+          }),
+        )
+      : mocks.cloudflare;
+  const n8nStatus = await describeN8nCredential();
+  const n8nBaseUrl = process.env['N8N_BASE_URL']?.trim() ?? '';
+  const n8n =
+    n8nStatus.configured && n8nBaseUrl !== ''
+      ? createN8nReadAdapter(
+          new N8nReadClient({ baseUrl: n8nBaseUrl, apiKey: await loadN8nApiKey() }),
+        )
+      : mocks.n8n;
+  const adapters = { ...mocks, github, vps, n8n, cloudflare };
   const registry = createDefaultRegistry(adapters);
 
   const audit: AuditProvider =
@@ -74,6 +120,9 @@ function main(): void {
     config,
     logger,
     registry,
+    integrationEnabled: Object.fromEntries(
+      Object.entries(adapters).map(([name, adapter]) => [name, adapter.enabled]),
+    ),
     whatsapp: { module: whatsapp, webhookSecret, logger: logger.child({ route: 'whatsapp' }) },
   });
 
@@ -112,4 +161,8 @@ function main(): void {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
-main();
+main().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : 'erro desconhecido';
+  process.stderr.write(`Falha ao iniciar o control plane: ${message}\n`);
+  process.exitCode = 1;
+});

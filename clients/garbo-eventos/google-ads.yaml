@@ -1,8 +1,9 @@
 # Google Ads — Garbo Eventos
-# HISTORICO. Nenhuma consulta a plataforma. Nenhuma campanha alterada.
+# Inventario reconciliado com API e confirmacao do dono. Nenhuma campanha alterada aqui.
 slug: garbo-eventos
 importedAt: 2026-08-05
-apiConnected: false
+lastVerifiedAt: 2026-08-09
+apiConnected: true
 
 account:
   mcc: "399-259-4849"
@@ -20,7 +21,9 @@ campaigns:
   count: 5
   ids: ["24016194642", "24016194645", "24016194648", "24016194651", "24016194654"]
   detail: clients/garbo-eventos/campaigns.yaml
-  verificationStatus: historical_confirmed
+  intendedStatus: cinco_ativas
+  intendedDailyBudgetBRL: 34.00
+  verificationStatus: owner_reported
   observation: >-
     Os cinco IDs sao sequenciais com passo 3 (…642, …645, …648, …651, …654),
     o que indica criacao em bloco, na mesma sessao. Sugere estrutura planejada
@@ -31,15 +34,12 @@ campaigns:
 automation:
   googleAdsScript:
     id: "11999683"
-    verificationStatus: historical_confirmed
-    liveStatus: requires_live_verification
-    purpose: unknown
+    verificationStatus: verified
+    liveStatus: schedule_removed_2026-08-08
+    purpose: trava legada do lote iniciado em 2026-07-28
     concern: >-
-      IMPORTANTE: um Google Ads Script e automacao que JA RODA na plataforma,
-      fora do Control Plane e fora do kill switch. Se ele altera orcamento,
-      lance ou status de campanha, existe uma segunda mao operando a conta.
-      Descobrir o que ele faz e pre-requisito de qualquer automacao nossa —
-      duas automacoes que se desconhecem podem se anular ou se somar.
+      O script causou as pausas de 07/08 porque sua janela antiga continuava
+      acima de R$ 90. O agendamento foi removido; manter no inventario historico.
 
 conversions:
   - name: clique no WhatsApp
@@ -54,9 +54,6 @@ financialControls:
   newLotRequiresAuthorization: true
 
 liveVerificationNeeded:
-  - Status das 5 campanhas
-  - O que o Google Ads Script 11999683 faz, e se ainda roda
   - Gasto acumulado por campanha contra o lote de R$ 100
-  - Se a pausa preventiva de R$ 90 foi atingida
   - Criterio de divisao entre as 5 campanhas
   - Se ha conversao primaria alem do clique no WhatsApp

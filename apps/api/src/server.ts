@@ -12,7 +12,7 @@
 
 import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { Config } from '../../../packages/shared/src/config.js';
-import { describePosture } from '../../../packages/shared/src/config.js';
+import { describePosture, type IntegrationEnabledState } from '../../../packages/shared/src/config.js';
 import type { Logger } from '../../../packages/shared/src/logger.js';
 import type { ActionRegistry } from '../../../packages/domain/src/action.js';
 import { handleWhatsAppWebhook, type WhatsAppRouteDependencies } from './routes/whatsapp/webhook.js';
@@ -23,6 +23,7 @@ export interface ServerDependencies {
   readonly registry: ActionRegistry;
   /** Injetável para teste. */
   readonly env?: Record<string, string | undefined>;
+  readonly integrationEnabled?: IntegrationEnabledState;
   /**
    * Opcional: quando ausente, POST /whatsapp/webhook cai no 405 padrão como
    * qualquer outra rota POST. O módulo em si já é seguro por padrão (ver
@@ -100,7 +101,11 @@ export function createApiServer(deps: ServerDependencies): {
         json(res, 200, {
           service: config.serviceName,
           environment: config.nodeEnv,
-          posture: describePosture(config, deps.env ?? process.env),
+          posture: describePosture(
+            config,
+            deps.env ?? process.env,
+            deps.integrationEnabled ?? {},
+          ),
           actions: {
             total: registry.list().length,
             mutating: registry.listMutating().length,

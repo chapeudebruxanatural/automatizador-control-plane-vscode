@@ -1,0 +1,29 @@
+schemaVersion: 1
+clientSlug: garbo-eventos
+updatedAt: 2026-08-09
+associations:
+  - id: domain-primary
+    kind: domain
+    value: garboeventos.com.br
+    verificationStatus: verified
+    source: Google Ads e projeto Pages consultado pela API da Cloudflare
+  - id: repository-site
+    kind: repository
+    value: dadocruz/garbo
+    verificationStatus: verified
+    source: vínculo GitHub do projeto Pages garbo na Cloudflare
+  - id: whatsapp-official
+    kind: whatsapp
+    value: null
+    verificationStatus: unknown
+  - id: meta-pixel-primary
+    kind: meta_pixel
+    value: null
+    verificationStatus: unknown
+economics:
+  maxCostPerConversationBRL: { value: null, verificationStatus: unknown }
+  funnel:
+    conversations: null
+    contracts: null
+    period: null
+    verificationStatus: unknown

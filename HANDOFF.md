@@ -4,16 +4,12 @@
 > traz a fila em ordem. Este documento é o registro completo; aquele é a porta
 > de entrada.
 
-Documento de transferência. **Atualizado 2026-08-08.** O que mudou em 07–08/08
-está em §7.7, §9.2, §12-B, §12-C e §13.
+Documento de transferência. **Atualizado 2026-08-09.** O estado mais recente
+está no último bloco `▶︎ RETOMADA` da §13.
 
-> ⚠️ **A tabela de branches abaixo está obsoleta e é mantida como histórico.**
-> Em 07/08 a `feat/google-ads-live-operations-v1` foi **mesclada na `main`**, e
-> todo o trabalho passou a acontecer direto na `main`. Ignore a instrução
-> "continue na feature branch": ela descreve um estado que não existe mais.
-> O `schedule` do GitHub Actions roda a partir da `main` — trabalhar em branch
-> significa o monitor rodando código antigo, que já causou uma execução verde
-> vigiando campanha pausada (§9.2).
+> **Branch de trabalho: `main`.** As duas feature branches históricas já foram
+> mescladas. O `schedule` do GitHub Actions roda a partir da `main`; confira
+> sempre o SHA efetivamente executado (§9.2).
 
 Tudo aqui foi verificado na data acima. Comando documentado é comando executado;
 número foi lido da API, não estimado. Onde não deu para verificar, está escrito
@@ -47,12 +43,11 @@ infraestrutura, contexto de clientes e automação com trava de segurança.
 
 | Ref | Estado |
 |---|---|
-| `main` | `d91a670` — Ciclo 1 + 2 mesclados |
-| `feat/operational-stabilization-v1` | mesclada (PR #1) |
-| `feat/google-ads-live-operations-v1` | **ativa** — PR #2 draft, **não mesclada** |
+| `main` | branch atual; use `git status --short --branch` para o SHA e diferenças locais |
+| `feat/operational-stabilization-v1` | histórica, mesclada (PR #1) |
+| `feat/google-ads-live-operations-v1` | histórica, mesclada (PR #2) |
 
-**Continue em `feat/google-ads-live-operations-v1`.** Ela está ~16 commits à
-frente da `main`. Não trabalhe na `main`. Não mescle o PR #2 sem revisão.
+**Continue na `main`.** Não trabalhe nas branches históricas.
 
 ---
 
@@ -64,13 +59,13 @@ Rode isto antes de qualquer coisa:
 npm ci && npm run verify && npm run scan:secrets:all
 ```
 
-Resultado esperado, verificado em 05/08:
+Resultado esperado, verificado em 09/08:
 
 | Comando | Estado | Observação |
 |---|---|---|
 | `npm run lint` | OK | ESLint |
 | `npm run typecheck` | OK | `tsc --noEmit` |
-| `npm test` | OK | **218 testes, 62 suítes, 11 arquivos, 0 falhas** (contagem conferida no HEAD `3eb706d` em 06/08; o valor anterior, 168/48, era de antes do `packages/agent/`) |
+| `npm test` | OK | **290 testes, 79 suítes, 17 arquivos, 0 falhas** |
 | `npm run build` | OK | gera `dist/apps/api/src/main.js` |
 | `npm run scan:secrets` | OK | arquivos em stage |
 | `npm run scan:secrets:all` | OK | repositório inteiro |
@@ -136,11 +131,11 @@ packages/
                   read-adapter.ts  write-adapter.ts     ← ÚNICO ao vivo
     evolution/    9 módulos                  ← pronto, não conectado
     n8n/          parser.ts                  ← lê export, não chama API
-    cloudflare/   parser.ts                  ← lê export, não chama API
+    cloudflare/   client.ts  parser.ts       ← somente GET; API provada
 apps/
   api/          server.ts  main.ts  routes/  ← webhook do WhatsApp
   worker/       main.ts
-tests/          11 arquivos, 218 testes, 62 suítes
+tests/          17 arquivos, 290 testes, 79 suítes
 scripts/        17 arquivos
 ```
 
@@ -150,8 +145,8 @@ scripts/        17 arquivos
 |---|---|
 | Google Ads | **ao vivo**, leitura e escrita, usada em produção |
 | Evolution / WhatsApp | construída e testada, **número real não conectado** |
-| n8n | parser de export. **Sem API key** |
-| Cloudflare | parser de export. **Sem token** |
+| n8n | UI autenticada: 30 workflows, 1 ativo; **sem API key** porque o plano não limita escopos a leitura |
+| Cloudflare | **ao vivo, somente leitura**; 8 zonas/14 DNS/10 Pages/3 Workers, token fora do Git |
 | VPS | inventário por SSH, somente leitura |
 
 A fundação está sólida, mas só **um braço opera**. Não abra integração nova
@@ -1168,3 +1163,163 @@ aquele dia. Hipótese principal, ainda não confirmada: o teste navegou direto
 para a URL, **sem `gclid`** — sem ele o Ads não atribui a conversão à campanha.
 Se estiver certo, o teste provou que a tag dispara **sem sujar o dado da
 campanha**. Conferir na próxima leitura antes de dar como encerrado.
+
+> ## ▶︎ RETOMADA — integrações e memória por cliente em 09/08/2026 às 00:09
+>
+> Esta retomada substitui o bloco das 23:20 apenas nos temas Cloudflare, n8n,
+> Meta, Garbo e Buteco. Branch `main`; antes deste lote havia um commit local
+> ainda não publicado (`fd1ceeb`) e a árvore estava limpa.
+>
+> **Cloudflare destravada e provada.** Foi criado, com autorização explícita do
+> dono, o token `automatizador-control-plane-readonly-20260808`, restrito à
+> conta `e6d7a4863004885bdae7e63bbec5e1f7`, todas as zonas dessa conta e seis
+> permissões exclusivamente `Read`. Expira em 06/11/2026. O valor foi salvo
+> fora do Git, em arquivo modo `600`, e a rota de verificação retornou ativo.
+> Nunca registrar o valor.
+>
+> `npm run inventario:cloudflare` agora reproduz a coleta sem escrita: **8
+> zonas ativas, 14 registros DNS, 10 projetos Pages, 3 Workers, 6 domínios
+> customizados de Worker e 0 túneis**. Conteúdo de TXT/CAA e tipos sensíveis é
+> descartado pelo parser. A API confirmou: Cássio roda no Worker
+> `cassio-ferraz`; Vivere no Worker `vivere`; Garbo no Pages `garbo`, vinculado
+> ao repositório `dadocruz/garbo`. `automatizadoria.cloud` e
+> `estudionovacena.com` não pertencem a essa conta Cloudflare — o provedor DNS
+> deles continua desconhecido.
+> O adaptador real foi ligado ao catálogo com as ações somente leitura
+> `cloudflare.zones.list` e `cloudflare.dns.list`; `/status` recebe o estado
+> real de habilitação. O objeto não expõe criar, editar ou apagar DNS.
+> Smoke test com `npm run start:local`: API em `127.0.0.1`, kill switch
+> `engaged`, `dry-run`, Cloudflare `enabled: true`, 10 ações no catálogo (3
+> mutantes ainda bloqueadas). O processo local foi encerrado normalmente.
+>
+> **n8n autenticado, mas sem chave.** A interface `1.120.4` mostrou 30
+> workflows, 1 ativo (`CRIAR CAMPANHA GOOGLE ADS`) e 29 inativos. Ao criar chave,
+> a própria tela informa que editar escopos exige upgrade; a credencial
+> disponível inclui permissões amplas, inclusive criação/exclusão de
+> credenciais e projetos. A criação foi cancelada. Para continuar, o dono deve
+> autorizar explicitamente uma chave ampla temporária com cliente local GET-only,
+> ou aprovar um usuário PostgreSQL somente leitura. Não chamar isso de chave de
+> inventário sem registrar o risco.
+> A lista completa dos 30 nomes/status está em `inventory/n8n-workflows.yaml`.
+> Cliente, nós, gatilhos, credenciais e efeitos continuam `unknown`; nenhum
+> workflow foi aberto, executado ou alterado.
+>
+> **Meta:** o dono entrou pessoalmente e definiu o escopo: campanhas, pixels e
+> medição. O seletor autenticado mostrou **19 portfólios empresariais**; a lista
+> está em `inventory/meta.yaml`, com associações por nome mantidas como
+> `discovered`/`unknown`. Ao abrir os ativos de `Dado Cruz`, o Meta exigiu chave
+> de acesso/biometria. A solicitação foi acionada novamente às 00:29 de 09/08 e
+> voltou ao mesmo modal sem liberar os ativos: o dono ainda precisa concluir a
+> confirmação pessoalmente no macOS; nenhuma senha ou 2FA será solicitada.
+> Contas, páginas, Instagram e datasets/pixels ainda não foram lidos; nenhuma
+> campanha Meta foi alterada.
+>
+> **Memória isolada por cliente.** Cada um dos 8 slugs agora tem
+> `clients/<slug>/memory.yaml`, com domínios, repositórios, WhatsApp, pixel,
+> custo máximo por conversa e funil conversa→contrato. Não existe valor global
+> de custo ou conversão. `npm run perguntar:cliente -- --cliente <slug>` mostra
+> somente as lacunas daquele cliente; teste recusa arquivo cujo slug interno
+> não coincide com a pasta.
+>
+> **Garbo:** o dono informou que atualizou pessoalmente as campanhas ativas em
+> 08/08. Isso resolve a autoria em nível `owner_reported`, mas ainda não resolve
+> a intenção exata: foi perguntado se deseja manter exatamente as cinco ativas,
+> incluindo MARCA e CASAMENTOS. Até a resposta, não alterar nenhuma.
+>
+> **Buteco:** a mídia nova também foi rejeitada por direito autoral, apesar de
+> usar trilha própria. O dono fará a reivindicação quando puder. A campanha
+> `24105770570` continua congelada; `24079586567` continua removida.
+>
+> **Rotações adiadas por decisão do dono:** senha root da VPS e TOTP exposto da
+> Vivere serão rotacionados somente depois de tudo testado e validado. O risco
+> continua aberto e não deve ser marcado como resolvido.
+>
+> Validação final do lote local: lint, typecheck, **271 testes em 75 suítes**,
+> build, **55 YAMLs**, `git diff --check` e scanner de segredos — tudo verde. A
+> validação integral revelou três erros de sintaxe antigos: uma nota órfã em
+> `inventory/google-ads.yaml` e o escopo `read:org` sem aspas em
+> `inventory/accounts.yaml` e `inventory/integrations.yaml`. Só a sintaxe foi
+> corrigida; nenhum valor operacional mudou. O scanner cobriu 183 arquivos
+> rastreados e, separadamente, os 16 novos ainda não rastreados; zero achados.
+> Coleta Cloudflare ao vivo também verde.
+
+> ## ▶︎ RETOMADA — GitHub e VPS somente leitura em 09/08/2026 às 00:51
+>
+> O dono adiou a Meta e mandou seguir sem ela. O inventário de 19 portfólios foi
+> preservado, mas biometria, contas, páginas e pixels não bloqueiam mais a fila.
+> Não reutilizar dados Meta antigos e não alterar nenhum ativo.
+>
+> **GitHub real:** `GitHubReadClient` reutiliza o `gh` CLI do keychain, fixa o
+> owner em `dadocruz`, não usa shell e só executa `gh repo list`. Leitura ao
+> vivo confirmou 14 repositórios, 6 privados e 8 públicos; a lista de nomes
+> coincide com `inventory/repositories.yaml`. O adaptador devolve
+> `likelyClient: null` e não possui métodos de criar, editar, arquivar ou apagar.
+>
+> **VPS real:** `VpsReadClient` possui somente as operações `host`, `containers`
+> e `stacks`, ligadas a comandos fixos. Um teste inicialmente mostrou que alias
+> iniciado por `-` passava na validação; o formato foi fechado antes da leitura
+> ao vivo. Estado em 09/08 00:49: Debian 11, 197 dias de uptime, 7.959 MiB de
+> RAM total, 3.356 MiB disponíveis, disco 47%, 32 containers todos `running`,
+> zero `unhealthy` e 13 stacks. Nenhuma variável, label ou segredo foi lido.
+>
+> O servidor local subiu com kill switch `engaged`, `dry-run`, aprovação humana
+> obrigatória e WhatsApp desligado. GitHub, VPS e Cloudflare apareceram
+> habilitados; n8n e Meta permaneceram desabilitados. Catálogo com 12 ações,
+> sendo 3 mutantes bloqueadas. Nenhum processo local ficou rodando e nenhuma
+> escrita externa foi executada.
+>
+> Validação deste lote: lint, typecheck, **282 testes em 77 suítes/16 arquivos**,
+> build, carga dos **55 YAMLs** e `git diff --check` verdes. Scanner: 183
+> arquivos rastreados e 24 novos não rastreados, zero achados. A árvore segue
+> sem commit deste lote e `main` já estava um commit à frente de `origin/main`.
+>
+> **Google Ads/Cássio, leitura 09/08:** `npm run governador` mostrou 1,6 dia de
+> saldo seguro para o Cássio (R$ 82,15 após gasto reportado e atraso estimado).
+> `npm run relatorio:cassio` consulta ao vivo somente as cinco campanhas
+> conhecidas e a ação `WHATSAPP - CÁSSIO`: às 01:02, 20 microconversões, 1.918
+> cliques e R$ 368,97 nas Demand Gen, custo de R$ 18,45 por WhatsApp. Campanha
+> atual: 15, 1.003 cliques, R$ 155,14 e R$ 10,34. Cidades por local de presença: São
+> Paulo 9; Brasília, Goiânia e Rio 3 cada; Curitiba e Salvador 1 cada. Com o
+> Search sem conversão, total de mídia R$ 406,57 e R$ 20,33 por WhatsApp.
+> O XML tinha 14 porque foi exportado antes dos seis registros adicionais.
+> Texto pronto em `reports/cassio-ferraz/relatorio-whatsapp-2026-08-09.md`;
+> **não enviado**, porque mensagem externa exige aprovação específica.
+>
+> A mesma leitura confirmou as cinco campanhas Garbo `ENABLED`; MARCA e
+> CASAMENTOS continuam `ativa_sem_declaracao`. Nenhuma mudança aplicada: aguarda
+> o dono confirmar se as duas devem permanecer ativas nos orçamentos atuais.
+
+> ## ▶︎ RETOMADA — Garbo reconciliada e n8n programático em 09/08/2026 às 01:25
+>
+> **Garbo resolvida:** o dono confirmou que deseja manter exatamente as cinco
+> campanhas ativas nos valores atuais: R$ 6, R$ 5, R$ 3, R$ 8 e R$ 12/dia.
+> O livro-caixa passou de R$ 14 para R$ 34/dia e MARCA/CASAMENTOS foram movidas
+> para `campanhasAtivas`. Nenhuma campanha, orçamento ou status foi alterado no
+> Google Ads; somente a intenção versionada foi reconciliada. O governador
+> leu as cinco `ENABLED` com os cinco orçamentos corretos e zero divergências.
+> Resultado financeiro: Garbo com R$ 54,73 seguros (1,6 dia); Cássio com
+> R$ 81,91 seguros (1,6 dia). Nenhuma mensagem foi enviada.
+>
+> **n8n programático:** com autorização explícita, foi criada a chave
+> `automatizador-control-plane-temporaria-20260809`, ampla por limitação do
+> plano e com expiração em 16/08/2026. O valor vive fora do Git em arquivo
+> modo `600`. `N8nReadClient` implementa exclusivamente GET e descarta nós,
+> parâmetros, conexões, webhooks e dados de credenciais antes da saída.
+> Leitura reproduzível: `npm run inventario:n8n`.
+>
+> A API confirmou **33 workflows: 1 ativo, 32 inativos e 3 arquivados**. A UI
+> mostra 30 porque não inclui os arquivados. Todas as associações a cliente
+> estão `unknown`; nenhuma foi inferida pelo nome. A rota
+> `GET /api/v1/credentials` respondeu HTTP 405, registrada como indisponível,
+> não como zero credenciais. Nenhum workflow foi aberto, executado ou alterado.
+>
+> **Meta permanece adiada** por decisão do dono. Não houve leitura adicional
+> nem qualquer alteração em campanhas, pixels ou medição Meta.
+>
+> Validação limpa: `npm ci`, lint, typecheck, **290 testes em 79 suítes/17
+> arquivos**, build, 55 YAMLs, `git diff --check` e scanners de 183 arquivos
+> rastreados + 28 novos, tudo verde e zero achado de segredo. Smoke local:
+> kill switch `engaged`, `dry-run`, aprovação obrigatória, WhatsApp/Meta
+> desligados e GitHub/VPS/Cloudflare/n8n habilitados; 12 ações, 3 mutantes
+> bloqueadas. Publicação autorizada pelo dono e realizada na `main` no commit
+> desta retomada; conferir o SHA atual com `git log -1 --oneline`.

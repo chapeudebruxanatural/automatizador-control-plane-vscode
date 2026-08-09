@@ -2,8 +2,8 @@
  * Portas de integração.
  *
  * Cada sistema externo é uma interface aqui e uma implementação em
- * `../adapters/`. Nesta fase **só existem implementações simuladas** — nenhuma
- * chamada real sai da máquina.
+ * `../adapters/`. GitHub, VPS e Cloudflare possuem implementações reais
+ * exclusivamente de leitura; as demais continuam simuladas ou bloqueadas.
  *
  * Convenções que valem para todas as portas:
  *
@@ -25,7 +25,7 @@ export interface AdapterHealth {
 /** Base comum: toda porta sabe se está habilitada e se responde. */
 export interface IntegrationAdapter {
   readonly name: string;
-  /** Nesta fase, `false` em todos os adaptadores reais. */
+  /** `true` apenas quando a implementação real de leitura foi injetada. */
   readonly enabled: boolean;
   health(): Promise<AdapterHealth>;
 }
@@ -92,6 +92,7 @@ export interface WorkflowSummary {
   readonly id: string;
   readonly name: string;
   readonly active: boolean;
+  readonly isArchived: boolean;
   readonly updatedAt: string;
   readonly clientSlug: string | null;
 }

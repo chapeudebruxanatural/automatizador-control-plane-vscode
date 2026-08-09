@@ -39,6 +39,10 @@ export type Config = z.infer<typeof configSchema>;
 
 export type RawEnv = Record<string, string | undefined>;
 
+export type IntegrationEnabledState = Partial<
+  Readonly<Record<'github' | 'vps' | 'n8n' | 'cloudflare' | 'google' | 'meta' | 'whatsapp', boolean>>
+>;
+
 /**
  * Desliga apenas com o literal `false`. Qualquer outra coisa — ausente, vazio,
  * `"no"`, `"0"`, um erro de digitação — mantém o freio acionado.
@@ -94,7 +98,11 @@ export function loadConfig(env: RawEnv = process.env): Config {
  * Postura de segurança para exposição em `/status`.
  * Reporta apenas PRESENÇA de configuração, nunca valores.
  */
-export function describePosture(config: Config, env: RawEnv = process.env) {
+export function describePosture(
+  config: Config,
+  env: RawEnv = process.env,
+  enabledState: IntegrationEnabledState = {},
+) {
   const configured = (name: string): boolean => {
     const value = env[name];
     return value !== undefined && value.trim() !== '';
@@ -106,13 +114,24 @@ export function describePosture(config: Config, env: RawEnv = process.env) {
     requireHumanApproval: config.requireHumanApproval,
     whatsappEnabled: config.whatsappEnabled,
     integrations: {
-      github: { enabled: false, credentialConfigured: configured('GITHUB_TOKEN') },
-      vps: { enabled: false, credentialConfigured: configured('VPS_SSH_ALIAS') },
-      n8n: { enabled: false, credentialConfigured: configured('N8N_API_KEY') },
-      cloudflare: { enabled: false, credentialConfigured: configured('CLOUDFLARE_API_TOKEN') },
-      google: { enabled: false, credentialConfigured: configured('GOOGLE_CLIENT_ID') },
-      meta: { enabled: false, credentialConfigured: configured('META_ACCESS_TOKEN') },
-      whatsapp: { enabled: false, credentialConfigured: configured('WHATSAPP_ACCESS_TOKEN') },
+      github: {
+        enabled: enabledState.github ?? false,
+        credentialConfigured:
+          configured('GITHUB_TOKEN') || env['GITHUB_AUTH_MODE']?.trim().toLowerCase() === 'gh-cli',
+      },
+      vps: { enabled: enabledState.vps ?? false, credentialConfigured: configured('VPS_SSH_ALIAS') },
+      n8n: {
+        enabled: enabledState.n8n ?? false,
+        credentialConfigured: configured('N8N_API_KEY') || configured('N8N_API_KEY_PATH'),
+      },
+      cloudflare: {
+        enabled: enabledState.cloudflare ?? false,
+        credentialConfigured:
+          configured('CLOUDFLARE_API_TOKEN') || configured('CLOUDFLARE_API_TOKEN_PATH'),
+      },
+      google: { enabled: enabledState.google ?? false, credentialConfigured: configured('GOOGLE_CLIENT_ID') },
+      meta: { enabled: enabledState.meta ?? false, credentialConfigured: configured('META_ACCESS_TOKEN') },
+      whatsapp: { enabled: enabledState.whatsapp ?? false, credentialConfigured: configured('WHATSAPP_ACCESS_TOKEN') },
     },
   };
 }

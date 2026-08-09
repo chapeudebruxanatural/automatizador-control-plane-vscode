@@ -44,7 +44,7 @@ accounts:
     purpose: Todos os repositorios da operacao
     client: automatizadoria
     permissions: { read: true, write: true, create: true, delete: false }
-    scopes: [gist, read:org, repo, workflow]
+    scopes: [gist, "read:org", repo, workflow]
     authSource: gh CLI (OAuth)
     storage: keychain do macOS
     status: ativo

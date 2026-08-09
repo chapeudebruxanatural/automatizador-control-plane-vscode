@@ -55,12 +55,48 @@ export function createDefaultRegistry(adapters: AdapterSet): ActionRegistry {
   });
 
   registry.register({
+    kind: 'vps.host.get',
+    domain: 'vps',
+    description: 'Lê saúde e capacidade básica da VPS pela lista branca SSH.',
+    mutating: false,
+    schema: z.object({}).strict(),
+    handler: () => adapters.vps.getHost(),
+  });
+
+  registry.register({
+    kind: 'vps.stacks.list',
+    domain: 'vps',
+    description: 'Lista nomes das stacks Docker Swarm da VPS.',
+    mutating: false,
+    schema: z.object({}).strict(),
+    handler: () => adapters.vps.listStacks(),
+  });
+
+  registry.register({
     kind: 'n8n.workflows.list',
     domain: 'n8n',
     description: 'Lista os workflows do n8n.',
     mutating: false,
     schema: z.object({}).strict(),
     handler: () => adapters.n8n.listWorkflows(),
+  });
+
+  registry.register({
+    kind: 'cloudflare.zones.list',
+    domain: 'cloudflare',
+    description: 'Lista as zonas acessíveis pelo token somente leitura.',
+    mutating: false,
+    schema: z.object({}).strict(),
+    handler: () => adapters.cloudflare.listZones(),
+  });
+
+  registry.register({
+    kind: 'cloudflare.dns.list',
+    domain: 'cloudflare',
+    description: 'Lista metadados de DNS de uma zona, sem conteúdo sensível.',
+    mutating: false,
+    schema: z.object({ zoneId: z.string().min(1) }).strict(),
+    handler: (payload) => adapters.cloudflare.listDnsRecords(payload.zoneId),
   });
 
   registry.register({

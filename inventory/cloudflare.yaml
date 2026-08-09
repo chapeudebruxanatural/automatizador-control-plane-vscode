@@ -1,23 +1,35 @@
 # =============================================================================
 # inventory/cloudflare.yaml
 # =============================================================================
-# ESTADO: PARCIAL. A sessao autenticada do painel foi conferida diretamente em
-# 08/08, mas nenhuma consulta a API foi feita — ainda nao ha token programatico.
+# ESTADO: VERIFICADO POR API em 09/08. Token programatico somente leitura,
+# restrito a conta abaixo, guardado fora do repositorio em arquivo modo 600.
 #
 # O parser que normalizara a resposta da API ja existe e esta testado:
 # packages/integrations/src/cloudflare/parser.ts
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-08
-  status: PARCIAL
-  apiQueried: false
+  collectedAt: 2026-08-09
+  status: VERIFICADO
+  apiQueried: true
   uiQueried: true
   verificationStatus: verified
-  blocker: >-
-    Sem token de API. Necessario: Account:Read, Zone:Read, DNS:Read,
-    Pages:Read, Workers:Read. Nunca colar o valor no chat — ver
-    docs/runbooks/desbloquear-integracoes.md.
+  changesMade: 0
+  reproducibleCommand: npm run inventario:cloudflare
+  credential:
+    name: automatizador-control-plane-readonly-20260808
+    permissions:
+      - Account Settings:Read
+      - Workers Scripts:Read
+      - Cloudflare Pages:Read
+      - Connectivity Directory:Read
+      - Zone:Read
+      - DNS:Read
+    accountScope: e6d7a4863004885bdae7e63bbec5e1f7
+    zoneScope: todas as zonas da conta
+    expiresAt: 2026-11-06
+    secretStorage: arquivo local externo ao Git, modo 600
+    verificationStatus: verified
 
 account:
   displayName: "Estudionovacena@gmail.com's Account"
@@ -35,6 +47,14 @@ account:
 # -----------------------------------------------------------------------------
 zones:
   - name: 4cadeiras.com
+    zoneId: c4a928a7312e2fefce68b71f77891670
+    status: active
+    apex: 4cadeiras.pages.dev
+    hosting:
+      type: cloudflare_pages
+      project: 4cadeiras
+      repository: dadocruz/4cadeiras
+      verificationStatus: verified
     likelyClient: null
     likelyRepository: 4cadeiras
     zoneVerificationStatus: verified
@@ -42,6 +62,14 @@ zones:
     note: Repositorio 4cadeiras existe e e site de evento com venda de ingresso.
 
   - name: cassioferraz.com.br
+    zoneId: a44dc0a53899ac113fa0230a4934055f
+    status: active
+    hosting:
+      type: cloudflare_worker
+      service: cassio-ferraz
+      environment: production
+      hostnames: [cassioferraz.com.br, www.cassioferraz.com.br]
+      verificationStatus: verified
     likelyClient: cassio-ferraz
     likelyRepository: cassio-ferraz
     zoneVerificationStatus: verified
@@ -51,6 +79,14 @@ zones:
       da campanha e cassioferraz.com.br.
 
   - name: encantariaartesanal.com
+    zoneId: bbcb27e3340c7bbc7eb575557089c988
+    status: active
+    apex: encantaria-artesanal.pages.dev
+    hosting:
+      type: cloudflare_pages
+      project: encantaria-artesanal
+      repository: dadocruz/encantaria_artesanal
+      verificationStatus: verified
     likelyClient: null
     likelyRepository: encantaria_artesanal
     zoneVerificationStatus: verified
@@ -58,10 +94,14 @@ zones:
     knownSubdomains:
       - host: painel.encantariaartesanal.com
         target: "encantaria_directus (VPS)"
+        dnsTarget: 72.61.40.219
         verificationStatus: verified
         source: regra de roteamento do Traefik
 
   - name: encantariaatersanal.com
+    zoneId: 91aa1f59596270dc945e837bd8bf7811
+    status: active
+    dnsRecordCount: 0
     likelyClient: null
     zoneVerificationStatus: verified
     clientVerificationStatus: unknown
@@ -70,6 +110,14 @@ zones:
       que pertence a Encantaria nem que e erro descartavel; confirmar com o dono.
 
   - name: gabrielgadelhacantor.com
+    zoneId: 282365fee75a56d9f9affc55b7b78adf
+    status: active
+    apex: gabriel-gadelha-casamentos.pages.dev
+    hosting:
+      type: cloudflare_pages
+      project: gabriel-gadelha-casamentos
+      repository: dadocruz/gabriel-gadelha-casamentos
+      verificationStatus: verified
     likelyClient: null
     likelyRepository: gabriel-gadelha-casamentos
     zoneVerificationStatus: verified
@@ -83,34 +131,59 @@ zones:
       dominio, nao com semelhanca de nome.
 
   - name: garboeventos.com.br
+    zoneId: 209e70a4c523864d07c9b8c40d64ae80
+    status: active
+    apex: garbo-oxh.pages.dev
+    hosting:
+      type: cloudflare_pages
+      project: garbo
+      repository: dadocruz/garbo
+      productionBranch: main
+      verificationStatus: verified
     likelyClient: garbo-eventos
     likelyRepository: garbo
     zoneVerificationStatus: verified
     clientVerificationStatus: verified
 
   - name: maltasertaneja.com
+    zoneId: e3bb3e5884663ef1f6b199c09591b261
+    status: active
+    apex: malta-sertaneja.pages.dev
+    hosting:
+      type: cloudflare_pages
+      project: malta-sertaneja
+      repository: dadocruz/malta-sertaneja
+      verificationStatus: verified
     likelyClient: null
     likelyRepository: malta-sertaneja
     zoneVerificationStatus: verified
     clientVerificationStatus: unknown
 
   - name: viveremp.com
+    zoneId: e019625de8576ad5708e62b9bd76be33
+    status: active
+    hosting:
+      type: cloudflare_worker
+      service: vivere
+      environment: production
+      hostnames: [viveremp.com, www.viveremp.com, gestao.viveremp.com, conteudo.viveremp.com]
+      verificationStatus: verified
     likelyClient: vivere
     likelyRepository: vivere
     zoneVerificationStatus: verified
     clientVerificationStatus: owner_reported
     knownSubdomains:
-      - { host: "www.viveremp.com", role: site institucional }
-      - { host: "gestao.viveremp.com", role: aplicacao VIVERE 360 }
-      - { host: "conteudo.viveremp.com", role: conteudo }
-    note: Subdominios informados no handoff do VIVERE 360; nao verificados.
+      - { host: "www.viveremp.com", role: site institucional, verificationStatus: verified }
+      - { host: "gestao.viveremp.com", role: aplicacao VIVERE 360, verificationStatus: verified }
+      - { host: "conteudo.viveremp.com", role: conteudo, verificationStatus: verified }
+    note: Hospedagem e hostnames confirmados na API; os papeis funcionais continuam owner_reported.
 
 # -----------------------------------------------------------------------------
 # DOMINIOS QUE NAO APARECERAM NA LISTA
 # -----------------------------------------------------------------------------
 domainsNotInReportedList:
   - domain: automatizadoria.cloud
-    status: LOCALIZADO (destino), origem ainda desconhecida
+    status: AUSENTE DESTA CONTA CLOUDFLARE; destino conhecido
     servedBy: "VPS nvvps, via Traefik"
     verificationStatus: verified
     evidence: >-
@@ -126,19 +199,18 @@ domainsNotInReportedList:
       (aba de navegador) para propriedade confirmada pelo proprio dono na
       plataforma.
     openQuestion: >-
-      PROPRIEDADE confirmada. Permanece desconhecido apenas ONDE O DNS E
-      GERENCIADO: o dominio nao apareceu na lista de zonas Cloudflare lida
-      pelo dono. Ou esta em outra conta Cloudflare, ou em outro provedor.
-    action: Confirmar o provedor de DNS quando houver token, ou pelo registrador.
+      PROPRIEDADE confirmada. A API provou que nao esta na conta Cloudflare
+      e6d7a4863004885bdae7e63bbec5e1f7. Localizar outra conta ou provedor DNS.
+    action: Confirmar o provedor DNS pelo registrador ou por outra conta.
 
   - domain: estudionovacena.com
-    status: LOCALIZADO (destino), origem desconhecida
+    status: AUSENTE DESTA CONTA CLOUDFLARE; destino conhecido
     servedBy: "VPS nvvps, via Traefik"
     verificationStatus: verified
     evidence: >-
       Aparece em 4 regras do Traefik, servindo caminhos diferentes:
       / (novacena-motion), /editais, /music e /leonardo.
-    openQuestion: Mesma situacao de automatizadoria.cloud — nao consta na lista.
+    openQuestion: Mesma situacao de automatizadoria.cloud, agora confirmada pela API.
 
   - domain: srv1106082.hstgr.cloud
     status: hostname padrao da Hostinger
@@ -149,30 +221,33 @@ domainsNotInReportedList:
       atribui a VPS; nao e dominio de cliente e nao precisa de gestao.
 
 # -----------------------------------------------------------------------------
-notQueried:
-  reason: sem token
-  wouldQuery:
-    - accounts
-    - zones (id, status, nameservers, conta dona)
-    - dns_records por zona (com conteudo de TXT redigido)
-    - pages projects e dominios customizados
-    - workers scripts e routes
-    - ssl/tls e certificados
-    - redirect rules
-    - r2 buckets
-    - d1 databases
-    - kv namespaces
-    - turnstile widgets
-    - analytics
-    - vinculos com GitHub (deployments de Pages)
+apiInventory:
+  zones: 8
+  dnsRecords: 14
+  duplicateZoneNames: []
+  pagesProjects: 10
+  workersScripts: [cassio-ferraz, vivere, vivere-homologacao]
+  workerCustomDomains: 6
+  tunnels: 0
+  sensitiveDnsContentsPersisted: false
+  pageProjectsWithoutCustomDomain:
+    - gabriel-casamentos
+    - teste
+    - mitolyn
+    - monitoramento
+    - proposta
+  note: >-
+    A associacao projeto Pages -> repositorio/dominio e fato verificado. A
+    associacao desses recursos a um cliente continua unknown quando nao existe
+    evidencia independente; sem adivinhar por nome.
 
 uiObserved:
-  at: 2026-08-08
+  at: 2026-08-09
   zonesActive: 8
   workersAndPages: 14
   billableUsageUSD: 0.00
   note: >-
-    A interface mostrou projetos Workers/Pages e vinculos GitHub, mas o
-    inventario completo ainda exige API somente leitura para ser reproduzivel.
+    A API encontrou 10 Pages + 3 Workers = 13 recursos. A interface mostrou 14.
+    A diferenca permanece aberta; nao presumir que o item extra e duplicata.
 
 changesMade: 0

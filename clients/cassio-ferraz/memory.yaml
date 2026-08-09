@@ -1,0 +1,30 @@
+schemaVersion: 1
+clientSlug: cassio-ferraz
+updatedAt: 2026-08-09
+associations:
+  - id: domain-primary
+    kind: domain
+    value: cassioferraz.com.br
+    verificationStatus: verified
+    source: URL final no Google Ads e domínio de produção no Worker da Cloudflare
+  - id: repository-site
+    kind: repository
+    value: dadocruz/cassio-ferraz
+    verificationStatus: discovered
+    source: nome e conteúdo do repositório; falta vínculo autoritativo de deploy
+  - id: whatsapp-official
+    kind: whatsapp
+    value: "5515991320687"
+    verificationStatus: owner_reported
+    source: número da Viviane já registrado no inventário operacional
+  - id: meta-pixel-primary
+    kind: meta_pixel
+    value: null
+    verificationStatus: unknown
+economics:
+  maxCostPerConversationBRL: { value: null, verificationStatus: unknown }
+  funnel:
+    conversations: null
+    contracts: null
+    period: null
+    verificationStatus: unknown

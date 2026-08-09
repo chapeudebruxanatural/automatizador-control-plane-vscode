@@ -16,28 +16,32 @@ projects:
     status: unknown
     verificationStatus: discovered
 
-confirmedRepositories: []
-
-likelyRepositories:
+confirmedRepositories:
   - name: garbo
-    reason: >-
-      O nome do repositorio corresponde ao prefixo do slug, e a raiz contem o
-      arquivo garbo-eventos.zip, que casa com o slug completo.
-    verificationStatus: discovered
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-09
+    note: API do Cloudflare Pages vincula dadocruz/garbo ao projeto garbo.
 
-domains: []
+likelyRepositories: []
+
+domains:
+  - domain: garboeventos.com.br
+    role: site institucional
+    servedBy: Cloudflare Pages garbo-oxh.pages.dev
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-09
 
 accounts: []
 
 integrations:
   - name: Cloudflare Pages
-    status: discovered
-    note: Inferido da presenca de _redirects.
+    status: verified
+    note: Projeto garbo, branch main e dominios customizados confirmados pela API.
 
 environments:
   - name: producao
-    location: unknown
-    verificationStatus: unknown
+    location: Cloudflare Pages
+    verificationStatus: verified
 
 risks:
   - severity: media
@@ -53,7 +57,6 @@ nextSteps:
   - Inspecionar o conteudo de garbo-eventos.zip antes de qualquer outra acao
   - Decidir se o repositorio deveria ser privado
   - Confirmar se o cliente ainda esta ativo
-  - Descobrir o dominio de producao
 
 verificationStatus: owner_reported
 lastVerifiedAt: 2026-08-04

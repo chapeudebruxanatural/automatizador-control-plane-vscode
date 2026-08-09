@@ -27,35 +27,35 @@ Antes de qualquer commit: `npm run scan:secrets`.
 
 ## Bloco 1 — Destrava vários clientes de uma vez
 
-### 1.1 Entrar no n8n e criar acesso de inventário
+### 1.1 n8n — concluído, não fornecer novamente
 
 **Destrava:** saber quais workflows existem, quais estão ativos, de que cliente
 são e quais credenciais/processos dependem deles. É o maior ponto cego atual.
 
-Em 08/08 a URL `n8n.automatizadoria.cloud` abriu normalmente, mas mostrou a
-tela de login. O dono deve entrar pessoalmente na aba já aberta; **não enviar
-senha no chat**. Depois, criar uma API key para inventário e guardá-la no
-mecanismo local protegido. Isso não autoriza alteração de workflow.
+O dono autorizou a chave ampla temporária em 09/08. Ela expira em 16/08, está
+fora do Git em arquivo modo `600` e só é usada por cliente local GET-only. A API
+confirmou 33 workflows: 1 ativo, 32 inativos e 3 arquivados. Falta ao dono
+confirmar a associação workflow → cliente; todos seguem `unknown` de propósito.
 
-### 1.2 Entrar no Meta Business Manager e decidir o escopo
+### 1.2 Inventariar o Meta Business Manager
 
 **Destrava:** inventário das contas, páginas, Instagram e pixels; depois, a
 medição pedida para os clientes.
 
-Em 08/08 a sessão mostrou `Continuar com Facebook/Instagram`. O dono deve entrar
-pessoalmente; **não enviar senha nem 2FA no chat**. Depois falta decidir:
-operar Meta Ads ou somente instalar/auditar pixels. IDs anteriores estão
-`stale` até nova conferência.
+Login concluído. O dono decidiu que o escopo inclui **campanhas, pixels e
+medição**. Falta mapear Business Managers, contas de anúncio, páginas,
+Instagram e datasets/pixels; IDs anteriores continuam `stale` até conferência.
 
-### 1.3 Token programático somente leitura da Cloudflare
+### 1.3 Cloudflare — concluído, não fornecer novamente
 
 **Destrava:** inventário reproduzível de zonas, DNS, Workers e Pages. A sessão
 humana já foi verificada: conta `e6d7a4863004885bdae7e63bbec5e1f7`, 8 zonas
 ativas e 14 projetos Workers/Pages.
 
-Criar primeiro um token **somente leitura** (`Zone:Read`, `DNS:Read` e leitura
-de Workers/Pages). `DNS:Edit` e deploy ficam para outro lote, com plano e
-aprovação específicos.
+Token somente leitura criado e validado em 09/08, restrito à conta e com
+expiração em 06/11. O valor está fora do Git, em arquivo modo 600. A API
+confirmou 8 zonas, 14 DNS, 10 Pages, 3 Workers, 6 domínios de Worker e 0 túneis.
+`DNS:Edit` e deploy continuam fora deste lote.
 
 ### 1.4 Containers GTM que ainda não aparecem
 
@@ -116,6 +116,9 @@ Lista de usuários da conta e da gerenciadora `3992594849`, em
 
 Faça você mesmo; eu não devo executar troca de credencial.
 
+Em 08/08 o dono adiou ambas até a plataforma estar testada e validada. O risco
+continua aberto; o adiamento não equivale a resolução.
+
 ---
 
 ## Bloco 3 — Decisões de negócio que travam a contabilidade
@@ -161,11 +164,9 @@ conversa é barato. Sem esse número, ninguém sabe.
 
 ### Gaveta / Buteco Sertanejo
 
-**Mídia nova** para substituir o short reprovado por `COPYRIGHTED_CONTENT`.
-A campanha `24105770570` **termina dia 11/ago** — os R$ 300 têm prazo.
-
-Se a mídia não chegar antes, a campanha encerra sozinha e a verba volta ao
-bolso comum sem ter veiculado nada.
+**Reivindicação de direito autoral.** A mídia substituta também foi rejeitada,
+apesar de usar trilha própria. O dono fará a reivindicação quando puder. A
+campanha `24105770570` continua congelada e não deve ser alterada.
 
 ### Sou Raízes e Chapéu de Bruxa
 
@@ -196,7 +197,7 @@ segue só como projeto de infraestrutura.
 |---|---|
 | Números de WhatsApp oficiais de cada cliente | Hoje só o do Cássio é conhecido (`5515991320687`, Viviane). Sem o número, a tag de WhatsApp não pode ser criada |
 | Domínios confirmados por cliente | `inventory/domains.yaml` tem entradas com `likelyClient`, não com dono confirmado |
-| Chave da API do n8n | Automação operacional na VPS segue inacessível |
+| Associação dos 33 workflows do n8n aos clientes | Nomes são pistas, não prova; o comando de confirmação deve ser respondido por cliente |
 | IDs de propriedade GA4 por cliente | Só o do Cássio é conhecido (`G-8WNMS2XFXR`) |
 
 ---

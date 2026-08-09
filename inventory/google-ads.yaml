@@ -145,9 +145,6 @@ credentialIncident:
     segredos cobre 150 arquivos com 0 achados.
   action: ROTACIONAR o developer token na Central de API do Google Ads
   status: pendente
-    note: >-
-      Apenas o identificador. Nenhuma chave, token ou developer token e
-      registrado neste repositorio.
 
 # -----------------------------------------------------------------------------
 clients:

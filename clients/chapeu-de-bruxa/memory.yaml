@@ -1,0 +1,27 @@
+schemaVersion: 1
+clientSlug: chapeu-de-bruxa
+updatedAt: 2026-08-09
+associations:
+  - id: domain-primary
+    kind: domain
+    value: null
+    verificationStatus: unknown
+  - id: repository-primary
+    kind: repository
+    value: null
+    verificationStatus: unknown
+  - id: whatsapp-official
+    kind: whatsapp
+    value: null
+    verificationStatus: unknown
+  - id: meta-pixel-primary
+    kind: meta_pixel
+    value: null
+    verificationStatus: unknown
+economics:
+  maxCostPerConversationBRL: { value: null, verificationStatus: unknown }
+  funnel:
+    conversations: null
+    contracts: null
+    period: null
+    verificationStatus: unknown

@@ -13,6 +13,8 @@ meta:
   orchestrator: docker-swarm (no unico)
   runningContainers: 32
   failedContainers: 0
+  liveReadVerifiedAt: 2026-08-09
+  liveReadSummary: 32 containers, todos running, nenhum unhealthy; 13 stacks
   verificationStatus: verified
 
 # -----------------------------------------------------------------------------

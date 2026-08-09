@@ -1,33 +1,38 @@
 # =============================================================================
 # inventory/n8n-workflows.yaml
 # =============================================================================
-# Este arquivo esta VAZIO DE PROPOSITO e o motivo importa.
-#
-# O inventario de workflows exige a API REST do n8n, que exige uma API key que
-# ainda nao existe. Nenhum workflow foi lido, executado ou alterado.
-#
-# Preencher este arquivo com suposicoes seria pior do que deixa-lo vazio:
-# criaria a impressao de que a operacao esta mapeada quando nao esta.
+# A interface e a API autenticadas foram lidas sem executar nem alterar workflow.
+# A chave e ampla por limitacao do plano; a contencao e feita pelo cliente local,
+# que implementa exclusivamente GET e descarta campos sensiveis antes da saida.
 #
 # Analise completa: docs/discovery/n8n-inventory.md
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-04
-  status: BLOQUEADO
-  verificationStatus: unknown
-  blocker: >-
-    API key do n8n nao disponivel. Sem ela nao e possivel listar workflows,
-    verificar quais estao ativos, nem descobrir quais clientes dependem de
-    quais automacoes.
-  unblockedBy: >-
-    Gerar API key em Settings > n8n API na interface do n8n e guardar em .env
-    local como N8N_API_KEY. Leitura apenas; nao altera nada em producao.
+  collectedAt: 2026-08-09T01:21:50-03:00
+  status: METADADOS_API_VERIFICADOS
+  verificationStatus: verified
+  changesMade: 0
+  source: n8n Public API autenticada + interface web
+  containment: cliente local sem POST, PUT, PATCH ou DELETE
   impact: >-
-    Maior ponto cego da operacao. O n8n roda ha ~6 meses como orquestrador de
-    fato. Enquanto este arquivo estiver vazio, qualquer manutencao na VPS
-    (atualizar o SO, reiniciar o PostgreSQL, mexer no Traefik) e feita sem
-    saber quais processos de clientes vao parar.
+    O ponto cego de quantidade, estado e arquivamento foi removido. Associacao
+    a cliente e efeito de negocio continuam unknown ate confirmacao humana.
+
+apiAccess:
+  keyLabel: automatizador-control-plane-temporaria-20260809
+  expiresOn: 2026-08-16
+  scope: amplo_por_limitacao_do_plano
+  storage: arquivo externo ao Git com modo 600
+  verificationStatus: verified
+  credentialValuesStored: false
+  credentialInventoryEndpoint:
+    method: GET
+    path: /api/v1/credentials
+    result: HTTP_405
+    meaning: >-
+      A API instalada nao oferece inventario de credenciais por GET. O
+      adaptador falha explicitamente; nao representa o resultado como lista vazia.
 
 # O que se sabe da instalacao, sem tocar em workflow algum.
 installation:
@@ -51,6 +56,8 @@ installation:
   ingress: via Traefik
   verificationStatus: verified
   lastVerifiedAt: 2026-08-04
+  uiVersion: 1.120.4
+  uiVersionVerifiedAt: 2026-08-08
 
 database:
   engine: PostgreSQL
@@ -85,4 +92,60 @@ workflowSchema:
   verificationStatus: procedencia
   lastVerifiedAt: data
 
-workflows: []   # BLOQUEADO — ver meta.blocker
+apiInventory:
+  total: 33
+  active: 1
+  inactive: 32
+  archived: 3
+  verificationStatus: verified
+  note: >-
+    A interface mostrou 30 porque omite os 3 arquivados; a API retorna os 33.
+
+uiInventory:
+  total: 30
+  activeVisible: 1
+  inactiveVisible: 29
+  activeWorkflow:
+    name: CRIAR CAMPANHA GOOGLE ADS
+    verificationStatus: verified
+  caution: >-
+    O nome indica potencial efeito financeiro, mas nome nao prova o que os nos
+    fazem nem a qual cliente pertence. Nao executar, desativar ou associar sem
+    ler o JSON sanitizado ou abrir o workflow sob aprovacao adequada.
+
+workflows:
+  # Nome, status, arquivamento e data vieram da API. Nos, parametros,
+  # conexoes, webhooks e credenciais foram descartados. Nenhum cliente foi inferido.
+  - { id: 8T6815oZQtPQ24Dw, name: Requisições Meta Ads, active: false, isArchived: false, updatedAt: "2025-11-05T06:52:20.802Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: SEI383WFkwTxcuJV, name: "🟡 [JPS] 1️⃣ PPRE E AGENTE E TOOLS", active: false, isArchived: false, updatedAt: "2025-11-07T23:44:45.461Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: 29xG8YC4dAJP7pu9, name: agente para clinica, active: false, isArchived: false, updatedAt: "2025-11-23T22:51:28.048Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: iszdrNRjvXWLFZW2, name: "1- Secretaria | Lara | Youtube", active: false, isArchived: false, updatedAt: "2025-11-07T23:34:03.635Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: 9L8AYWrwKSAwZdEs, name: "2- Agendamento | Lara | Youtube", active: false, isArchived: false, updatedAt: "2025-11-10T22:13:06.684Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: GkLO6z8nmYDplwq0, name: 3- Marcação de consulta, active: false, isArchived: false, updatedAt: "2025-11-07T22:43:10.287Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: N657PxUGyjJHovHc, name: agente_extração_leads_empresariais/modelo, active: false, isArchived: false, updatedAt: "2025-11-18T02:51:38.746Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: DVEqIdJRRO3TXORo, name: scraping google - FUNCIONANDO, active: false, isArchived: false, updatedAt: "2025-11-24T09:50:22.210Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: hAAgxRg8GEkf3sgt, name: Extract Instagram Profile Data n8n, active: false, isArchived: false, updatedAt: "2025-11-18T05:52:19.393Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: TEQaw7kmwb7pKzn8, name: ALKANSE - SCREPING - SDR, active: false, isArchived: false, updatedAt: "2025-11-19T04:52:24.478Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: dGcIBZDCAehEhLOD, name: My workflow, active: false, isArchived: false, updatedAt: "2025-11-19T02:56:50.569Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: y5BLhM3hDAZ9e5oU, name: ALKANSE - SCREPING LEADS INSTAGRAM, active: false, isArchived: false, updatedAt: "2025-11-26T16:47:07.482Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: OJGZbYuM4NyF3ul5, name: leads google maps, active: false, isArchived: false, updatedAt: "2025-11-20T13:23:07.332Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: LOJsdH6DoOhQB9hs, name: "[CRIAR VÍDEOS VIRAIS VEO3 COM FAL.AI]", active: false, isArchived: false, updatedAt: "2025-11-20T13:51:06.253Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: QblumMjxWDy1eIHo, name: ROTEIRISTA FODA, active: false, isArchived: false, updatedAt: "2025-12-18T20:30:30.756Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: GRXrYCNeFUsXg9ny, name: C6D Roteiros via WhatsApp (Evolution API), active: false, isArchived: true, updatedAt: "2025-11-23T22:54:19.015Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: Ds8IgipGTNjkE2u7, name: TESTE DE TRATAMENTO DE MENSAGENS, active: false, isArchived: false, updatedAt: "2025-11-23T11:55:05.556Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: ahN0ZZx4fCn73F9x, name: AGENTE ENVIO DE MÍDIAS, active: false, isArchived: false, updatedAt: "2025-11-23T12:28:55.723Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: jPrqUbCC7NrIjiYv, name: Aula Agente IA Whatsapp, active: false, isArchived: true, updatedAt: "2025-11-23T22:53:13.143Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: BUW1irb5ZnWiJC8M, name: Agente de Atendimento Negócio com agentes de IA Versão X, active: false, isArchived: true, updatedAt: "2025-11-23T22:52:53.988Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: KFN8F7cNfTFW8Dt3, name: AGENTE X, active: false, isArchived: false, updatedAt: "2025-11-23T23:59:42.329Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: d7ME6xdgegnZ2sDT, name: DISPARO EM  MASSA, active: false, isArchived: false, updatedAt: "2025-11-24T09:50:19.636Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: tsGgwQ037DvB7ZHw, name: ALKANSE - SCREPING LEADS INSTAGRAM, active: false, isArchived: false, updatedAt: "2025-11-25T12:29:15.287Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: XRiyiC1Fuazxz6zr, name: base aula - fluxo epify api direto - FUNCIONANDO, active: false, isArchived: false, updatedAt: "2025-11-26T04:51:49.640Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: qmH1GY2vp16YBTU2, name: FODA, active: false, isArchived: false, updatedAt: "2025-11-27T23:09:42.179Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: afsaLqc4RpsvPUoI, name: INSTAGRAM SCREPPER PERFEITO, active: false, isArchived: false, updatedAt: "2025-11-28T14:43:52.605Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: fL33K3XnQBpasirt, name: Scrap Instagram, active: false, isArchived: false, updatedAt: "2026-04-14T14:37:13.521Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: fNXOnsaaLJj2Z9SN, name: My workflow 2, active: false, isArchived: false, updatedAt: "2025-12-08T21:50:37.392Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: r1a2YQob17nIW4MS, name: My workflow 3, active: false, isArchived: false, updatedAt: "2025-12-13T21:21:42.518Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: wfCNOOb8sj09Wtgl, name: My workflow 4, active: false, isArchived: false, updatedAt: "2025-12-14T02:44:38.900Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: VSYAEfvciW27QpJG, name: CRIAR CAMPANHA GOOGLE ADS, active: true, isArchived: false, updatedAt: "2026-04-14T14:35:41.966Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: 3fbv9sRIjjH5Jsx2, name: MONITOR DAMPANHAS, active: false, isArchived: false, updatedAt: "2026-04-14T14:38:26.959Z", clientSlug: null, clientVerificationStatus: unknown }
+  - { id: ZiLuWjPOgMsWK9Qu, name: ESCALAR, active: false, isArchived: false, updatedAt: "2026-04-14T14:40:07.190Z", clientSlug: null, clientVerificationStatus: unknown }

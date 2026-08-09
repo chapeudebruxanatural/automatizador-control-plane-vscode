@@ -24,21 +24,24 @@ likelyRepositories:
     reason: nome do repositorio corresponde exatamente ao slug do cliente
     verificationStatus: discovered
 
-domains: []
+domains:
+  - domain: cassioferraz.com.br
+    role: site de producao
+    servedBy: Cloudflare Worker cassio-ferraz
+    verificationStatus: verified
+    lastVerifiedAt: 2026-08-09
 
 accounts: []
 
 integrations:
-  - name: Cloudflare Pages ou Workers
-    status: discovered
-    note: >-
-      Inferido da presenca de _headers e .assetsignore, artefatos tipicos de
-      deploy na Cloudflare. Nao confirmado contra a conta.
+  - name: Cloudflare Workers
+    status: verified
+    note: API confirmou Cloudflare Worker cassio-ferraz em production.
 
 environments:
   - name: producao
-    location: unknown
-    verificationStatus: unknown
+    location: Cloudflare Worker cassio-ferraz
+    verificationStatus: verified
 
 risks:
   - severity: media
@@ -52,7 +55,7 @@ risks:
 
 nextSteps:
   - Descobrir o responsavel do lado do cliente
-  - Confirmar o dominio de producao e onde esta hospedado
+  - Confirmar o vinculo de deploy do repositorio dadocruz/cassio-ferraz com o Worker
   - Verificar se ha dados pessoais versionados em downloads/ ou editais/
   - Confirmar a associacao repositorio-cliente com o dono
 

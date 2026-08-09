@@ -24,6 +24,7 @@ clients:
     kind: interno
     status: ativo
     profile: clients/automatizadoria/profile.yaml
+    memory: clients/automatizadoria/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -32,6 +33,7 @@ clients:
     kind: interno
     status: ativo
     profile: clients/novacena/profile.yaml
+    memory: clients/novacena/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -40,6 +42,7 @@ clients:
     kind: cliente
     status: unknown
     profile: clients/gaveta-producoes/profile.yaml
+    memory: clients/gaveta-producoes/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -48,6 +51,7 @@ clients:
     kind: cliente
     status: ativo
     profile: clients/cassio-ferraz/profile.yaml
+    memory: clients/cassio-ferraz/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -56,6 +60,7 @@ clients:
     kind: cliente
     status: unknown
     profile: clients/garbo-eventos/profile.yaml
+    memory: clients/garbo-eventos/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -64,6 +69,7 @@ clients:
     kind: cliente
     status: ativo
     profile: clients/vivere/profile.yaml
+    memory: clients/vivere/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -72,6 +78,7 @@ clients:
     kind: cliente
     status: unknown
     profile: clients/soulraizes/profile.yaml
+    memory: clients/soulraizes/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 
@@ -80,6 +87,7 @@ clients:
     kind: cliente
     status: unknown
     profile: clients/chapeu-de-bruxa/profile.yaml
+    memory: clients/chapeu-de-bruxa/memory.yaml
     verificationStatus: owner_reported
     lastVerifiedAt: 2026-08-04
 

@@ -363,3 +363,149 @@ Em 08/08 às 23:20, a leitura corrigida encontrou MARCA `24016194651` ativa a
 R$ 8/dia e CASAMENTOS `24016194654` ativa a R$ 12/dia, contra a decisão vigente
 de mantê-las pausadas. O achado **não autoriza correção automática**: pausar as
 duas continua exigindo aprovação explícita do dono.
+
+## 2026-08-09 — Memória e economia são isoladas por cliente
+
+**Decisão:** cada cliente tem `clients/<slug>/memory.yaml`. Domínio,
+repositório, WhatsApp, pixel/dataset, custo máximo por conversa e taxa de
+conversa para contrato pertencem ao slug e nunca recebem padrão global.
+
+**Motivo:** o custo aceitável e o valor de uma conversa variam por cliente. Um
+limiar global misturaria operação comercial e poderia recomendar corte ou gasto
+no cliente errado. A mesma regra vale para associação de recursos: candidato
+plausível permanece `discovered`/`unknown` até confirmação.
+
+**Mecanismo:** `npm run perguntar:cliente -- --cliente <slug>` gera apenas as
+perguntas pendentes daquele cliente. Testes validam os oito arquivos e recusam
+memória cujo `clientSlug` não coincide com a pasta.
+
+## 2026-08-09 — Cloudflare programática é somente leitura e expira
+
+**Decisão:** usar o token `automatizador-control-plane-readonly-20260808`, com
+`Account Settings`, `Workers Scripts`, `Cloudflare Pages`, `Connectivity
+Directory`, `Zone` e `DNS`, todos em `Read`; restrito à conta
+`e6d7a4863004885bdae7e63bbec5e1f7` e com expiração em 06/11/2026.
+
+**Armazenamento:** valor fora do Git, em arquivo local modo `600`. O repositório
+guarda somente caminho e metadados não secretos. O cliente HTTP só implementa
+GET; não há método de escrita. O catálogo expõe apenas
+`cloudflare.zones.list` e `cloudflare.dns.list`.
+
+**Motivo:** o inventário precisa cobrir DNS, Pages, Workers e túneis de forma
+reproduzível, sem reutilizar os tokens antigos de build, que têm muitas
+permissões e não possuem expiração visível.
+
+## 2026-08-09 — Chave ampla do n8n não será criada como se fosse read-only
+
+**Fato verificado:** no n8n 1.120.4 desta instalação, editar escopos da API key
+exige upgrade. A chave disponível inclui permissões de escrita, como criar e
+apagar credenciais e projetos.
+
+**Decisão:** nenhuma chave foi criada. Continuar somente após uma destas
+aprovações explícitas: chave ampla temporária, compensada por adaptador que só
+chama GET e prazo curto; ou usuário PostgreSQL realmente somente leitura.
+
+**Motivo:** chamar a credencial ampla de “chave de inventário” esconderia o
+raio de dano real e violaria a regra de menor privilégio.
+
+## 2026-08-09 — Meta entra no escopo; rotações permanecem adiadas
+
+**Meta:** o dono confirmou que a operação cobrirá campanhas, pixels/datasets e
+medição. A confirmação de escopo não autoriza mutação de campanha; cada ação
+continua sujeita ao kill switch e à aprovação específica.
+
+O seletor autenticado mostrou 19 portfólios, mas a leitura dos ativos internos
+exigiu chave de acesso/biometria. Essa confirmação é pessoal do dono e não será
+contornada; até lá, associações por semelhança de nome ficam `discovered` ou
+`unknown` em `inventory/meta.yaml`.
+
+**Rotações:** por decisão explícita do dono, a senha root da VPS e o TOTP
+exposto da Vivere serão rotacionados somente depois dos testes e validação da
+plataforma. O risco é aceito temporariamente, não resolvido.
+
+**Buteco:** a nova mídia também foi rejeitada por direito autoral. A campanha
+`24105770570` continua congelada enquanto o dono prepara a reivindicação; a
+campanha `24079586567` continua removida.
+
+**Garbo:** o dono informou que foi ele quem atualizou as campanhas ativas em
+08/08 (`owner_reported`). A intenção de manter exatamente as cinco ativas ainda
+aguarda resposta; nenhuma mudança de status pode ser inferida desse relato.
+
+## 2026-08-09 — Inventário YAML precisa ser validado integralmente
+
+**Decisão:** toda validação de lote que altere inventário deve carregar todos os
+YAMLs de `clients/` e `inventory/`, não apenas os arquivos recém-modificados.
+
+**Motivo:** a carga integral encontrou uma nota órfã em
+`inventory/google-ads.yaml` e dois valores `read:org` sem aspas, em
+`inventory/accounts.yaml` e `inventory/integrations.yaml`. As três correções
+foram exclusivamente sintáticas e os **55 YAMLs** passaram a carregar. Um teste
+verde que não abre o inventário inteiro não prova que a memória operacional é
+legível.
+
+## 2026-08-09 — Meta adiada; GitHub e VPS entram somente em leitura
+
+**Meta:** o dono decidiu seguir o lançamento sem Meta por enquanto. Os 19
+portfólios descobertos permanecem inventariados, mas a biometria e os ativos
+internos deixam de bloquear a fila. Nenhum dado histórico da Meta é promovido e
+nenhuma mutação fica autorizada.
+
+**GitHub:** o Control Plane reutiliza o `gh` CLI autenticado no keychain, sem
+copiar token para `.env`. O owner é fixado em `dadocruz`; o adaptador executa
+somente `gh repo list`, devolve fatos da API com associação de cliente nula e
+não oferece criar, editar, arquivar ou apagar.
+
+**VPS:** o adaptador aceita somente três operações tipadas, ligadas a comandos
+fixos: saúde do host, `docker ps -a` com projeção explícita e
+`docker stack ls`. Não existe método para texto arbitrário, `inspect`, `exec`,
+reinício ou remoção. O acesso subjacente ainda é root até o usuário operacional
+ser aprovado; a lista branca no cliente reduz superfície, mas não elimina esse
+risco de credencial.
+
+## 2026-08-09 — Relatório do Cássio separa microconversão de conversa
+
+**Decisão:** o relatório histórico conta somente a ação verificada
+`WHATSAPP - CÁSSIO` em `all_conversions`, nas cinco campanhas explicitamente
+associadas ao cliente. “Clique no WhatsApp” será chamado de microconversão e
+nunca de conversa, lead ou contrato.
+
+**Cidade:** usar `geographic_view` com `segments.geo_target_city`, local de
+presença, e resolver o ID pela fonte `geo_target_constant`. Não reutilizar
+região de segmentação como se fosse cidade da conversão.
+
+**Custo:** apresentar duas bases: R$ 18,45 por WhatsApp nas campanhas Demand
+Gen que geraram a ação; R$ 20,33 incluindo o piloto Search que gastou R$ 37,60
+e gerou zero WhatsApp. O XML com 14 registros é fotografia anterior; a API ao
+vivo de 09/08 registrou 20. O relatório não autoriza envio ao cliente.
+
+## 2026-08-09 — Garbo fica com as cinco campanhas ativas
+
+**Decisão do dono:** manter exatamente como ele configurou pessoalmente:
+MOVEIS R$ 6/dia, MESAS R$ 5/dia, PRODUTOS R$ 3/dia, MARCA R$ 8/dia e
+CASAMENTOS R$ 12/dia, total nominal de R$ 34/dia.
+
+Esta decisão substitui, apenas para o estado pretendido atual, a decisão de
+07/08 que mantinha MARCA e CASAMENTOS pausadas. O livro-caixa foi reconciliado;
+nenhuma chamada de escrita foi feita ao Google Ads. Garbo continua em
+`read_only_scope`, portanto a confirmação não concede escrita futura nem
+reativação automática.
+
+Após a reconciliação, o governador leu as cinco como `ENABLED` nos valores
+declarados, sem divergência. Com R$ 11,27 já reportados e uma diária ainda não
+vista estimada em R$ 34, restaram R$ 54,73 seguros — cerca de 1,6 dia.
+
+## 2026-08-09 — n8n usa chave temporária ampla com cliente GET-only
+
+**Decisão do dono:** autorizar a chave ampla exigida pelo plano atual do n8n.
+A chave `automatizador-control-plane-temporaria-20260809` expira em 16/08/2026
+e fica fora do Git, em arquivo local modo `600`.
+
+**Contenção compensatória:** `N8nReadClient` só implementa HTTP GET e reduz as
+respostas a metadados antes de devolvê-las. Não existem métodos de criar,
+editar, ativar, desativar ou apagar workflow. O inventário nunca publica nós,
+parâmetros, conexões, dados fixados, webhooks ou valores de credenciais.
+
+A API confirmou 33 workflows, 1 ativo, 32 inativos e 3 arquivados. A interface
+mostra 30 porque omite os arquivados. Todas as associações a cliente permanecem
+`unknown`; nome ou tag não são prova. `GET /api/v1/credentials` respondeu 405,
+portanto o inventário de credenciais é indisponível — não uma lista vazia.

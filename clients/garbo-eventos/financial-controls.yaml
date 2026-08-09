@@ -33,13 +33,23 @@ reactivation:
     - registro em DECISIONS.md
   approvalLevel: 2
 
+currentState:
+  intendedActiveCampaigns: 5
+  intendedDailyBudgetBRL: 34.00
+  confirmedAt: 2026-08-09
+  verificationStatus: owner_reported
+  note: >-
+    O dono declarou que ele mesmo atualizou as cinco e ordenou deixa-las como
+    estao. Esta confirmacao reconcilia o livro; nao e autorizacao automatica
+    permanente para futuras reativacoes.
+
 externalAutomation:
   googleAdsScript: "11999683"
+  status: schedule_removed_2026-08-08
+  verificationStatus: verified
   concern: >-
-    Uma automacao ja roda nesta conta fora do Control Plane. Se esse script
-    manipula orcamento ou status de campanha, ele pode reverter uma pausa
-    aplicada por nos, ou vice-versa. NAO assumir que o Control Plane e a unica
-    mao na conta ate confirmar o que o script faz.
+    Era a trava legada que pausou as campanhas em 07/08. O agendamento foi
+    removido; manter o ID inventariado para evitar recriacao acidental.
 
 prohibited:
   - Reativacao automatica apos pausa, em qualquer condicao
@@ -48,12 +58,10 @@ prohibited:
   - Acao em lote junto com outros clientes (conta compartilhada)
 
 controlPlaneCapability:
-  canRead: false
+  canRead: true
   canWrite: false
-  reason: Sem adaptador de Google Ads e sem credencial. Kill switch ativo.
+  reason: Leitura autenticada disponivel; escrita bloqueada pelo escopo read_only e kill switch.
 
 liveVerificationNeeded:
   - Se o lote de R$ 100 e por campanha ou total
   - Gasto acumulado real por campanha
-  - O que o Google Ads Script 11999683 faz
-  - Se alguma das 5 campanhas foi pausada por verba

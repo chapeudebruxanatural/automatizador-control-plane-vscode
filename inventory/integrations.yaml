@@ -6,11 +6,11 @@
 # =============================================================================
 
 meta:
-  collectedAt: 2026-08-08
+  collectedAt: 2026-08-09
   note: >-
     "readiness" descreve o quanto o Control Plane pode integrar HOJE.
-    Nenhuma integracao esta ativa em codigo — todos os adaptadores sao
-    contratos com implementacao simulada.
+    GitHub, VPS, Cloudflare e n8n estao ativos em codigo exclusivamente para
+    leitura. Meta foi adiada pelo dono.
 
 integrations:
   - id: github
@@ -18,18 +18,19 @@ integrations:
     purpose: Repositorios, workflows e automacao de codigo
     authSource: gh CLI (token no keychain do macOS)
     account: dadocruz
-    scopes: [gist, read:org, repo, workflow]
+    scopes: [gist, "read:org", repo, workflow]
     read: true
     write: true
     delete: false
-    readiness: pronto
-    controlPlaneAdapter: GitHubAdapter (contrato + mock)
+    readiness: pronto (somente leitura)
+    controlPlaneAdapter: GitHubReadAdapter real sobre gh CLI
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-08
+    lastVerifiedAt: 2026-08-09
     notes: >-
-      Unica integracao ja exercitada de ponta a ponta: este repositorio foi
-      criado e publicado por ela. Ausencia de delete_repo e admin:org e uma boa
-      restricao — o token nao consegue apagar repositorio.
+      Adaptador real validado contra a conta: 14 repositorios, 6 privados e 8
+      publicos. Owner fixado em dadocruz; nao usa shell, nao recebe token e nao
+      expoe criar, editar, arquivar ou apagar. Associacao a cliente continua
+      fora do adaptador e nunca e inferida pela API.
 
   - id: vps-ssh
     platform: Hostinger VPS
@@ -40,47 +41,48 @@ integrations:
     write: false
     delete: false
     readiness: pronto (somente leitura)
-    controlPlaneAdapter: VpsAdapter (contrato + mock)
+    controlPlaneAdapter: VpsReadAdapter real com tres operacoes fixas
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-08
+    lastVerifiedAt: 2026-08-09
     notes: >-
-      Acesso root. O adaptador real deve usar LISTA BRANCA de comandos, nao
-      lista negra: lista branca falha fechada, lista negra falha aberta.
+      Acesso atual ainda e root, risco aceito temporariamente pelo dono. O
+      adaptador nao aceita comando arbitrario: le apenas host, docker ps e
+      docker stack ls. Leitura ao vivo: Debian 11, 197 dias de uptime, disco
+      47%, 32 containers running, zero unhealthy e 13 stacks.
 
   - id: n8n
     platform: n8n (auto-hospedado)
     purpose: Orquestracao das automacoes de clientes
-    authSource: API key — NAO EXISTE
-    account: unknown
-    read: false
+    authSource: API key temporaria fora do Git, arquivo modo 600
+    account: owner
+    read: true
     write: false
-    readiness: bloqueado
-    blocker: Falta API key
-    controlPlaneAdapter: N8nAdapter (contrato + mock)
+    readiness: pronto (somente leitura por contencao local)
+    controlPlaneAdapter: N8nReadAdapter real, apenas GET
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-08
+    lastVerifiedAt: 2026-08-09
     notes: >-
-      Instalacao verificada (4 servicos, modo fila, ~6 meses no ar), conteudo
-      totalmente desconhecido. A URL abre a tela de login, sem sessao
-      autenticada. Maior ponto cego da operacao.
-      Ver docs/discovery/n8n-inventory.md.
+      Chave ampla autorizada pelo dono por limitacao do plano, com expiracao em
+      16/08/2026. API: 33 workflows, 1 ativo, 32 inativos e 3 arquivados; a UI
+      omite arquivados e mostra 30. O cliente nao expoe metodos de escrita e
+      todas as associacoes a cliente permanecem unknown. GET /credentials
+      responde 405; nao interpretar como zero credenciais.
 
   - id: cloudflare
     platform: Cloudflare
     purpose: DNS e hospedagem de sites estaticos na borda
-    authSource: API token — NAO EXISTE
+    authSource: token programatico somente leitura fora do Git
     account: e6d7a4863004885bdae7e63bbec5e1f7
     read: true
     write: false
-    readiness: parcial
-    blocker: Falta token programatico somente leitura (Zone:Read, DNS:Read)
-    controlPlaneAdapter: CloudflareAdapter (contrato + mock)
+    readiness: pronto (somente leitura)
+    controlPlaneAdapter: CloudflareReadAdapter real, apenas GET
     verificationStatus: verified
-    lastVerifiedAt: 2026-08-08
+    lastVerifiedAt: 2026-08-09
     notes: >-
-      Sessao do painel verificada: 8 zonas ativas e 14 projetos Workers/Pages.
-      `read: true` descreve somente a sessao humana; o adaptador continua
-      bloqueado sem token. Nao ha Cloudflare Tunnel na VPS.
+      Token restrito a conta, seis permissoes Read e expiracao em 06/11/2026.
+      Coleta reproduzivel: 8 zonas, 14 DNS, 10 Pages, 3 Workers, 6 dominios de
+      Worker e zero tuneis. Nenhum metodo de escrita existe.
 
   - id: google-automatizadoria
     platform: Google Workspace
@@ -117,23 +119,25 @@ integrations:
   - id: meta-ads
     platform: Meta Marketing API
     purpose: Gestao de campanhas de trafego pago
-    authSource: estado anterior de conector; sessao atual do navegador deslogada
+    authSource: sessao humana autenticada; acesso interno exige biometria
     read: false
     write: false
-    readiness: bloqueado
+    readiness: adiado pelo dono
     controlPlaneAdapter: MetaAdapter (contrato + mock)
     verificationStatus: stale
-    lastVerifiedAt: 2026-08-08
-    accounts:
+    lastVerifiedAt: 2026-08-09
+    accountsHistorical:
+      observedAt: 2026-08-04
       total: 8
       active: 2
       disabled: 4
       unsettled: 2
       currency: BRL
     notes: >-
-      O inventario de 04/08 dizia haver conector autenticado e 2 contas ativas,
-      mas em 08/08 a sessao disponivel abriu a tela de login. Reautenticar e
-      conferir Business Manager/contas antes de reutilizar os dados anteriores.
+      Sessao humana autenticada mostrou 19 portfolios. A leitura interna exige
+      confirmacao biometrica; em 09/08 o dono decidiu seguir o lancamento sem
+      Meta por enquanto. Nenhum dado antigo autoriza operacao e nenhuma campanha
+      Meta foi alterada.
 
   - id: whatsapp-evolution
     platform: Evolution API (auto-hospedada)
@@ -193,16 +197,13 @@ integrations:
 
 # -----------------------------------------------------------------------------
 readinessSummary:
-  pronto: [github, vps-ssh]
-  parcial: [cloudflare]
-  bloqueado: [n8n, meta-ads, google-automatizadoria, google-novacena, supabase]
+  pronto: [github, vps-ssh, cloudflare, n8n]
+  parcial: []
+  bloqueado: [meta-ads, google-automatizadoria, google-novacena, supabase]
   foraDeEscopo: [whatsapp-evolution, aws-lambda, runpod]
 
 recommendedOrder:
-  - { step: 1, integration: cloudflare, reason: "Token barato, destrava o mapa dominio -> cliente" }
-  - { step: 2, integration: n8n, reason: "Remove o maior ponto cego operacional" }
-  - { step: 3, integration: github, reason: "Ja pronto; formaliza o que hoje e script" }
-  - { step: 4, integration: vps-ssh, reason: "Formaliza o inventario recorrente" }
-  - { step: 5, integration: google-automatizadoria, reason: "Depende de OAuth e da separacao de contas" }
-  - { step: 6, integration: meta-ads, reason: "Depende de regularizacao administrativa" }
-  - { step: 7, integration: whatsapp-evolution, reason: "Por ultimo, com auditoria madura" }
+  - { step: 1, integration: n8n, reason: "Confirmar workflow -> cliente; leitura ja esta pronta" }
+  - { step: 2, integration: google-automatizadoria, reason: "Depende de OAuth e da separacao de contas" }
+  - { step: 3, integration: meta-ads, reason: "Adiada pelo dono; retomar somente sob comando" }
+  - { step: 4, integration: whatsapp-evolution, reason: "Por ultimo, com auditoria madura" }

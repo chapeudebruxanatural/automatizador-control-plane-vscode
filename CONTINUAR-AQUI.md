@@ -52,7 +52,7 @@ Validação antes de mexer em qualquer coisa:
 npm ci && npm run verify && npm run scan:secrets:all
 ```
 
-Estado esperado em 07/08: **256 testes, 70 suítes, tudo verde.** Lint e
+Estado esperado em 09/08: **290 testes, 79 suítes, tudo verde.** Lint e
 typecheck limpos. Se não estiver assim, conserte antes de seguir.
 
 ---
@@ -92,6 +92,14 @@ Tudo abaixo foi lido da API ou da interface e conferido.
   por registro. Campanha anterior `24066140634`: 915 cliques, R$ 213,83,
   5 WhatsApp e R$ 42,77 por registro. O piloto Search gastou R$ 37,60 em
   7 cliques e gerou zero WhatsApp; as outras duas campanhas ficaram zeradas.
+- **Atualização ao vivo em 09/08 às 01:02:** a campanha diária passou a 1.003
+  cliques, R$ 155,14 e 15 registros em `WHATSAPP - CÁSSIO`. O histórico Demand
+  Gen soma **20 WhatsApp, 1.918 cliques, R$ 368,97 e R$ 18,45 por registro**. Cidades
+  das microconversões pelo `geographic_view`/local de presença: São Paulo 9,
+  Brasília 3, Goiânia 3, Rio de Janeiro 3, Curitiba 1 e Salvador 1. Incluindo o
+  Search sem WhatsApp: R$ 406,57, 1.925 cliques e R$ 20,33 por WhatsApp.
+  O XML continua válido como fotografia anterior de 14; seis entraram depois.
+  Relatório reproduzível: `npm run relatorio:cassio`.
 - Site `cassioferraz.com.br` corrigido: 45 links de WhatsApp e 19 de redes
   sociais agora têm `href` real no HTML (antes eram `href="#"` preenchidos por
   JS); CTA do hero vai ao WhatsApp; formulário caiu de 5 campos obrigatórios
@@ -102,17 +110,18 @@ Tudo abaixo foi lido da API ou da interface e conferido.
 
 Cinco campanhas de Search, CPC manual, Campinas e região, criadas em 10/07.
 
-| ID | Nome | Estado ao vivo em 08/08 às 23:20 |
+| ID | Nome | Estado ao vivo em 09/08 às 01:24 |
 |---|---|---|
 | 24016194642 | `GARBO \| SEARCH \| MOVEIS EVENTOS \| CAMPINAS` | **ativa**, R$ 6/dia |
 | 24016194645 | `GARBO \| SEARCH \| MESAS CADEIRAS \| CAMPINAS` | **ativa**, R$ 5/dia |
 | 24016194648 | `GARBO \| SEARCH \| PRODUTOS ESPECIFICOS \| CAMPINAS` | **ativa**, R$ 3/dia |
-| 24016194651 | `GARBO \| SEARCH \| MARCA \| CAMPINAS` | **ativa fora do plano**, R$ 8/dia |
-| 24016194654 | `GARBO \| SEARCH \| CASAMENTOS EVENTOS \| CAMPINAS` | **ativa fora do plano**, R$ 12/dia |
+| 24016194651 | `GARBO \| SEARCH \| MARCA \| CAMPINAS` | **ativa**, R$ 8/dia |
+| 24016194654 | `GARBO \| SEARCH \| CASAMENTOS EVENTOS \| CAMPINAS` | **ativa**, R$ 12/dia |
 
-> **DIVERGÊNCIA ABERTA:** o livro-caixa e a decisão vigente dizem que MARCA e
-> CASAMENTOS devem estar pausadas. A API confirmou as duas `ENABLED`; o
-> governador corrigido acusa `ativa_sem_declaracao`. Não pausar sem aprovação.
+> **INTENÇÃO RECONCILIADA EM 09/08:** o dono confirmou que foi ele quem
+> atualizou a Garbo e ordenou deixar exatamente como está. O livro-caixa agora
+> declara as cinco ativas, total nominal de R$ 34/dia. O governador confirmou
+> os cinco estados e orçamentos sem divergência. Nenhuma campanha foi alterada.
 
 Histórico de 10/07 a 06/08, com as cinco rodando a R$ 3–12/dia:
 **R$ 221,60 · 145 cliques · 29 conversas de WhatsApp · R$ 7,64 por conversa.**
@@ -250,7 +259,9 @@ de `Por hora` para `Nenhuma` (`—` na tabela). **O script, seu código e o stat
 reativadas exatamente `24016194642`, `24016194645` e `24016194648`, mantendo
 R$ 6/dia, R$ 5/dia e R$ 3/dia. Naquele momento `24016194651` e `24016194654`
 foram confirmadas pausadas; às 23:20 a API encontrou ambas ativas novamente.
-O autor dessa ativação ainda não foi apurado e nenhuma correção foi aplicada.
+Em 08/08 o dono informou que foi ele quem atualizou as campanhas ativas. A
+autoria fica `owner_reported`; ainda falta confirmar se a intenção é manter
+exatamente as cinco ativas. Nenhuma correção foi aplicada.
 
 Relatório reconferido na mesma sessão: o crédito de R$ 100 da Andréia gerou
 **0 registros em `WhatsApp | GARBO` em 07/08 e 0 em 08/08 até 09:04**. Não
@@ -281,7 +292,8 @@ o lote novo, que ficou pausado até a manhã de 08/08.
    externa com efeito colateral roda sem desligamento explícito e aprovado.
 2. **Somente leitura na VPS.** Nunca reiniciar, parar, remover, instalar,
    atualizar ou `prune`.
-3. **Buteco Sertanejo: NÃO MEXER** até a mídia nova chegar.
+3. **Buteco Sertanejo: NÃO MEXER.** A mídia nova também foi rejeitada por
+   direito autoral; aguardar a reivindicação pessoal do dono.
 4. **Nunca `force push`. Nunca apagar recursos.**
 5. **Segredo não entra em arquivo versionado.** Nem em exemplo, log, inventário
    ou mensagem de commit. Proibido: `cat .env`, `printenv`, `env`,
@@ -308,27 +320,32 @@ erro reversível dentro deste repositório.
 
 ## 5. Fila de trabalho, em ordem
 
-**1. Decisão do dono sobre a divergência Garbo.** MARCA `24016194651` e
-CASAMENTOS `24016194654` estão ativas fora do plano, somando R$ 20/dia. O lote
-exato proposto é pausar somente as duas, sem alterar orçamento nem tocar nas
-outras campanhas.
+**1. Garbo reconciliada; vigiar saldo.** O dono confirmou que deseja manter as
+cinco ativas, incluindo MARCA `24016194651` e CASAMENTOS `24016194654`, nos
+orçamentos atuais. Livro-caixa atualizado para R$ 34/dia, sem escrever no Ads.
+O governador de 09/08 mostrou R$ 54,73 seguros, cerca de **1,6 dia**.
 
-**2. Cássio precisa de recarga.** O governador estimou 1,7 dia de saldo seguro
-às 23:20. Pedir Pix/enviar mensagem requer aprovação; a leitura da API já está
-funcionando localmente.
+**2. Cássio precisa de recarga.** O governador estimou **1,6 dia de saldo
+seguro** em 09/08: R$ 285,44 depositados, R$ 153,53 já reportados e ~R$ 50 ainda
+não visto, restando R$ 81,91 seguros. Pedir Pix/enviar mensagem requer aprovação;
+a leitura da API já está funcionando localmente.
 
-**3. O dono entra pessoalmente no n8n e no Meta** nas abas abertas, sem passar
-senha ou 2FA no chat. Depois gerar API key de inventário do n8n e confirmar se
-Meta entra para campanhas ou apenas pixels.
+**3. Classificar os workflows do n8n com o dono.** A chave temporária ampla foi
+autorizada, expira em 16/08 e fica fora do Git; o cliente local só implementa
+GET. A API confirmou 33 workflows: 1 ativo, 32 inativos e 3 arquivados. Todos
+permanecem com `clientSlug: null` até confirmação, sem inferência por nome.
 
-**4. Token somente leitura da Cloudflare.** O painel já confirmou 8 zonas e 14
-Workers/Pages; falta acesso programático para DNS e mapa domínio → cliente.
+**4. Meta ADIADA pelo dono em 09/08.** Login e escopo foram confirmados, e o
+seletor mostrou 19 portfólios, mas a leitura interna exige biometria. Seguir o
+lançamento sem Meta por enquanto; não tratar como bloqueio, não reutilizar dados
+antigos e não alterar campanha/pixel. Retomar somente quando o dono mandar.
 
 **5. Segurança da VPS.** Hostinger confirmou zero firewall; 2377, 7946, 4789 e
 3000 estão públicos. Propor lote exato antes de escrever. Backups externos e
 restores da maioria dos bancos continuam sem prova.
 
-**6. Mídia nova da Gaveta** — esperando o dono. A campanha termina dia 11.
+**6. Reivindicação da mídia da Gaveta/Buteco** — a substituição também foi
+rejeitada por direito autoral. O dono fará a reivindicação; não mexer.
 
 **7. Tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e Encantaria**, e pixel da
 Meta em todos. Os dois primeiros estão **bloqueados por não terem site**. Siga
@@ -341,8 +358,9 @@ isolamento por bônus.
 
 ### Pendências de segurança, não esquecer
 
-- Rotacionar a senha root da VPS (foi colada em chat).
-- Rotacionar o TOTP em `clients/vivere/security.yaml`.
+- Rotacionar a senha root da VPS (foi colada em chat). O dono adiou até os
+  testes/validação terminarem; risco continua aberto.
+- Rotacionar o TOTP em `clients/vivere/security.yaml`. Mesmo adiamento explícito.
 - Firewall no painel da Hostinger: o host está com `-P INPUT ACCEPT` e zero
   regras de INPUT.
 - Backups da VPS são locais; falta cópia externa.

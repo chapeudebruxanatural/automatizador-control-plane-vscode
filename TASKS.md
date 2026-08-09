@@ -18,15 +18,20 @@ Legenda: `[ ]` aberto · `[~]` em andamento · `[x]` concluído · `[!]` bloquea
 - [x] Após 09:49, confirmar por leitura que os dois scripts estão sem
       frequência e não há regras automatizadas. As três campanhas pretendidas
       seguem ativas.
-- [!] **Divergência nova:** MARCA `24016194651` (R$ 8/dia) e CASAMENTOS
-      `24016194654` (R$ 12/dia) também estão `ENABLED`, contra o livro-caixa e a
-      decisão vigente. Aguardar aprovação explícita para pausar somente as duas.
+- [x] **Intenção reconciliada:** em 09/08 o dono confirmou que deseja manter
+      exatamente as cinco ativas, incluindo MARCA `24016194651` e CASAMENTOS
+      `24016194654`. Livro-caixa atualizado para R$ 34/dia; nenhuma campanha
+      foi alterada pelo Control Plane. Governador confirmou zero divergências.
 - [x] Relatórios: Garbo 0 em `WhatsApp | GARBO` desde o crédito de 07/08 até
-      08/08 09:04; Cássio consolidado em 14 `WHATSAPP - CÁSSIO`, R$ 373,63 e
-      R$ 26,69 por WhatsApp (São Paulo 9, Goiânia 2, Brasília 2, Rio 1 por
-      região de segmentação).
+      08/08 09:04. Cássio atualizado ao vivo em 09/08: 20
+      `WHATSAPP - CÁSSIO`, R$ 368,97 nas Demand Gen e R$ 18,45 por WhatsApp;
+      cidades por local de presença: São Paulo 9, Brasília 3, Goiânia 3, Rio 3,
+      Curitiba 1 e Salvador 1. Texto em
+      `reports/cassio-ferraz/relatorio-whatsapp-2026-08-09.md`.
 - [ ] Só depois de 24h contínuas realmente no ar, avaliar gasto, cliques e
       conversas da Garbo. O zero de 07/08 foi causado pela pausa.
+- [!] Buteco `24105770570`: a mídia nova também foi rejeitada por direito
+      autoral. O dono fará a reivindicação; campanha permanece congelada.
 
 ---
 
@@ -39,7 +44,13 @@ Legenda: `[ ]` aberto · `[~]` em andamento · `[x]` concluído · `[!]` bloquea
 - [x] Catálogo inicial de clientes com procedência explícita
 - [x] Inventário de repositórios via `gh` CLI (metadados)
 - [x] Inventário somente-leitura da VPS
-- [x] Inventário parcial do n8n (sem credenciais)
+- [x] API do n8n integrada somente em leitura: chave temporária fora do Git,
+      cliente GET-only, 33 workflows (1 ativo, 32 inativos, 3 arquivados)
+- [x] Token Cloudflare somente leitura, restrito à conta e com expiração;
+      valor fora do Git em arquivo 600
+- [x] Inventário Cloudflare reproduzível: 8 zonas, 14 DNS, 10 Pages, 3 Workers,
+      6 domínios de Worker e 0 túneis
+- [x] Memória isolada por cliente e comando `npm run perguntar:cliente`
 - [x] Matriz de contas e acessos, com separação das duas contas Google
 - [x] Aplicação mínima: `/health`, `/ready`, `/status`, kill switch, auditoria
 - [x] Contratos dos adaptadores de integração
@@ -110,20 +121,28 @@ Ordenadas por dependência. **Não pule a fase 3.**
       `owner_reported` para `verified`
 - [ ] Resolver os repositórios sem cliente associado (`inventory/repositories.yaml`,
       campo `relationshipStatus: unknown`)
-- [~] Mapear domínios reais e cruzar com zonas da Cloudflare →
-      `inventory/domains.yaml`. Painel confirmou 8 zonas ativas; associação por
-      cliente e DNS reproduzível ainda exigem token somente leitura.
-- [!] Contar e classificar workflows do n8n — **bloqueado**: exige API key
+- [x] Mapear domínios reais e cruzar com zonas da Cloudflare →
+      `inventory/domains.yaml`; API somente leitura e coleta reproduzível.
+- [~] Contar e classificar workflows do n8n — nomes/status dos 30 concluídos
+      pela interface (1 ativo). Classificar nós, efeitos e cliente segue
+      bloqueado porque a API key do plano atual não permite escopo somente
+      leitura. Aguardar chave ampla temporária ou usuário SQL read-only.
 - [ ] Documentar, por cliente, qual workflow do n8n atende qual processo
 
 ## Próximo bloco — integrações somente-leitura
 
-- [ ] `GitHubAdapter` real em modo leitura, sobre o `gh` CLI já autenticado
-- [ ] `VpsAdapter` real em modo leitura, com lista branca de comandos
-- [ ] `CloudflareAdapter` leitura (zonas, DNS, túneis) — exige token somente-leitura
+- [x] `GitHubReadAdapter` real sobre o `gh` CLI: owner fixo, 14 repositórios
+      lidos ao vivo, sem superfície de escrita ou inferência de cliente.
+- [x] `VpsReadAdapter` real: somente host, `docker ps` e `docker stack ls`,
+      comandos fixos e sem entrada arbitrária. Ao vivo: 32/32 running, 13 stacks.
+- [x] `CloudflareReadClient`, adaptador e coletor prontos/testados; ações
+      `cloudflare.zones.list` e `cloudflare.dns.list` registradas, e `/status`
+      recebe o estado real do adaptador. Nenhum método de escrita existe.
 - [!] `N8nAdapter` leitura — **bloqueado**: exige API key
 - [ ] `GoogleAdapter` leitura na conta canônica — exige OAuth
-- [ ] `MetaAdapter` leitura nas 2 contas ativas
+- [-] `MetaAdapter` leitura — adiado pelo dono em 09/08. Sessão autenticada e
+      19 portfólios listados, mas biometria interna não concluída. Não bloquear
+      o restante do lançamento e não reutilizar o inventário antigo.
 
 Cada adaptador entra com testes de contrato e permanece atrás do kill switch.
 

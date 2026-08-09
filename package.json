@@ -11,6 +11,7 @@
     "dev": "tsx watch apps/api/src/main.ts",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/apps/api/src/main.js",
+    "start:local": "node --env-file=.env dist/apps/api/src/main.js",
     "worker": "tsx apps/worker/src/main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -19,7 +20,13 @@
     "scan:secrets": "bash scripts/scan-secrets.sh",
     "scan:secrets:all": "bash scripts/scan-secrets.sh --all",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
-    "governador": "node --import tsx scripts/governador-orcamento.mts"
+    "governador": "node --import tsx scripts/governador-orcamento.mts",
+    "inventario:cloudflare": "node --import tsx scripts/collect-cloudflare-inventory.mts",
+    "inventario:n8n": "node --env-file=.env --import tsx scripts/collect-n8n-inventory.mts",
+    "inventario:github": "bash scripts/collect-github-inventory.sh",
+    "inventario:vps": "bash scripts/collect-vps-inventory.sh",
+    "relatorio:cassio": "node --env-file=.env --import tsx scripts/relatorio-cassio-whatsapp.mts",
+    "perguntar:cliente": "node --import tsx scripts/perguntar-cliente.mts"
   },
   "dependencies": {
     "yaml": "^2.7.0",

@@ -1,15 +1,16 @@
 # Campanhas — Garbo Eventos
-# HISTORICO. Nada criado, alterado, pausado ou reativado.
+# Estado pretendido confirmado pelo dono. Nada alterado no Google Ads por este arquivo.
 slug: garbo-eventos
 importedAt: 2026-08-05
-apiConnected: false
+lastOwnerConfirmationAt: 2026-08-09
+apiConnected: true
 
 campaigns:
-  - { id: "24016194642", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
-  - { id: "24016194645", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
-  - { id: "24016194648", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
-  - { id: "24016194651", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
-  - { id: "24016194654", name: unknown, status: requires_live_verification, verificationStatus: historical_confirmed }
+  - { id: "24016194642", name: "GARBO | SEARCH | MOVEIS EVENTOS | CAMPINAS", status: active, dailyBudgetBRL: 6.00, verificationStatus: owner_reported }
+  - { id: "24016194645", name: "GARBO | SEARCH | MESAS CADEIRAS | CAMPINAS", status: active, dailyBudgetBRL: 5.00, verificationStatus: owner_reported }
+  - { id: "24016194648", name: "GARBO | SEARCH | PRODUTOS ESPECIFICOS | CAMPINAS", status: active, dailyBudgetBRL: 3.00, verificationStatus: owner_reported }
+  - { id: "24016194651", name: "GARBO | SEARCH | MARCA | CAMPINAS", status: active, dailyBudgetBRL: 8.00, verificationStatus: owner_reported }
+  - { id: "24016194654", name: "GARBO | SEARCH | CASAMENTOS EVENTOS | CAMPINAS", status: active, dailyBudgetBRL: 12.00, verificationStatus: owner_reported }
 
 sharedAttributes:
   budgetLotBRL: 100
@@ -31,19 +32,17 @@ idPattern:
   note: Inferencia a partir do padrao dos IDs, nao declaracao do dono.
 
 unknownFields:
-  - nomes das campanhas
-  - canal de cada uma (Pesquisa, Display, Video, PMax?)
   - criterio de divisao entre elas
   - segmentacao geografica
   - estrategia de lance
-  - gasto e conversoes por campanha
-  - datas de inicio e fim
+  - data de termino pretendida deste ciclo
 
 externalAutomation:
   googleAdsScript: "11999683"
-  status: requires_live_verification
-  risk: >-
-    Automacao que ja opera esta conta, fora do Control Plane e fora do kill
-    switch. Ver google-ads.yaml.
+  status: agendamento_removido
+  verificationStatus: verified
+  note: >-
+    Foi a causa das pausas de 07/08. O agendamento foi removido em 08/08;
+    ver google-ads.yaml e HANDOFF.md.
 
 changesMade: 0
