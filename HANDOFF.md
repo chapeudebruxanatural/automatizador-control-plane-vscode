@@ -1381,3 +1381,12 @@ campanha**. Conferir na próxima leitura antes de dar como encerrado.
 > senha/código no chat. Esta correção não autoriza token, campanha, pixel ou
 > qualquer outra mutação Meta; permanece pendente a decisão do portfólio
 > central descrita abaixo.
+
+
+## ▶︎ RETOMADA — inventário de ativos Meta em 09/08/2026
+
+Inventário visual concluído e registrado em `inventory/meta-assets.yaml`. Fatos verificados na interface: Páginas Fotografiasedesign (`1072672662585363`), Dado Cruz (`2021185101532717`) e 4cadeiras (`1131094210082197`); Instagram `@fotografiasedesign`, business asset `103868239031431`, Instagram ID `17841404791869061`, com status **Análise necessária**; datasets Estúdio NovaCena (business asset `1022054830503166`, ID exibido `1349340487097325`) e NovaCena Motion (business asset `979023691508854`, ID exibido `1640871190359011`), ambos sem eventos recebidos.
+
+A tela Contas do WhatsApp exibiu zero linhas. Isso foi registrado como `unknown`, não como inexistência: pode haver número ligado por outra superfície, portfólio ou Página. Nenhuma Página, Instagram, WhatsApp ou dataset foi atribuído ao usuário do sistema nesta etapa. Todas as associações cliente↔ativo permanecem `verificationStatus: unknown` até confirmação por ID do dono.
+
+Bloqueio correto para anúncios com destino ao WhatsApp: antes do dry-run de campanha, identificar a Página, o Instagram e o número/conta WhatsApp do cliente correto. Não usar o nome `Fotografiasedesign` nem `NovaCena` como prova de associação.
