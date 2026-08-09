@@ -628,3 +628,19 @@ credencial sem um cliente real informado.
 **Motivo:** login web prova acesso humano, mas não autoriza um processo local a
 chamar a API. Separar a credencial mantém o menor privilégio e permite revogar
 a fábrica sem interromper o inventário somente leitura.
+
+
+## 2026-08-09 — Troca de IA usa o repositório, não o histórico do chat
+
+**Decisão:** `PROMPT-CONTINUAR-OUTRA-IA.md` é o pacote portátil de retomada
+para Kimi, Claude e Copilot/VS Code. Ele não substitui
+`CONTINUAR-AQUI.md`, `HANDOFF.md` ou `DECISIONS.md`; obriga a leitura deles
+na ordem correta.
+
+**Operação local:** o checkout antigo está desatualizado e possui alterações
+locais. A continuidade no VS Code deve começar por um clone limpo em outra
+pasta. Credenciais continuam nos arquivos protegidos fora do Git.
+
+**Limite:** a existência do login web ou do conector GitHub não prova que o
+token programático da fábrica foi criado. Esse estado continua pendente até a
+verificação administrativa ser concluída e o arquivo protegido existir.
