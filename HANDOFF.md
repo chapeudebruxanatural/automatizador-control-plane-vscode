@@ -1342,3 +1342,29 @@ campanha**. Conferir na próxima leitura antes de dar como encerrado.
 > depois dela, **não gerar token ainda**: falta o dono confirmar se `Dado Cruz`
 > é o portfólio central da AutomatizadorIA e se o app existente tem outro uso.
 > O plano exato está em `docs/operations/meta-validacao-e-acesso.md`.
+
+> ## ▶︎ RETOMADA — recuperação de acesso Meta em 09/08/2026
+>
+> Com autorização explícita do dono, foram removidas da Meta as duas chaves de
+> acesso antigas registradas no Gerenciador de Senhas do Google. As duas
+> apontavam para uma credencial que o celular não encontrava; cada remoção foi
+> confirmada individualmente pela interface. Nenhum valor de senha, código ou
+> chave foi lido ou registrado.
+>
+> O método alternativo por WhatsApp foi usado com entrada pessoal do código e a
+> interface confirmou que a autenticação de dois fatores do perfil Facebook
+> `Dado Cruz` continua ativada. A lista de chaves de acesso ficou vazia.
+>
+> A tentativa de criar uma substituta no navegador abriu o fluxo entre
+> dispositivos por QR; o celular retornou erro e a Meta não registrou chave
+> nova. Uma segunda conferência mostrou novamente apenas `Criar chave de
+> acesso`, portanto **não declarar a substituição concluída**. O acesso segue
+> protegido pelo 2FA existente; nova chave só deve ser criada num dispositivo
+> cujo gerenciador de credenciais consiga concluí-la e depois confirmada na
+> lista da Meta.
+>
+> Ao reabrir configuração sensível, a Meta passou a exigir a senha novamente.
+> O prompt foi fechado sem preenchimento. Continua proibido pedir ou receber
+> senha/código no chat. Esta correção não autoriza token, campanha, pixel ou
+> qualquer outra mutação Meta; permanece pendente a decisão do portfólio
+> central descrita abaixo.

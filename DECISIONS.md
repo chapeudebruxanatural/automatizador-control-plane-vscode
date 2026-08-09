@@ -525,3 +525,20 @@ o portfólio fica preservado e a AutomatizadorIA recebe estrutura separada.
 **Isolamento:** cada cliente permanece proprietário dos próprios ativos e os
 compartilha com a AutomatizadorIA como parceiro, quando aplicável. Nome não
 autoriza associação; portfólio, conta, Página, Instagram e pixel precisam de ID.
+
+## 2026-08-09 — Chave de acesso Meta só conta quando aparece na lista
+
+**Decisão:** a confirmação biométrica ou o fechamento do QR não provam que uma
+chave de acesso foi criada. A criação só é considerada concluída quando a nova
+entrada aparece na lista `Senha e segurança → Chave de acesso` da Meta.
+
+**Estado verificado:** as duas entradas antigas e inutilizáveis foram removidas
+com aprovação explícita. A tentativa de substituição falhou no fluxo por QR e a
+lista permaneceu vazia. O 2FA por SMS/WhatsApp foi testado e continua ativo,
+portanto não há justificativa para repetir o QR ou enfraquecer o método
+funcional.
+
+**Regra:** senha, biometria e códigos são sempre inseridos pessoalmente pelo
+dono e nunca entram no chat, log ou repositório. Uma nova chave poderá ser
+criada diretamente em dispositivo compatível; até aparecer na lista da Meta,
+seu estado é `não criada`, não `provável` nem `pendente de sincronização`.
