@@ -1,6 +1,14 @@
 # STATUS
 
-Última atualização: **2026-08-08**
+Última atualização: **2026-08-09**
+
+## Checkpoint — arquitetura híbrida aplicada
+
+- O control plane permanece como motor central de segurança e execução.
+- Template e gerador de workspace privado por cliente implementados e testados.
+- Piloto `dadocruz/cliente-cassio-ferraz-ops` criado e confirmado como privado.
+- Cássio é o único vínculo `verified`; os outros sete permanecem `unknown`.
+- Nenhum segredo foi exportado e nenhuma campanha ou infraestrutura foi alterada.
 
 ## Checkpoint atual — incidente da Garbo
 
