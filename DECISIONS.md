@@ -1,5 +1,30 @@
 
 
+## 2026-08-09 — Arquitetura híbrida com workspace privado por cliente
+
+**Decisão:** preservar o control plane como motor central de integração e
+segurança, e criar um repositório operacional privado para a memória de cada
+cliente. ChatGPT Projects, Codex, Claude e Copilot passam a ser interfaces
+substituíveis sobre o mesmo estado versionado.
+
+**Motivo:** a plataforma central estava acumulando código compartilhado e
+memória cotidiana de oito clientes. Isso dificultava a operação e fazia a
+continuidade depender dos tokens e do histórico de cada chat.
+
+**Fronteira:** credenciais, allowlists, kill switch, aprovação, auditoria e
+execução continuam centrais. Memória comercial, tarefas e relatórios pertencem
+ao workspace privado. Repositório público de site nunca recebe memória
+operacional. Ver ADR 0004.
+
+**Migração:** `clients/<slug>/` continua autoritativo até cada workspace ser
+criado, conferido e registrado por URL/ID. Nome desejado não é existência;
+`actualRepository: null` e `verificationStatus: unknown` permanecem até prova.
+
+**Piloto verificado:** `dadocruz/cliente-cassio-ferraz-ops` foi criado como
+repositório privado e conferido na interface do GitHub. Apenas esse vínculo foi
+promovido para `verificationStatus: verified`; os outros sete continuam
+`unknown`. O piloto não recebe segredo nem autoridade de execução.
+
 2026-08-09 — Capacidade administrativa Meta não é autorização permanente de campanha
 
 Contexto: o dono confirmou que precisa criar campanhas, gerar relatórios e administrar finanças da conta ADM 01 pelo control plane, inclusive campanhas cujo destino é WhatsApp. A permissão anterior `Ver desempenho` atendia somente leitura e era insuficiente para essa operação.
