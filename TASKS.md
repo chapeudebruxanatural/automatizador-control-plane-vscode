@@ -122,10 +122,18 @@ Ordenadas por dependência. **Não pule a fase 3.**
       `security.yaml`.
 - [x] Registrar nomes desejados sem tratá-los como repositórios existentes.
 - [x] Criar e revisar o piloto privado `cliente-cassio-ferraz-ops`.
-- [ ] Depois do piloto, criar os demais workspaces privados e promover
-      `actualRepository` somente após conferência.
+- [x] Criar os outros sete repositórios operacionais, conferir `Private` na
+      interface e promover `actualRepository` no inventário. Eles permanecem
+      vazios até a migração de contexto ser deliberada.
 - [ ] Definir sincronização revisável workspace → projeção central; até lá,
       `clients/<slug>/` continua como fonte durante a migração.
+- [x] Implementar fábrica em dry-run para repositório real + Cloudflare Pages +
+      starter + domínio opcional.
+- [x] Criar token Cloudflare dedicado, somente `Pages Write`, fora do Git.
+- [ ] Concluir a verificação administrativa do GitHub e guardar o token dedicado
+      com `Administration: write` e `Contents: write` fora do Git.
+- [ ] Executar o primeiro onboarding real somente quando o dono informar nome,
+      slug e domínio do novo cliente; não criar recurso fictício.
 
 ---
 
