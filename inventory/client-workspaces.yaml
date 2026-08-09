@@ -12,19 +12,25 @@ policy:
 workspaces:
   - clientSlug: automatizadoria
     desiredRepository: dadocruz/cliente-automatizadoria-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-automatizadoria-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: novacena
     desiredRepository: dadocruz/cliente-novacena-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-novacena-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: gaveta-producoes
     desiredRepository: dadocruz/cliente-gaveta-producoes-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-gaveta-producoes-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: cassio-ferraz
     desiredRepository: dadocruz/cliente-cassio-ferraz-ops
     actualRepository: dadocruz/cliente-cassio-ferraz-ops
@@ -34,21 +40,29 @@ workspaces:
     verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: garbo-eventos
     desiredRepository: dadocruz/cliente-garbo-eventos-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-garbo-eventos-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: vivere
     desiredRepository: dadocruz/cliente-vivere-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-vivere-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: soulraizes
     desiredRepository: dadocruz/cliente-soulraizes-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-soulraizes-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
   - clientSlug: chapeu-de-bruxa
     desiredRepository: dadocruz/cliente-chapeu-de-bruxa-ops
-    actualRepository: null
-    state: template_ready
-    verificationStatus: unknown
+    actualRepository: dadocruz/cliente-chapeu-de-bruxa-ops
+    state: repository_created
+    verificationStatus: verified
+    verifiedAt: 2026-08-09
+    verificationSource: GitHub interface; repository displayed as Private
