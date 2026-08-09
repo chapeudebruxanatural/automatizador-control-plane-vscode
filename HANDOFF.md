@@ -1,3 +1,16 @@
+
+
+## ▶︎ RETOMADA — Meta com leitura real e acesso operacional em 09/08/2026
+
+Com autorização explícita do dono, o usuário do sistema **Automatizadoria** (ID `61593000755608`) recebeu **Acesso total** à conta de anúncios **ADM 01**. A própria interface da Meta confirmou que esse nível inclui campanhas, configurações, finanças e permissões da conta. O app dedicado permanece **AutomatizadorIA Control Plane** (ID `1046773687948340`) no portfólio **Dado Cruz** (ID `488135221601055`).
+
+O token substituto de 60 dias permanece no GitHub Actions secret `META_ACCESS_TOKEN`. Ele foi criado com `ads_read` e `business_management`; **não declarar capacidade de escrita**, porque `ads_management` não fazia parte desse token. A elevação do ativo não altera os escopos já emitidos. A futura rotação para `ads_management` é uma operação de credencial separada e deve ocorrer somente quando o adaptador de escrita estiver protegido pelo mesmo plano, hash, aprovação consumível, auditoria e kill switch usados no Google Ads.
+
+A leitura real foi validada pelo workflow `.github/workflows/meta-readonly.yml`, execução **Validar leitura Meta #3** (GitHub Actions run `31326634164`): 1 conta acessível, **ADM 01**, ID verificado `act_1217584809532823`, status `1`, moeda `BRL`. O primeiro teste falhou com OAuthException código `2635` porque o endpoint não tinha versão explícita. A documentação oficial confirmou a Graph API **v26.0**, lançada em 29/07/2026; com `v26.0`, o mesmo teste ficou verde. Mensagem, corpo de erro e token não foram registrados.
+
+Foram adicionados o cliente `packages/integrations/src/meta/client.ts`, o adaptador `packages/integrations/src/meta/adapter.ts` e `tests/meta-read.test.ts`. O cliente usa somente GET, envia o token apenas no cabeçalho, pagina por cursor sem seguir URL fornecida pela resposta e omite corpos potencialmente sensíveis dos erros. O adaptador real ainda **recusa escrita**. O CI remoto #77 ficou verde em Node 20.11 e 24; os 4 testes Meta, build e varredura de segredos também passaram localmente.
+
+Próximos passos, em ordem: inventariar Páginas, Instagram, WhatsApp Business e pixels/datasets; registrar associações incertas como `verificationStatus: unknown`; integrar o adaptador de leitura à composição da API sem sobrescrever as mudanças locais pendentes; implementar plano de criação de campanha em modo dry-run; somente então rotacionar o token para incluir `ads_management` e testar escrita numa campanha explicitamente identificada. Não tocar no Buteco Sertanejo `24105770570` nem na campanha removida `24079586567`.
 # HANDOFF — AutomatizadorIA Control Plane
 
 > **Comece por `CONTINUAR-AQUI.md`.** Ele separa fato verificado de incerteza e
