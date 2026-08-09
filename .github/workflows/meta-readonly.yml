@@ -1,0 +1,64 @@
+name: Validar leitura Meta
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: meta-readonly-validation
+  cancel-in-progress: false
+
+jobs:
+  inventario:
+    name: Meta — inventário somente leitura
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Consultar contas de anúncios acessíveis
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${META_ACCESS_TOKEN:-}" ]; then
+            echo "::error::Secret META_ACCESS_TOKEN ausente."
+            exit 1
+          fi
+
+          resposta="${RUNNER_TEMP}/meta-adaccounts.json"
+          codigo="$(curl --silent --show-error \
+            --output "${resposta}" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Bearer ${META_ACCESS_TOKEN}" \
+            --get 'https://graph.facebook.com/me/adaccounts' \
+            --data-urlencode 'fields=id,name,account_status,currency' \
+            --data-urlencode 'limit=100')"
+
+          if [ "${codigo}" -lt 200 ] || [ "${codigo}" -ge 300 ]; then
+            echo "::error::A API da Meta respondeu HTTP ${codigo}. O corpo não será exibido para evitar vazamento acidental."
+            exit 1
+          fi
+
+          quantidade="$(jq -r '.data | length' "${resposta}")"
+          if [ "${quantidade}" -lt 1 ]; then
+            echo "::error::O token é válido, mas nenhuma conta de anúncios está acessível."
+            exit 1
+          fi
+
+          echo "Contas de anúncios acessíveis: ${quantidade}"
+          jq -r '.data[] | "- \(.name) (\(.id)) — status \(.account_status), moeda \(.currency)"' "${resposta}"
+
+          {
+            echo '## ✅ Leitura Meta validada'
+            echo
+            echo "Contas acessíveis: ${quantidade}"
+            echo
+            jq -r '.data[] | "- **\(.name)** (\(.id)) — status \(.account_status), moeda \(.currency)"' "${resposta}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Remover resposta temporária
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/meta-adaccounts.json"
