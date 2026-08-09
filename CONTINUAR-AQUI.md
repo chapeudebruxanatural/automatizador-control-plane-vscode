@@ -37,13 +37,14 @@ O padrão é sempre o mesmo: o resultado parecia certo e ninguém checou.
 | # | Arquivo | Por quê |
 |---|---|---|
 | 1 | `CLAUDE.md` | Regras invioláveis, kill switch, segredos, separação de contas Google |
-| 2 | `HANDOFF.md` | **A fonte da verdade.** Comece pelo bloco `⚠︎ INCIDENTE ABERTO` e `▶︎ RETOMADA` na §13 |
+| 2 | `HANDOFF.md` | **A fonte da verdade.** Comece pelos blocos `✅ INCIDENTE FECHADO` e `▶︎ RETOMADA` na §13 |
 | 3 | `DECISIONS.md` | Toda decisão com o motivo. Não refaça decisão registrada sem ler o porquê |
 | 4 | `docs/operations/protocolo-campanha-pre-paga.md` | Como o modelo de saldo funciona |
 | 5 | `docs/operations/padrao-medicao-por-cliente.md` | Como medir cada cliente sem misturar |
 | 6 | `inventory/saldo-por-cliente.yaml` | Livro-caixa: quem depositou quanto |
 | 7 | `packages/integrations/src/google-ads/scope.ts` | A barreira de isolamento entre clientes |
-| 8 | `TASKS.md`, `STATUS.md` | Pendências |
+| 8 | `docs/operations/o-que-falta-o-dono-fornecer.md` | **O que está bloqueado esperando o dono** — credencial, decisão ou arquivo |
+| 9 | `TASKS.md`, `STATUS.md` | Pendências |
 
 Validação antes de mexer em qualquer coisa:
 
@@ -80,9 +81,17 @@ Tudo abaixo foi lido da API ou da interface e conferido.
 - Campanha antiga **24066140634** pausada em 06/08. Foi substituída porque o
   orçamento `CUSTOM_PERIOD` espalhava R$ 472,94 por 24 dias ≈ R$ 19,70/dia e
   sufocava a entrega. **Os 5 contatos históricos estão nela**, todos de 29/07.
-- Em 07/08: R$ 76,93 gastos, 136 cliques, CPC R$ 0,57, **2 contatos de
-  WhatsApp**. Taxa de 1,5% contra 0,9% histórico.
-- Custo por conversa hoje: R$ 38,46. Na campanha antiga era R$ 94,59.
+- Consolidado em 08/08 às 09:18 a partir do XML exportado às 09:12 (`Todo o
+  período`, cinco campanhas Cássio) e do relatório de Locais ao vivo: **1.388
+  cliques de anúncio, R$ 373,63 gastos e 14 registros em `WHATSAPP - CÁSSIO`**.
+  Custo consolidado por registro: **R$ 26,69**; taxa WhatsApp/clique: **1,01%**.
+- Cidades consolidadas: São Paulo 9, Goiânia 2, Brasília 2 e Rio de Janeiro 1.
+  São **regiões de segmentação do Google Ads**, não prova de localização física
+  do usuário.
+- Campanha diária `24106867845`: 466 cliques, R$ 122,20, 9 WhatsApp e R$ 13,58
+  por registro. Campanha anterior `24066140634`: 915 cliques, R$ 213,83,
+  5 WhatsApp e R$ 42,77 por registro. O piloto Search gastou R$ 37,60 em
+  7 cliques e gerou zero WhatsApp; as outras duas campanhas ficaram zeradas.
 - Site `cassioferraz.com.br` corrigido: 45 links de WhatsApp e 19 de redes
   sociais agora têm `href` real no HTML (antes eram `href="#"` preenchidos por
   JS); CTA do hero vai ao WhatsApp; formulário caiu de 5 campos obrigatórios
@@ -93,7 +102,7 @@ Tudo abaixo foi lido da API ou da interface e conferido.
 
 Cinco campanhas de Search, CPC manual, Campinas e região, criadas em 10/07.
 
-| ID | Nome | Estado em 07/08 |
+| ID | Nome | Estado em 08/08 após correção aprovada |
 |---|---|---|
 | 24016194642 | `GARBO \| SEARCH \| MOVEIS EVENTOS \| CAMPINAS` | **ativa**, R$ 6/dia |
 | 24016194645 | `GARBO \| SEARCH \| MESAS CADEIRAS \| CAMPINAS` | **ativa**, R$ 5/dia |
@@ -205,46 +214,59 @@ governador alerta enquanto for `null`.
 
 ---
 
-## 3. O que é INCERTO (não trate como fato)
+## 3. Incidente encerrado e incertezas remanescentes
 
-### Incidente aberto: quem pausou a Garbo?
+### Incidente fechado: um script legado pausou a Garbo
 
-Em 07/08 as três campanhas foram ativadas às ~11h e **verificadas com
-recarregamento** (total da conta subiu de R$ 50 para R$ 64/dia). Às 14h estavam
-`Pausada` de novo.
+**Verificado em 08/08 na interface do Google Ads**, com o filtro de status
+ampliado de `Ativadas` para `Todas` (78 campanhas). O filtro herdado escondia os
+eventos e explicava por que a primeira leitura parecia vazia.
 
-**Os orçamentos gravados na mesma operação persistiram** (10→6, 7→5). Só o
-status voltou. Isso descarta "a alteração não salvou": metade dela salvou.
+O Histórico de Alterações mostra, em 07/08:
 
-O dono afirma que não foi ele e não sabe quem foi. O Histórico de Alterações do
-Google **não registra nada** no dia além da criação da coluna `WhatsApp |
-NOVACENA` às 00:02 — **mas ele atrasa algumas horas**, então isso ainda não é
-prova de ausência.
+- 14:25:55 — as três campanhas foram ativadas manualmente por
+  `contato.automatizadoria@gmail.com`;
+- 14:49:19 — `Script do Google Ads`, sob a mesma conta, mudou exatamente
+  `24016194642`, `24016194645` e `24016194648` de ativa para pausada;
+- houve o mesmo ciclo às 01:27:05/01:49:19.
 
-**Primeira coisa a fazer ao retomar:** reconferir o Histórico de Alterações de
-07/08. Se aparecer autor, o incidente fecha. Se continuar vazio com a mudança
-tendo comprovadamente ocorrido, **deixa de ser uma pausa e vira um problema de
-acesso à conta** — e muda de prioridade.
+O Histórico de scripts identifica a automação sem ambiguidade:
+`GARBO | TRAVA R$100 | 20260728` (ID interno `11999683`), agendada de hora em
+hora. O código ainda usa `START_DATE = 20260728`, teto de R$ 100 e pausa
+preventiva em R$ 90. O novo depósito de 07/08 foi lançado e as campanhas foram
+reativadas sem atualizar esses parâmetros; como o gasto acumulado desde 28/07
+já passava de R$ 90, o script pausou tudo que encontrou ativo.
 
-Hipóteses **nenhuma confirmada**, não trate como causa: regra automatizada ·
-script vinculado · segundo agente operando a conta sem coordenação · acesso de
-terceiro.
+**Não é incidente de acesso à conta nem ação de terceiro.** É conflito entre
+uma trava legada de lote e a nova operação/governador.
 
-Reativadas às 14h20. Confirmadas `ENABLED` pela API na execução #10.
+Com aprovação explícita do dono em 08/08, a frequência do script foi alterada
+de `Por hora` para `Nenhuma` (`—` na tabela). **O script, seu código e o status
+`Ativado` foram preservados; nada foi apagado.** Só depois disso foram
+reativadas exatamente `24016194642`, `24016194645` e `24016194648`, mantendo
+R$ 6/dia, R$ 5/dia e R$ 3/dia. `24016194651` e `24016194654` continuam
+pausadas.
+
+Relatório reconferido na mesma sessão: o crédito de R$ 100 da Andréia gerou
+**0 registros em `WhatsApp | GARBO` em 07/08 e 0 em 08/08 até 09:04**. Não
+confundir esse zero com o histórico anterior de 29 conversas: ele mede somente
+o lote novo, que ficou pausado até a manhã de 08/08.
 
 ### Outras incertezas honestas
 
-- **Garbo com R$ 0,00 gastos** desde a reativação. É esperado — o histórico dela
-  é de ~5 cliques/dia, então poucas horas sem clique é normal. **Zero acumulado
-  em 24h contínuas aí sim é sinal**: investigar anúncio, palavra-chave e lance.
+- **Garbo com R$ 0,00 e 0 WhatsApp em 07/08 e até 09:04 de 08/08** agora está
+  explicado pela pausa e pela reativação recente, não por anúncio,
+  palavra-chave ou lance. Só volte a avaliar entrega depois de a campanha
+  permanecer continuamente ativa.
 - **`CASSIO | LEAD QUALIFICADO | FORM` está Inativa** — nenhuma conversão em 30
   dias. A cadeia de medição parece íntegra. Hipótese principal: ninguém
   completava o formulário (eram 11 campos, 5 obrigatórios; caiu para 2 em
   07/08). Não confirmado.
 - **Encantaria**: o Directus está vazio apesar do site no ar. O conteúdo mora em
   lugar não mapeado. `unknown`.
-- **CPC do Cássio subiu de R$ 0,12 para R$ 0,57** conforme o volume escalou.
-  Esperado ao comprar mais inventário, mas é quase 5×. Vigiar, não agir.
+- **CPC do Cássio variou por dia.** O R$ 0,57 de 07/08 não deve ser projetado
+  como regime: o consolidado das cinco campanhas está em R$ 0,27 por clique e
+  a campanha diária em R$ 0,26. Vigiar a série, não agir por um dia isolado.
 
 ---
 
@@ -281,11 +303,13 @@ erro reversível dentro deste repositório.
 
 ## 5. Fila de trabalho, em ordem
 
-**1. Reconferir o Histórico de Alterações de 07/08** (§3). É a única coisa que
-pode mudar a prioridade de tudo o mais.
+**1. Confirmar estabilidade da Garbo após a antiga janela das 09:49.** O
+agendamento já aparece como `Nenhuma`; reconferir que não houve nova execução e
+que `24016194642`, `24016194645` e `24016194648` seguem ativas. É somente
+leitura.
 
-**2. Garbo gastou?** Se seguir em R$ 0,00 depois de 24h contínuas no ar,
-investigar. Antes disso, não.
+**2. Garbo gastou?** O zero de 07/08 foi causado pela pausa. Só investigar
+entrega se continuar zerada depois de 24h contínuas realmente no ar.
 
 **3. Mídia nova da Gaveta** — esperando o dono. A campanha termina dia 11.
 

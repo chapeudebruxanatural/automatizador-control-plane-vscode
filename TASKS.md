@@ -6,6 +6,26 @@ Legenda: `[ ]` aberto · `[~]` em andamento · `[x]` concluído · `[!]` bloquea
 
 ---
 
+## Google Ads — estabilização atual da Garbo (08/08)
+
+- [x] Identificar quem pausou 24016194642, 24016194645 e 24016194648: script
+      horário `GARBO | TRAVA R$100 | 20260728` (`11999683`), sob
+      `contato.automatizadoria@gmail.com`.
+- [x] Com aprovação do dono, remover somente a frequência horária do script
+      `11999683`; código preservado, status `Ativado`, frequência `Nenhuma`.
+- [x] Depois de neutralizar a trava, reativar exatamente 24016194642,
+      24016194645 e 24016194648, mantendo R$ 6/R$ 5/R$ 3 por dia.
+- [ ] Após 09:49, confirmar por leitura que não houve nova execução e que as
+      três campanhas seguem ativas.
+- [x] Relatórios: Garbo 0 em `WhatsApp | GARBO` desde o crédito de 07/08 até
+      08/08 09:04; Cássio consolidado em 14 `WHATSAPP - CÁSSIO`, R$ 373,63 e
+      R$ 26,69 por WhatsApp (São Paulo 9, Goiânia 2, Brasília 2, Rio 1 por
+      região de segmentação).
+- [ ] Só depois de 24h contínuas realmente no ar, avaliar gasto, cliques e
+      conversas da Garbo. O zero de 07/08 foi causado pela pausa.
+
+---
+
 ## Concluído nesta fase
 
 - [x] Proteção inicial: `.gitignore`, `.env.example`, `SECURITY.md`, política de segredos
@@ -65,17 +85,19 @@ Ordenadas por dependência. **Não pule a fase 3.**
       ver [docs/runbooks/ativar-monitor.md](docs/runbooks/ativar-monitor.md)
 - [x] Núcleo de segurança do agente: resolvedor de cliente, confirmação por
       código, catálogo de capacidades — 52 testes
-- [ ] **Fase 2 — banco na VPS.** Postgres com clientes, contas, histórico. O
-      YAML segue como fonte revisável; o banco é projeção, não o contrário
+- [ ] **Fase 2 — integrar o banco existente.** O dono confirma que a
+      infraestrutura já existe; falta verificar esquema e projetar clientes,
+      contas e histórico. O YAML segue como fonte revisável
 - [ ] Capturar payload real da Evolution (`REAL_PAYLOAD_VERIFIED = false`)
 - [ ] **Fase 3 — WhatsApp somente leitura.** Relatório e status. Nenhuma escrita
 - [ ] Interpretador de intenção: texto livre → ação declarada + parâmetros
 - [ ] Alerta do monitor **chegar** ao dono (hoje só imprime no log do Actions)
 - [ ] Decidir a frase de pânico que desliga tudo, e onde é processada
 - [ ] **Fase 4 — escrita com confirmação.** Só depois da 3 sólida
-- [ ] **Fase 5 — página web.** Configuração, histórico, aprovação do que for
-      caro demais para o celular
-- [ ] **Fase 6 — executores.** GitHub, deploy, SaaS dos clientes
+- [ ] **Fase 5 — integrar o painel web existente.** Configuração, histórico e
+      aprovação do que for caro demais para o celular
+- [ ] **Fase 6 — adaptadores.** GitHub, deploy e SaaS já existem; falta expor
+      ações tipadas e seguras pelo control plane
 
 ---
 

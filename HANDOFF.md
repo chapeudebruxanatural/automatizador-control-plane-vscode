@@ -1,7 +1,19 @@
 # HANDOFF — AutomatizadorIA Control Plane
 
-Documento de transferência. **Atualizado 2026-08-06.** Cole inteiro como contexto
-inicial. O que mudou em 06/08 está nas seções §6, §6.1, §7.6, §12 e §13.
+> **Comece por `CONTINUAR-AQUI.md`.** Ele separa fato verificado de incerteza e
+> traz a fila em ordem. Este documento é o registro completo; aquele é a porta
+> de entrada.
+
+Documento de transferência. **Atualizado 2026-08-08.** O que mudou em 07–08/08
+está em §7.7, §9.2, §12-B, §12-C e §13.
+
+> ⚠️ **A tabela de branches abaixo está obsoleta e é mantida como histórico.**
+> Em 07/08 a `feat/google-ads-live-operations-v1` foi **mesclada na `main`**, e
+> todo o trabalho passou a acontecer direto na `main`. Ignore a instrução
+> "continue na feature branch": ela descreve um estado que não existe mais.
+> O `schedule` do GitHub Actions roda a partir da `main` — trabalhar em branch
+> significa o monitor rodando código antigo, que já causou uma execução verde
+> vigiando campanha pausada (§9.2).
 
 Tudo aqui foi verificado na data acima. Comando documentado é comando executado;
 número foi lido da API, não estimado. Onde não deu para verificar, está escrito
@@ -280,6 +292,16 @@ Auditoria completa em `audit/google-ads.jsonl` (fora do Git, contém request IDs
   de ser consertado e provado. Nenhum teste local acusaria: `npm test` usa o
   `node_modules` que já está lá. Regra: **mexeu em `package.json`, regenere o
   lock e valide com `npm ci` num diretório limpo**, não com `npm install`.
+- **"Histórico vazio" que era histórico filtrado (07/08).** Concluí que o
+  Histórico de Alterações do Google não registrava a pausa da Garbo. Registrava:
+  a tela tinha herdado o filtro `Status da campanha: Ativadas` — **aplicado por
+  mim minutos antes**, ao conferir o que estava no ar. Campanha pausada não
+  aparece nesse filtro, e os eventos procurados eram justamente de campanhas
+  pausadas. Isso me levou a escrever "autor desconhecido" e a listar acesso de
+  terceiro como hipótese, quando a causa era um script legado da própria conta.
+  **Regra: antes de concluir que um dado não existe, cheque o instrumento.**
+  Ausência de resultado e filtro errado produzem a mesma tela — a mesma família
+  do bug de "saldo intacto" versus "campanha parada" corrigido no mesmo dia.
 - **Primeira coleta de ID de campanha por inferência (07/08).** Os IDs da Garbo
   foram deduzidos por proximidade no HTML da interface; **três dos cinco nomes
   saíram errados**. Não foram gravados. O `href` de cada linha é a fonte; a
@@ -717,11 +739,11 @@ bater e a execução é recusada sozinha.
 |---|---|---|
 | 0 | Destravar (v22, credencial por caminho) | ✅ |
 | 1 | Tornar contínuo (monitor agendado) | ✅ **06/08** — secrets cadastrados, PR #2 mesclado, workflow rodou com Success. Ver §9.0 |
-| 2 | Banco na VPS | ✗ |
+| 2 | Projeção do control plane no banco existente | ✗ integração; infraestrutura existe segundo o dono |
 | 3 | WhatsApp somente leitura | ✗ |
 | 4 | Escrita com confirmação | ✗ |
-| 5 | Página web | ✗ |
-| 6 | Executores (GitHub, deploy, SaaS) | ✗ |
+| 5 | Integrar o painel web existente | ✗ integração; painel existe segundo o dono |
+| 6 | Executores (GitHub, deploy, SaaS) | ✗ adaptadores; plataformas já existem |
 
 **Não pule a fase 3.** É onde se descobre, sem risco financeiro, se o agente
 confunde Garbo com Gaveta.
@@ -941,69 +963,132 @@ Os números conferem com a fórmula: Garbo `(100 − 14) ÷ 14 = 6,1`; Cássio
 
 ## 13. SITUAÇÃO ATUAL
 
-> ## ⚠︎ INCIDENTE ABERTO — Garbo pausada por autor desconhecido (07/08)
->
-> As três campanhas da Garbo (24016194642, 24016194645, 24016194648) foram
-> ativadas às ~11h, **verificadas com recarregamento** (total da conta subiu de
-> R$ 50 para R$ 64/dia), e às 14h estavam **`Pausada` de novo**.
->
-> **Os orçamentos que foram gravados na mesma operação persistiram** (10→6,
-> 7→5). Só o status voltou. Isso descarta "a alteração não salvou": metade dela
-> salvou.
->
-> O dono afirma que não foi ele e não sabe quem foi. O **Histórico de
-> alterações do Google não registra nada** no dia além da criação da coluna
-> `WhatsApp | NOVACENA` às 00:02 — mas ele atrasa algumas horas, então ainda
-> não é prova de ausência. **Reconferir o histórico de 07/08 depois de 24h**:
-> se aparecer autor, o incidente fecha; se continuar vazio com a mudança tendo
-> ocorrido, o problema é maior que uma pausa.
->
-> Reativadas às 14h20 a pedido do dono. Total da conta de volta a R$ 64/dia.
->
-> **Hipóteses ainda não descartadas:** regra automatizada na conta · script
-> vinculado · segundo agente operando a mesma conta sem coordenação · acesso de
-> terceiro. Nenhuma foi confirmada; não tratar nenhuma como causa.
->
-> **~~Falta construir a detecção.~~ ✅ CONSTRUÍDA no mesmo dia.**
-> `detectarDivergencias()` compara o que o livro-caixa declara com o que a
-> conta realmente tem, em quatro eixos: `pausada_sem_aviso`,
-> `ativa_sem_declaracao`, `removida` e `orcamento_diferente`. O script lê
-> `campaign.status` e `campaign_budget.amount_micros` de cada campanha e passa
-> os dois lados para comparação.
->
-> **O que torna isso necessário, e não apenas caprichoso:** com a Garbo pausada
-> e sem gastar, o governador reportaria **`saudavel`, 6,1 dias de saldo**. Ela
-> estava saudável *porque* não rodava. **Saldo intacto e campanha parada
-> produzem exatamente o mesmo número** — só a comparação com o status real
-> separa os dois. Há teste de regressão marcado `REGRESSAO 07/08` fixando que o
-> nível continua `saudavel` mas o resumo denuncia a pausa.
->
-> Divergência sozinha já força `precisaDecisao`, mesmo sem nenhuma recomendação
-> de corte — não adianta ajustar verba de campanha que não está no ar.
+### Avaliação de arquitetura — OpenClaw é opcional (08/08)
 
-> ## ▶︎ RETOMADA — sessão encerrada em 07/08/2026
+O OpenClaw pode substituir a camada genérica que ainda não está pronta neste
+repositório: canal do WhatsApp, pareamento/allowlist, sessões, roteamento de
+agentes, automações e encaminhamento de aprovações. Ele **não substitui** o
+domínio da AutomatizadorIA: resolução inequívoca de cliente, escopo de conta e
+campanha, livro-caixa, governador, campanhas congeladas, aprovação vinculada ao
+plano e auditoria.
+
+O dono informou que já possui banco, painel web, GitHub, VPS, Cloudflare, n8n,
+Meta e a infraestrutura de WhatsApp. Trate a existência completa desse conjunto
+como `owner_reported` até cada recurso ser inventariado; VPS, Postgres, n8n e
+Evolution já têm evidência parcial ou direta no inventário. O que falta não é
+recriar essas plataformas, mas ligá-las ao `ActionRegistry`, ao kill switch, à
+aprovação e à auditoria.
+
+**Recomendação atual: não instalar OpenClaw agora.** O caminho mais curto usa a
+estrutura existente: `WhatsApp/Evolution → n8n → API do control plane →
+adaptadores`. O painel existente chama a mesma API. OpenClaw só volta à mesa se
+sessões multiagente, memória ou outros canais justificarem uma camada adicional.
+
+Estimativa revisada, se as credenciais e APIs existentes forem disponibilizadas
+por referência segura: 3 dias úteis para WhatsApp somente leitura, 7 a 10 para
+Google Ads com confirmação e piloto, e 10 a 15 para integrar banco, painel e os
+adaptadores prioritários já existentes. Nenhuma instalação, dependência ou
+escrita na VPS foi feita nesta avaliação.
+
+### Pacote de desbloqueio aguardado do dono (operação completa)
+
+Para reduzir o caminho crítico, o dono precisa fornecer **identificadores e
+referências de credenciais, nunca os valores dos segredos no chat ou no
+repositório**:
+
+1. mapa autoritativo cliente → Google Ads/Meta/WhatsApp/banco, com a fonte da
+   confirmação; associação incerta permanece `verificationStatus: unknown`;
+2. IDs de conta gerenciadora/cliente e referência segura do developer token e
+   OAuth do Google Ads;
+3. IDs de Business Manager, contas de anúncios, páginas e Instagram da Meta,
+   permissões desejadas e referência segura do token de System User/app;
+4. URL, nome da instância, número pareado, destinatário de teste e referência
+   segura da API key do Evolution, além de uma carga real sanitizada do webhook;
+5. URL do n8n, workflows atuais, referência segura da API key e processo de
+   promoção entre homologação e produção;
+6. esquema/migrations e mecanismo de acesso ao banco existente, com usuário de
+   homologação e política de backup/rollback;
+7. repositório/caminho, autenticação, URL e processo de deploy do painel web;
+8. host e usuário restrito da VPS, diretório/serviço alvo, runtime, gerenciador
+   de processo e localização dos logs — sem enviar chave privada;
+9. IDs de conta/zonas/rotas da Cloudflare e referência de token de escopo
+   mínimo; organização/repositórios GitHub e método de acesso correspondente;
+10. matriz de autorização: números permitidos, aprovadores, ações somente
+    leitura, ações mutáveis, limites de orçamento, horários e frase de pânico;
+11. um cliente/conta/recurso de homologação e exemplos do resultado esperado
+    para consultas, alertas, aprovações e relatórios.
+
+Cada escrita externa continuará exigindo plano exato e aprovação: cadastrar
+segredos, alterar VPS/n8n/Cloudflare/banco, conectar webhook/número, publicar ou
+enviar mensagem. O fornecimento desse pacote não é aprovação geral para essas
+ações.
+
+> ## ✅ INCIDENTE FECHADO — script legado pausou a Garbo (verificado em 08/08)
 >
-> **Tudo mesclado na `main` (`a862dd9`).** Workflow disparado e verde, com o
-> governador rodando. Nada pendente de commit.
+> A primeira leitura do Histórico de Alterações parecia vazia porque a visão
+> herdou o filtro `Status da campanha: Ativadas`. Ao trocar para `Todas` (78
+> campanhas), apareceram os eventos que fecham o incidente.
+>
+> Em 07/08 às 14:25:55, `contato.automatizadoria@gmail.com` ativou manualmente
+> as três campanhas. Às 14:49:19, a ferramenta **`Script do Google Ads`**, sob
+> a mesma conta, mudou exatamente 24016194642, 24016194645 e 24016194648 de
+> ativa para pausada. Houve o mesmo ciclo às 01:27:05/01:49:19.
+>
+> O Histórico de scripts identifica a origem: **`GARBO | TRAVA R$100 |
+> 20260728`**, ID interno `11999683`, agendado de hora em hora. Na execução das
+> 14:49:15 ele concluiu três ações; quatro segundos depois o histórico registrou
+> as pausas.
+>
+> A causa está no código do próprio script: `START_DATE = 20260728`, teto de
+> R$ 100 e pausa preventiva em R$ 90. O depósito novo de 07/08 não atualizou
+> essa janela antes da reativação. Como o gasto desde 28/07 já superava R$ 90,
+> toda campanha ativa era pausada na execução horária seguinte.
+>
+> **Conclusão:** não é problema de acesso nem ação de terceiro; é conflito entre
+> uma trava legada e a nova operação/governador.
+>
+> Com aprovação explícita do dono em 08/08, a frequência do script `11999683`
+> foi alterada de `Por hora` para `Nenhuma`: a tabela agora mostra `—`. O script
+> continua existente, com código intacto e status `Ativado`; não foi apagado nem
+> executado manualmente.
+>
+> Depois da neutralização, foram reativadas **somente** 24016194642,
+> 24016194645 e 24016194648. Recarregamento confirmou `Ativado` e orçamentos
+> inalterados de R$ 6/dia, R$ 5/dia e R$ 3/dia. MARCA (24016194651) e
+> CASAMENTOS (24016194654) continuam pausadas. Buteco 24105770570 e Gaveta
+> 24079586567 não foram tocadas.
+>
+> Medição do lote novo da Garbo: `WhatsApp | GARBO` ficou em **0 em 07/08 e 0
+> em 08/08 até 09:04**. Isso soma 0 desde o crédito de R$ 100 da Andréia; o
+> histórico anterior de 29 conversas não pertence ao lote novo.
+
+> ## ▶︎ RETOMADA — operação atualizada em 08/08/2026 às 09:04
+>
+> Branch `main`, árvore limpa antes da documentação. Validação local completa:
+> `npm ci`, lint, typecheck, **256 testes em 70 suítes**, build e varredura de
+> 182 arquivos por segredos — tudo verde, zero achados.
 >
 > **Comece por estes três, nesta ordem:**
 >
-> **1. Garbo gastou alguma coisa?** `gh run list --workflow=monitor.yml` e leia
-> o Summary da execução mais recente. Zero em 07/08 é normal; **zero em 08/08
-> não é** — investigar anúncio reprovado, grupo de anúncios pausado, ou lance
-> abaixo do leilão em Campinas. As três campanhas ativas são 24016194642
-> (R$ 6/dia), 24016194645 (R$ 5) e 24016194648 (R$ 3).
+> **1. Às 09:50 ou depois, reconferir somente por leitura** que o script não
+> executou na antiga janela das 09:49 e que as três campanhas seguem ativas.
+> A frequência já aparece como `Nenhuma`, mas essa verificação fecha a
+> estabilidade operacional sem depender de inferência.
 >
-> **2. Cássio destravou?** R$ 0,73 num orçamento de R$ 50/dia é 1,5%. Em
-> LEARNING desde 06/08. Se continuar assim, o problema não é verba.
+> **2. Medir entrega da Garbo.** O R$ 0,00 de 07/08 está explicado
+> pela pausa. Investigar anúncio/lance apenas se seguir zerada depois de 24h
+> contínuas realmente ativa.
 >
-> **3. A comissão da Garbo.** `comissao: null` no livro-caixa. Enquanto for
-> null, o governador calcula 6,1 dias de pista assumindo que os R$ 100 do Pix
-> viraram R$ 100 de anúncio. Se houve retenção, a pista é menor e a diferença
-> sai do saldo do Cássio. **Perguntar ao dono o valor retido** e preencher
-> `comissao` e `depositadoEmAds` em `inventory/saldo-por-cliente.yaml`.
+> **3. Cássio:** consolidado em 08/08 às 09:18 usando o XML exportado às 09:12
+> (`Todo o período`, cinco campanhas) e o relatório de Locais ao vivo: **1.388
+> cliques de anúncio, R$ 373,63 gastos, 14 em `WHATSAPP - CÁSSIO`, R$ 26,69 por
+> WhatsApp e taxa de 1,01%**. Cidades consolidadas por `Região de segmentação`:
+> São Paulo 9, Goiânia 2, Brasília 2 e Rio de Janeiro 1. Não tratar região de
+> segmentação como prova de localização física. A campanha diária responde por
+> 9 WhatsApp a R$ 13,58 cada; a anterior, por 5 a R$ 42,77. A API local segue
+> indisponível por falta do developer token.
 >
-> **Esperando o dono, não a gente:** mídia nova da Gaveta para substituir o
+> **Também esperando o dono:** mídia nova da Gaveta para substituir o
 > short reprovado por direitos autorais (os R$ 300 estão parados até lá).
 >
 > **Fila depois disso:** tag de WhatsApp para Sou Raízes, Chapéu de Bruxa e
@@ -1011,10 +1096,11 @@ Os números conferem com a fórmula: Garbo `(100 − 14) ÷ 14 = 6,1`; Cássio
 > não terem site. Cliente novo **nasce em conta de anúncios própria** — não
 > migrar quem já roda, mas parar de fazer o problema crescer.
 
-**`CASSIO_DELIVERING`** — há entrega, sem contato novo confirmado desde a
-reativação. **Reconfirmado em 06/08:** os 5 contatos continuam sendo os de 29/07
-(§7.2). A interface mostrava 680 cliques e R$ 177,47 acumulados, CPC ~R$ 0,26 —
-leitura de interface, não de API.
+**Marcador operacional ainda `CASSIO_DELIVERING`.** O XML de 08/08 mostra 14
+registros históricos de `WHATSAPP - CÁSSIO`, 9 deles na campanha diária —
+evidência suficiente para o relatório pedido pelo dono —, mas a regra do
+marcador exige confirmação pela API. A API local não pôde ser consultada neste
+ambiente por falta do developer token.
 
 Só reporte **`CASSIO_CONVERTING`** após novo `WHATSAPP - CÁSSIO` confirmado
 **pela API**, não pela interface.

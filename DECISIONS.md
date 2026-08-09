@@ -241,3 +241,95 @@ Não confirmado: exigiria submissão real, que geraria pedido à produção.
   deve ser lançada como `0.00` explicitamente, nunca deixada `null`: ausência
   de declaração não pode ser lida como ausência de retenção, e o governador
   alerta enquanto for `null`.
+
+## 2026-08-08 — Incidente da Garbo fechado; trava legada é a causa
+
+**O incidente não é de acesso à conta.** O Histórico de Alterações de 07/08
+parecia vazio porque a visão estava filtrada para campanhas `Ativadas`. Com o
+filtro ampliado para `Todas`, apareceu a sequência: ativação manual das três
+campanhas às 14:25:55 e pausa às 14:49:19 pela ferramenta `Script do Google
+Ads`, sob `contato.automatizadoria@gmail.com`. Os detalhes confirmam exatamente
+24016194642, 24016194645 e 24016194648. Houve o mesmo ciclo às
+01:27:05/01:49:19. Consequência: a hipótese de terceiro ou acesso oculto está
+descartada para este incidente.
+
+**A causa raiz é o script `GARBO | TRAVA R$100 | 20260728` (ID `11999683`).**
+Ele roda de hora em hora e ainda calcula o gasto desde `20260728`, com teto de
+R$ 100 e pausa preventiva em R$ 90. O depósito novo de 07/08 foi acompanhado de
+reativação e novos orçamentos, mas a janela do script não foi atualizada; o
+gasto histórico já superava o gatilho e a próxima execução pausou tudo.
+Consequência: não reativar novamente enquanto essa trava continuar com os
+parâmetros antigos.
+
+**O script legado e o governador não podem permanecer como autoridades
+concorrentes.** O governador vigente propõe e pede aprovação; o script antigo
+executava pausa automática. A decisão operacional exigia aprovação explícita e
+esta ordem: neutralizar a trava, reativar, observar a próxima janela, confirmar
+estado.
+
+**A investigação foi somente leitura.** Antes da aprovação posterior, as cinco
+campanhas da Garbo estavam pausadas; 24016194642/645/648 preservavam
+R$ 6/R$ 5/R$ 3 por dia e tiveram R$ 0,00 em 07/08.
+
+## 2026-08-08 — Agendamento legado removido e Garbo reativada
+
+**Decisão aprovada pelo dono:** preservar o script
+`GARBO | TRAVA R$100 | 20260728` (`11999683`) e remover somente seu agendamento
+horário. A frequência foi alterada de `Por hora` para `Nenhuma`; a tabela mostra
+`—`, enquanto o código e o status `Ativado` permanecem intactos. Motivo:
+eliminar a autoridade automática concorrente sem apagar a evidência e o código
+do lote anterior.
+
+**Só depois da neutralização foram reativadas exatamente três campanhas:**
+24016194642 a R$ 6/dia, 24016194645 a R$ 5/dia e 24016194648 a R$ 3/dia.
+Recarregamento confirmou `Ativado` e os mesmos orçamentos. 24016194651 e
+24016194654 continuam pausadas. A próxima conferência é somente leitura após a
+antiga janela das 09:49.
+
+**Critério dos relatórios desta operação:** o lote de R$ 100 da Andréia começa
+em 07/08. `WhatsApp | GARBO` foi 0 em 07/08 e 0 em 08/08 até 09:04. Para o
+relatório histórico do Cássio, usar todas as cinco campanhas do XML `Todo o
+período`, inclusive o gasto do piloto sem conversão: R$ 373,63, 1.388 cliques e
+14 em `WHATSAPP - CÁSSIO`, resultando em R$ 26,69 por WhatsApp. Consolidar as
+cidades das duas campanhas que converteram: São Paulo 9, Goiânia 2, Brasília 2
+e Rio de Janeiro 1. `Região de segmentação` não deve ser apresentada como
+localização física verificada.
+
+## 2026-08-08 — OpenClaw é opcional; priorizar a estrutura existente
+
+**OpenClaw não é requisito.** Ele oferece canal, sessões, roteamento, automações
+e aprovações genéricas, mas o dono informou que já possui banco, painel web,
+GitHub, VPS, Cloudflare, n8n, Meta e infraestrutura de WhatsApp. Essa declaração
+é `owner_reported` onde ainda não houver inventário técnico. Consequência: não
+contar essas plataformas como inexistentes; distinguir existência de integração
+com o control plane.
+
+**Caminho recomendado enquanto o dono não decidir o contrário:**
+`WhatsApp/Evolution → n8n → API do control plane → adaptadores`, com o painel
+existente consumindo a mesma API. O valor deste repositório continua sendo a
+política específica da operação: cliente e campanha verificados, conta
+compartilhada, livro-caixa, governador, kill switch, confirmação vinculada ao
+plano e auditoria.
+
+**Não instalar OpenClaw agora.** Ele só deve ser reconsiderado se houver uma
+necessidade concreta de sessões multiagente, memória ou outros canais que a
+estrutura atual não atenda. Estimativa revisada: 3 dias úteis para leitura pelo
+WhatsApp, 7 a 10 para Google Ads com confirmação e 10 a 15 para integrar banco,
+painel e adaptadores prioritários, dependendo das credenciais e APIs existentes.
+Esta decisão não autoriza escrita na VPS nem conexão de número real.
+
+## 2026-08-08 — Credenciais entram somente por referência segura
+
+**O pacote de integração fornecido pelo dono será separado em metadados e
+segredos.** IDs de contas, URLs, nomes de instâncias, escopos, regras e mapas de
+clientes podem ser documentados. Tokens, senhas, client secrets, refresh tokens,
+chaves privadas e strings de conexão não serão enviados no chat nem gravados no
+repositório; serão cadastrados diretamente no mecanismo protegido da plataforma
+e o código receberá apenas a referência/nome da variável.
+
+**Entregar acessos não equivale a aprovar escritas externas.** Configurar
+credenciais, webhooks, VPS, n8n, Cloudflare, banco, publicação ou mensagem real
+continuará sujeito a uma proposta concreta e aprovação explícita. Primeiro será
+validado o menor escopo somente leitura; permissões de mutação serão habilitadas
+apenas quando o fluxo de confirmação, auditoria, rollback e kill switch estiver
+homologado.
