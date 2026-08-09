@@ -38,7 +38,10 @@ jobs:
             --data-urlencode 'limit=100')"
 
           if [ "${codigo}" -lt 200 ] || [ "${codigo}" -ge 300 ]; then
-            echo "::error::A API da Meta respondeu HTTP ${codigo}. O corpo não será exibido para evitar vazamento acidental."
+            tipo="$(jq -r '.error.type // "desconhecido"' "${resposta}" 2>/dev/null || echo 'ilegível')"
+            erro="$(jq -r '.error.code // "desconhecido"' "${resposta}" 2>/dev/null || echo 'ilegível')"
+            suberro="$(jq -r '.error.error_subcode // "nenhum"' "${resposta}" 2>/dev/null || echo 'ilegível')"
+            echo "::error::A API da Meta respondeu HTTP ${codigo}; tipo ${tipo}; código ${erro}; subcódigo ${suberro}. Mensagem e corpo omitidos."
             exit 1
           fi
 
