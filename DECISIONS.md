@@ -596,3 +596,35 @@ Para campanhas com destino ao WhatsApp, Página, Instagram, conta do WhatsApp Bu
 Fato: o portfólio mostrou três Páginas, uma conta do Instagram com análise necessária, dois datasets sem eventos e nenhuma linha na tela de contas do WhatsApp. A tela vazia do WhatsApp não prova inexistência; pode representar ausência de vínculo, outro portfólio ou acesso insuficiente.
 
 Decisão: nenhuma campanha com destino ao WhatsApp será criada ou publicada até que Página, Instagram, número/conta do WhatsApp e pixel/dataset estejam confirmados por ID para o cliente correto. Nomes não autorizam associação. O inventário fica em `inventory/meta-assets.yaml`, com `verificationStatus: unknown` onde falta confirmação.
+
+
+## 2026-08-09 — Repositório de projeto e workspace operacional são diferentes
+
+**Correção do dono:** repositórios como `cassio-ferraz`, `garbo`, `vivere`,
+`4cadeiras` e `malta-sertaneja` são os projetos/sites reais dos clientes. Um
+`cliente-<slug>-ops` guarda memória privada e não substitui o projeto real.
+
+**Decisão:** novos projetos simples nascem por onboarding automático com
+repositório GitHub privado, starter portátil e Cloudflare Pages conectado. O
+provisionador sempre simula primeiro e só escreve com kill switch desligado,
+modo live, aprovação humana e frase específica do plano. Token de escrita é
+separado dos tokens somente leitura.
+
+**Limite:** Pages é o padrão para sites estáticos. Workers não é inferido nem
+criado pelo comando; projetos avançados exigem escolha explícita e template
+próprio.
+
+## 2026-08-09 — Credencial de provisionamento Cloudflare separada
+
+**Decisão:** a fábrica usa um token próprio da conta Cloudflare, com somente
+`Pages Write`, em vez de ampliar ou reutilizar o token de inventário.
+
+**Estado verificado:** o token `AutomatizadorIA - provisionamento Pages` foi
+criado para a conta correta, aparece ativo, expira em 09/08/2027 e fica fora do
+Git em arquivo local modo `600`. O `account_id` fica em arquivo protegido
+separado. Nenhum projeto, domínio, Worker ou DNS foi criado para testar a
+credencial sem um cliente real informado.
+
+**Motivo:** login web prova acesso humano, mas não autoriza um processo local a
+chamar a API. Separar a credencial mantém o menor privilégio e permite revogar
+a fábrica sem interromper o inventário somente leitura.
