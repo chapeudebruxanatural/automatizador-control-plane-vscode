@@ -62,6 +62,20 @@ Três consequências que não são negociáveis:
         (clientes, contas, histórico)
 ```
 
+### Memória portátil por cliente
+
+O control plane não é mais a única interface de memória. A execução continua
+central, mas cada cliente recebe um workspace privado com contexto, decisões,
+tarefas e relatórios. O registro central guarda a projeção e o vínculo por
+slug; nenhuma IA recebe os oito clientes quando a tarefa pertence a um só.
+
+```text
+workspace privado do cliente → plano tipado → control plane → adaptador
+           memória               segurança       execução
+```
+
+Detalhes e fronteiras de autoridade: [ADR 0004](../adr/0004-arquitetura-hibrida-workspaces-por-cliente.md).
+
 ### Entrada
 
 Três canais, mesma espinha. O canal muda **o que é alcançável**, não como a
