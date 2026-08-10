@@ -27,10 +27,11 @@ import {
 import { createVpsReadAdapter } from '../../../packages/integrations/src/vps/adapter.js';
 import { VpsReadClient } from '../../../packages/integrations/src/vps/client.js';
 import { createKillSwitch } from '../../../packages/security/src/kill-switch.js';
-import { createDenyAllApprovalProvider } from '../../../packages/security/src/approval.js';
+import { createDenyAllApprovalProvider, createFileApprovalProvider } from '../../../packages/security/src/approval.js';
 import {
   createMemoryAuditProvider,
   createFileAuditProvider,
+  createRotatingFileAuditProvider,
   createCompositeAuditProvider,
   type AuditProvider,
 } from '../../../packages/audit/src/audit.js';
@@ -87,7 +88,8 @@ async function main(): Promise<void> {
     config.auditSink === 'file'
       ? createCompositeAuditProvider([
           createMemoryAuditProvider(),
-          createFileAuditProvider(config.auditLogPath),
+          // Use a rotating file sink for production-like behavior.
+          createRotatingFileAuditProvider(config.auditLogPath),
         ])
       : createMemoryAuditProvider();
 
@@ -97,7 +99,9 @@ async function main(): Promise<void> {
   const executor = new ActionExecutor({
     registry,
     killSwitch: createKillSwitch({ engaged: config.killSwitch }),
-    approval: createDenyAllApprovalProvider(),
+    approval: process.env['APPROVAL_FILE_PATH']
+      ? createFileApprovalProvider(process.env['APPROVAL_FILE_PATH'])
+      : createDenyAllApprovalProvider(),
     audit,
     logger,
     dryRun: config.executionMode === 'dry-run',

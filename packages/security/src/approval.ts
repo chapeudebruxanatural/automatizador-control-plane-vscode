@@ -12,6 +12,15 @@
  */
 
 import type { ActionRequest } from '../../domain/src/action.js';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
+
+interface FileApprovalRecord {
+  id: string;
+  kind: string;
+  approvedBy: string;
+  expiresAt?: string;
+}
 
 export interface ApprovalDecision {
   readonly approved: boolean;
@@ -82,6 +91,69 @@ export function createSingleUseApprovalProvider(
         reason: 'Aprovação de uso único consumida.',
         approvedBy: approval?.approvedBy ?? 'unknown',
       });
+    },
+  };
+}
+
+/**
+ * Provedor de aprovações persistente em arquivo.
+ *
+ * Formato: JSON Lines, cada linha um `FileApprovalRecord`.
+ * Entradas são consumidas (removidas) ao serem usadas. Expirações são
+ * respeitadas se `expiresAt` estiver presente.
+ */
+export function createFileApprovalProvider(filePath: string): ApprovalProvider {
+  async function ensureDir() {
+    await mkdir(dirname(filePath), { recursive: true });
+  }
+
+  async function readAll(): Promise<FileApprovalRecord[]> {
+    try {
+      const raw = await readFile(filePath, 'utf8');
+      return raw
+        .split('\n')
+        .filter(Boolean)
+        .map((l) => JSON.parse(l) as FileApprovalRecord);
+    } catch (e: any) {
+      if (e.code === 'ENOENT') return [];
+      throw e;
+    }
+  }
+
+  async function writeAll(records: FileApprovalRecord[]) {
+    await ensureDir();
+    const content = records.map((r) => JSON.stringify(r)).join('\n') + (records.length ? '\n' : '');
+    await writeFile(filePath, content, 'utf8');
+  }
+
+  return {
+    name: 'file-approval',
+    decide: async (request, mutating) => {
+      if (!mutating) {
+        return { approved: true, reason: 'Ação de leitura não requer aprovação.' };
+      }
+
+      const now = new Date();
+      const records = await readAll();
+
+      const idx = records.findIndex((r) => {
+        if (r.kind !== request.kind) return false;
+        if (!r.expiresAt) return true;
+        return new Date(r.expiresAt) > now;
+      });
+
+      if (idx === -1) {
+        return { approved: false, reason: `Sem aprovação persistente para "${request.kind}".` };
+      }
+
+      const record = records.splice(idx, 1)[0];
+      await writeAll(records);
+      return {
+        approved: true,
+        reason: 'Aprovação persistente consumida.',
+        approvedBy: record.approvedBy,
+        expiresAt: record.expiresAt ? new Date(record.expiresAt) : undefined,
+      };
     },
   };
 }

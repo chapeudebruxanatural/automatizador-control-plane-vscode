@@ -35,6 +35,23 @@ cp .env.example .env    # ajuste se precisar; os padrões já são seguros
 npm run dev
 ```
 
+## Auditoria e Aprovações em arquivo
+
+Para habilitar auditoria em arquivo, configure no ambiente:
+
+- `AUDIT_SINK=file`
+- `AUDIT_LOG_PATH=./audit/audit.jsonl`
+
+O sink em arquivo usa rotação por tamanho por padrão.
+
+Para habilitar aprovações persistentes (single-use), crie um arquivo JSON Lines com entradas no formato:
+
+```
+{ "id": "codigo-1", "kind": "meu:acao", "approvedBy": "nome", "expiresAt": "2026-08-10T...Z" }
+```
+
+e defina a variável de ambiente `APPROVAL_FILE_PATH` apontando para esse arquivo. O provedor consumirá e removerá a linha ao utilizar a aprovação.
+
 Verificação:
 
 ```bash
