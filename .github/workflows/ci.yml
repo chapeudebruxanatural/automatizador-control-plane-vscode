@@ -1,5 +1,30 @@
 name: CI
 
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main, 'feature/**' ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint --silent
+      - name: Typecheck
+        run: npm run typecheck --silent
+      - name: Run tests
+        run: npm test --silent
+name: CI
+
 # Valida o Control Plane em toda mudança que possa chegar à main.
 #
 # Este workflow NÃO tem acesso a nenhum sistema externo: sem secrets, sem VPS,

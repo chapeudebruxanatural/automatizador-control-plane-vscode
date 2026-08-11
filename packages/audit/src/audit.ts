@@ -9,7 +9,7 @@
  * credencial resolve um problema criando outro maior.
  */
 
-import { appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir, stat, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { redact } from '../../shared/src/redact.js';
@@ -88,6 +88,69 @@ export function createFileAuditProvider(filePath: string): AuditProvider {
         await mkdir(dirname(filePath), { recursive: true });
         directoryReady = true;
       }
+      await appendFile(filePath, `${JSON.stringify(event)}\n`, 'utf8');
+      return event;
+    },
+    list: () => Promise.resolve([]),
+  };
+}
+
+/**
+ * Sink em arquivo JSON Lines com rotação por tamanho.
+ *
+ * Ao ultrapassar `maxBytes` o arquivo atual é rotacionado para `filePath.1`,
+ * os backups anteriores são deslocados e o mais antigo é removido quando
+ * excede `maxBackups`.
+ */
+export function createRotatingFileAuditProvider(
+  filePath: string,
+  maxBytes = 5_000_000,
+  maxBackups = 5,
+): AuditProvider {
+  let directoryReady = false;
+
+  async function ensureDir() {
+    if (!directoryReady) {
+      await mkdir(dirname(filePath), { recursive: true });
+      directoryReady = true;
+    }
+  }
+
+  async function rotateIfNeeded() {
+    try {
+      const s = await stat(filePath);
+      if (s.size <= maxBytes) return;
+    } catch (e: any) {
+      if (e.code === 'ENOENT') return;
+      throw e;
+    }
+
+    // rotate backups: .(maxBackups-1) -> .maxBackups, ... .1 -> .2
+    for (let i = maxBackups - 1; i >= 1; i--) {
+      const src = `${filePath}.${i}`;
+      const dst = `${filePath}.${i + 1}`;
+      try {
+        await rename(src, dst);
+      } catch (e: any) {
+        // ignore missing files
+        if (e.code !== 'ENOENT') throw e;
+      }
+    }
+
+    // rotate current to .1
+    try {
+      await rename(filePath, `${filePath}.1`);
+    } catch (e: any) {
+      if (e.code !== 'ENOENT') throw e;
+    }
+  }
+
+  return {
+    name: 'rotating-file',
+    record: async (input) => {
+      const event = buildEvent(input);
+      await ensureDir();
+      await rotateIfNeeded();
       await appendFile(filePath, `${JSON.stringify(event)}\n`, 'utf8');
       return event;
     },
