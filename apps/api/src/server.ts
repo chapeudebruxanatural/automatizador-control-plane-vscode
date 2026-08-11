@@ -15,12 +15,14 @@ import type { Config } from '../../../packages/shared/src/config.js';
 import { describePosture, type IntegrationEnabledState } from '../../../packages/shared/src/config.js';
 import type { Logger } from '../../../packages/shared/src/logger.js';
 import type { ActionRegistry } from '../../../packages/domain/src/action.js';
+import type { ActionExecutor } from '../../../packages/domain/src/executor.js';
 import { handleWhatsAppWebhook, type WhatsAppRouteDependencies } from './routes/whatsapp/webhook.js';
 
 export interface ServerDependencies {
   readonly config: Config;
   readonly logger: Logger;
   readonly registry: ActionRegistry;
+  readonly executor?: ActionExecutor;
   /** Injetável para teste. */
   readonly env?: Record<string, string | undefined>;
   readonly integrationEnabled?: IntegrationEnabledState;
@@ -65,6 +67,32 @@ export function createApiServer(deps: ServerDependencies): {
     const method = req.method ?? 'GET';
     const path = (req.url ?? '/').split('?')[0] ?? '/';
 
+    async function readJsonBody(maxBytes = 64 * 1024): Promise<any> {
+      return new Promise((resolve, reject) => {
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+        req.on('data', (c: Uint8Array) => {
+          received += c.length;
+          if (received > maxBytes) {
+            reject(new Error('payload_too_large'));
+            req.destroy();
+            return;
+          }
+          chunks.push(c);
+        });
+        req.on('end', () => {
+          try {
+            const raw = Buffer.concat(chunks).toString('utf8') || '';
+            if (raw.trim() === '') return resolve({});
+            return resolve(JSON.parse(raw));
+          } catch (e) {
+            return reject(e);
+          }
+        });
+        req.on('error', (err) => reject(err));
+      });
+    }
+
     if (method === 'POST' && path === '/whatsapp/webhook' && deps.whatsapp !== undefined) {
       handleWhatsAppWebhook(req, res, deps.whatsapp).catch((err: unknown) => {
         logger.error('whatsapp: erro nao tratado no webhook', {
@@ -72,6 +100,43 @@ export function createApiServer(deps: ServerDependencies): {
         });
         if (!res.headersSent) json(res, 500, { error: 'internal_error' });
       });
+      return;
+    }
+
+    if (method === 'POST' && path === '/execute') {
+      // Secure by token if configured.
+      const env = deps.env ?? process.env;
+      const token = env['EXECUTION_AUTH_TOKEN'] ?? '';
+      const header = (req.headers['x-cp-exec-token'] as string) ?? '';
+
+      if (!deps.executor) {
+        json(res, 501, { error: 'not_implemented', detail: 'executor not available' });
+        return;
+      }
+
+      if (token && token !== header) {
+        json(res, 401, { error: 'unauthorized' });
+        return;
+      }
+
+      try {
+        const body = await readJsonBody();
+        const { kind, target, payload, clientSlug, requestedBy } = body;
+        if (typeof kind !== 'string' || typeof target !== 'string') {
+          json(res, 400, { error: 'invalid_request', detail: 'kind and target are required strings' });
+          return;
+        }
+
+        const result = await deps.executor.execute({ kind, target, payload, clientSlug, requestedBy });
+        json(res, 200, { result });
+      } catch (err: any) {
+        if (err?.message === 'payload_too_large') {
+          json(res, 413, { error: 'payload_too_large' });
+          return;
+        }
+        json(res, 500, { error: 'internal_error', detail: err instanceof Error ? err.message : String(err) });
+      }
+
       return;
     }
 

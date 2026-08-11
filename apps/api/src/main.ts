@@ -128,6 +128,7 @@ async function main(): Promise<void> {
       Object.entries(adapters).map(([name, adapter]) => [name, adapter.enabled]),
     ),
     whatsapp: { module: whatsapp, webhookSecret, logger: logger.child({ route: 'whatsapp' }) },
+    executor,
   });
 
   server.listen(config.port, HOST, () => {
