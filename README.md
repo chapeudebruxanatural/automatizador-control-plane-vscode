@@ -52,6 +52,18 @@ Para habilitar aprovações persistentes (single-use), crie um arquivo JSON Line
 
 e defina a variável de ambiente `APPROVAL_FILE_PATH` apontando para esse arquivo. O provedor consumirá e removerá a linha ao utilizar a aprovação.
 
+Exemplo rápido (local):
+
+```
+# semear um approval de teste
+node scripts/seed-approval.mjs ./audit/approvals.jsonl onboarding:run ops 3600
+
+# iniciar a API apontando para o arquivo de approvals e com auditoria em arquivo
+AUDIT_SINK=file AUDIT_LOG_PATH=./audit/audit.jsonl APPROVAL_FILE_PATH=./audit/approvals.jsonl npm run dev
+```
+
+Arquivo exemplo de approvals: `scripts/approvals.example.jsonl`.
+
 Verificação:
 
 ```bash

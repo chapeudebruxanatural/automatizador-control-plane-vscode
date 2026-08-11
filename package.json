@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/apps/api/src/main.js",
     "start:local": "node --env-file=.env dist/apps/api/src/main.js",
+    "start:approved": "AUDIT_SINK=file AUDIT_LOG_PATH=./audit/audit.jsonl APPROVAL_FILE_PATH=./audit/approvals.jsonl npm run dev",
     "worker": "tsx apps/worker/src/main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
